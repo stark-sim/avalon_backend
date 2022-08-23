@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  app:
+    image: starksim/drive_backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    container_name: "drive_backend"
+    networks:
+      default:
+        - aliases:
+            - drive_backend
+
+networks:
+  default:
+    name: drive
+    external: true
