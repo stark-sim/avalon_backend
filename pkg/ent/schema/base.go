@@ -1,8 +1,8 @@
 package schema
 
 import (
-	"avalon_backend/tools"
 	"entgo.io/ent/dialect/entsql"
+	"github.com/stark-sim/avalon_backend/tools"
 	"time"
 
 	"entgo.io/contrib/entgql"

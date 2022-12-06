@@ -84,14 +84,183 @@ func (c *CardUpdateOne) SetInput(i UpdateCardInput) *CardUpdateOne {
 	return c
 }
 
-// CreateRoomInput represents a mutation input for creating rooms.
-type CreateRoomInput struct {
+// CreateGameInput represents a mutation input for creating games.
+type CreateGameInput struct {
+	CreatedBy   *int64
+	UpdatedBy   *int64
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	DeletedAt   *time.Time
+	GameUserIDs []int64
+}
+
+// Mutate applies the CreateGameInput on the GameMutation builder.
+func (i *CreateGameInput) Mutate(m *GameMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.GameUserIDs; len(v) > 0 {
+		m.AddGameUserIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateGameInput on the GameCreate builder.
+func (c *GameCreate) SetInput(i CreateGameInput) *GameCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateGameInput represents a mutation input for updating games.
+type UpdateGameInput struct {
+	CreatedBy         *int64
+	UpdatedBy         *int64
+	UpdatedAt         *time.Time
+	DeletedAt         *time.Time
+	AddGameUserIDs    []int64
+	RemoveGameUserIDs []int64
+}
+
+// Mutate applies the UpdateGameInput on the GameMutation builder.
+func (i *UpdateGameInput) Mutate(m *GameMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.AddGameUserIDs; len(v) > 0 {
+		m.AddGameUserIDs(v...)
+	}
+	if v := i.RemoveGameUserIDs; len(v) > 0 {
+		m.RemoveGameUserIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateGameInput on the GameUpdate builder.
+func (c *GameUpdate) SetInput(i UpdateGameInput) *GameUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateGameInput on the GameUpdateOne builder.
+func (c *GameUpdateOne) SetInput(i UpdateGameInput) *GameUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateGameUserInput represents a mutation input for creating gameusers.
+type CreateGameUserInput struct {
 	CreatedBy *int64
 	UpdatedBy *int64
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
 	DeletedAt *time.Time
-	Name      *string
+	UserID    int64
+	GameID    int64
+}
+
+// Mutate applies the CreateGameUserInput on the GameUserMutation builder.
+func (i *CreateGameUserInput) Mutate(m *GameUserMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	m.SetGameID(i.GameID)
+}
+
+// SetInput applies the change-set in the CreateGameUserInput on the GameUserCreate builder.
+func (c *GameUserCreate) SetInput(i CreateGameUserInput) *GameUserCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateGameUserInput represents a mutation input for updating gameusers.
+type UpdateGameUserInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    *int64
+	ClearGame bool
+	GameID    *int64
+}
+
+// Mutate applies the UpdateGameUserInput on the GameUserMutation builder.
+func (i *UpdateGameUserInput) Mutate(m *GameUserMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if i.ClearGame {
+		m.ClearGame()
+	}
+	if v := i.GameID; v != nil {
+		m.SetGameID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateGameUserInput on the GameUserUpdate builder.
+func (c *GameUserUpdate) SetInput(i UpdateGameUserInput) *GameUserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateGameUserInput on the GameUserUpdateOne builder.
+func (c *GameUserUpdateOne) SetInput(i UpdateGameUserInput) *GameUserUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateRoomInput represents a mutation input for creating rooms.
+type CreateRoomInput struct {
+	CreatedBy   *int64
+	UpdatedBy   *int64
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	DeletedAt   *time.Time
+	Name        *string
+	RoomUserIDs []int64
 }
 
 // Mutate applies the CreateRoomInput on the RoomMutation builder.
@@ -114,6 +283,9 @@ func (i *CreateRoomInput) Mutate(m *RoomMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.RoomUserIDs; len(v) > 0 {
+		m.AddRoomUserIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateRoomInput on the RoomCreate builder.
@@ -124,11 +296,13 @@ func (c *RoomCreate) SetInput(i CreateRoomInput) *RoomCreate {
 
 // UpdateRoomInput represents a mutation input for updating rooms.
 type UpdateRoomInput struct {
-	CreatedBy *int64
-	UpdatedBy *int64
-	UpdatedAt *time.Time
-	DeletedAt *time.Time
-	Name      *string
+	CreatedBy         *int64
+	UpdatedBy         *int64
+	UpdatedAt         *time.Time
+	DeletedAt         *time.Time
+	Name              *string
+	AddRoomUserIDs    []int64
+	RemoveRoomUserIDs []int64
 }
 
 // Mutate applies the UpdateRoomInput on the RoomMutation builder.
@@ -148,6 +322,12 @@ func (i *UpdateRoomInput) Mutate(m *RoomMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.AddRoomUserIDs; len(v) > 0 {
+		m.AddRoomUserIDs(v...)
+	}
+	if v := i.RemoveRoomUserIDs; len(v) > 0 {
+		m.RemoveRoomUserIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the UpdateRoomInput on the RoomUpdate builder.
@@ -158,6 +338,92 @@ func (c *RoomUpdate) SetInput(i UpdateRoomInput) *RoomUpdate {
 
 // SetInput applies the change-set in the UpdateRoomInput on the RoomUpdateOne builder.
 func (c *RoomUpdateOne) SetInput(i UpdateRoomInput) *RoomUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateRoomUserInput represents a mutation input for creating roomusers.
+type CreateRoomUserInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    int64
+	RoomID    int64
+}
+
+// Mutate applies the CreateRoomUserInput on the RoomUserMutation builder.
+func (i *CreateRoomUserInput) Mutate(m *RoomUserMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	m.SetRoomID(i.RoomID)
+}
+
+// SetInput applies the change-set in the CreateRoomUserInput on the RoomUserCreate builder.
+func (c *RoomUserCreate) SetInput(i CreateRoomUserInput) *RoomUserCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateRoomUserInput represents a mutation input for updating roomusers.
+type UpdateRoomUserInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    *int64
+	ClearRoom bool
+	RoomID    *int64
+}
+
+// Mutate applies the UpdateRoomUserInput on the RoomUserMutation builder.
+func (i *UpdateRoomUserInput) Mutate(m *RoomUserMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if i.ClearRoom {
+		m.ClearRoom()
+	}
+	if v := i.RoomID; v != nil {
+		m.SetRoomID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateRoomUserInput on the RoomUserUpdate builder.
+func (c *RoomUserUpdate) SetInput(i UpdateRoomUserInput) *RoomUserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateRoomUserInput on the RoomUserUpdateOne builder.
+func (c *RoomUserUpdateOne) SetInput(i UpdateRoomUserInput) *RoomUserUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

@@ -3,10 +3,11 @@
 package room
 
 import (
-	"avalon_backend/pkg/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.
@@ -538,6 +539,34 @@ func NameEqualFold(v string) predicate.Room {
 func NameContainsFold(v string) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// HasRoomUsers applies the HasEdge predicate on the "room_users" edge.
+func HasRoomUsers() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoomUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RoomUsersTable, RoomUsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomUsersWith applies the HasEdge predicate on the "room_users" edge with a given conditions (other predicates).
+func HasRoomUsersWith(preds ...predicate.RoomUser) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoomUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RoomUsersTable, RoomUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

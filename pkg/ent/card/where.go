@@ -3,10 +3,10 @@
 package card
 
 import (
-	"avalon_backend/pkg/ent/predicate"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

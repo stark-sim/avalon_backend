@@ -32,8 +32,24 @@ type Config struct {
 
 type ResolverRoot interface {
 	Card() CardResolver
+	Game() GameResolver
+	GameUser() GameUserResolver
 	Query() QueryResolver
+	Room() RoomResolver
+	RoomUser() RoomUserResolver
 	CardWhereInput() CardWhereInputResolver
+	CreateGameInput() CreateGameInputResolver
+	CreateGameUserInput() CreateGameUserInputResolver
+	CreateRoomInput() CreateRoomInputResolver
+	CreateRoomUserInput() CreateRoomUserInputResolver
+	GameUserWhereInput() GameUserWhereInputResolver
+	GameWhereInput() GameWhereInputResolver
+	RoomUserWhereInput() RoomUserWhereInputResolver
+	RoomWhereInput() RoomWhereInputResolver
+	UpdateGameInput() UpdateGameInputResolver
+	UpdateGameUserInput() UpdateGameUserInputResolver
+	UpdateRoomInput() UpdateRoomInputResolver
+	UpdateRoomUserInput() UpdateRoomUserInputResolver
 }
 
 type DirectiveRoot struct {
@@ -50,6 +66,27 @@ type ComplexityRoot struct {
 		UpdatedBy func(childComplexity int) int
 	}
 
+	Game struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		DeletedAt func(childComplexity int) int
+		GameUsers func(childComplexity int) int
+		ID        func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+	}
+
+	GameUser struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		DeletedAt func(childComplexity int) int
+		Game      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+		UserID    func(childComplexity int) int
+	}
+
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -59,9 +96,35 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Cards              func(childComplexity int) int
+		GameUsers          func(childComplexity int) int
+		Games              func(childComplexity int) int
 		Node               func(childComplexity int, id string) int
 		Nodes              func(childComplexity int, ids []string) int
+		RoomUsers          func(childComplexity int) int
+		Rooms              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
+	}
+
+	Room struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		DeletedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		RoomUsers func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+	}
+
+	RoomUser struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		DeletedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Room      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+		UserID    func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -133,6 +196,111 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Card.UpdatedBy(childComplexity), true
 
+	case "Game.createdAt":
+		if e.complexity.Game.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Game.CreatedAt(childComplexity), true
+
+	case "Game.createdBy":
+		if e.complexity.Game.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Game.CreatedBy(childComplexity), true
+
+	case "Game.deletedAt":
+		if e.complexity.Game.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.Game.DeletedAt(childComplexity), true
+
+	case "Game.gameUsers":
+		if e.complexity.Game.GameUsers == nil {
+			break
+		}
+
+		return e.complexity.Game.GameUsers(childComplexity), true
+
+	case "Game.id":
+		if e.complexity.Game.ID == nil {
+			break
+		}
+
+		return e.complexity.Game.ID(childComplexity), true
+
+	case "Game.updatedAt":
+		if e.complexity.Game.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Game.UpdatedAt(childComplexity), true
+
+	case "Game.updatedBy":
+		if e.complexity.Game.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.Game.UpdatedBy(childComplexity), true
+
+	case "GameUser.createdAt":
+		if e.complexity.GameUser.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.GameUser.CreatedAt(childComplexity), true
+
+	case "GameUser.createdBy":
+		if e.complexity.GameUser.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.GameUser.CreatedBy(childComplexity), true
+
+	case "GameUser.deletedAt":
+		if e.complexity.GameUser.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.GameUser.DeletedAt(childComplexity), true
+
+	case "GameUser.game":
+		if e.complexity.GameUser.Game == nil {
+			break
+		}
+
+		return e.complexity.GameUser.Game(childComplexity), true
+
+	case "GameUser.id":
+		if e.complexity.GameUser.ID == nil {
+			break
+		}
+
+		return e.complexity.GameUser.ID(childComplexity), true
+
+	case "GameUser.updatedAt":
+		if e.complexity.GameUser.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.GameUser.UpdatedAt(childComplexity), true
+
+	case "GameUser.updatedBy":
+		if e.complexity.GameUser.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.GameUser.UpdatedBy(childComplexity), true
+
+	case "GameUser.userID":
+		if e.complexity.GameUser.UserID == nil {
+			break
+		}
+
+		return e.complexity.GameUser.UserID(childComplexity), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -168,6 +336,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Cards(childComplexity), true
 
+	case "Query.gameUsers":
+		if e.complexity.Query.GameUsers == nil {
+			break
+		}
+
+		return e.complexity.Query.GameUsers(childComplexity), true
+
+	case "Query.games":
+		if e.complexity.Query.Games == nil {
+			break
+		}
+
+		return e.complexity.Query.Games(childComplexity), true
+
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
 			break
@@ -192,12 +374,138 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]string)), true
 
+	case "Query.roomUsers":
+		if e.complexity.Query.RoomUsers == nil {
+			break
+		}
+
+		return e.complexity.Query.RoomUsers(childComplexity), true
+
+	case "Query.rooms":
+		if e.complexity.Query.Rooms == nil {
+			break
+		}
+
+		return e.complexity.Query.Rooms(childComplexity), true
+
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
 			break
 		}
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
+
+	case "Room.createdAt":
+		if e.complexity.Room.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Room.CreatedAt(childComplexity), true
+
+	case "Room.createdBy":
+		if e.complexity.Room.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Room.CreatedBy(childComplexity), true
+
+	case "Room.deletedAt":
+		if e.complexity.Room.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.Room.DeletedAt(childComplexity), true
+
+	case "Room.id":
+		if e.complexity.Room.ID == nil {
+			break
+		}
+
+		return e.complexity.Room.ID(childComplexity), true
+
+	case "Room.name":
+		if e.complexity.Room.Name == nil {
+			break
+		}
+
+		return e.complexity.Room.Name(childComplexity), true
+
+	case "Room.roomUsers":
+		if e.complexity.Room.RoomUsers == nil {
+			break
+		}
+
+		return e.complexity.Room.RoomUsers(childComplexity), true
+
+	case "Room.updatedAt":
+		if e.complexity.Room.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Room.UpdatedAt(childComplexity), true
+
+	case "Room.updatedBy":
+		if e.complexity.Room.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.Room.UpdatedBy(childComplexity), true
+
+	case "RoomUser.createdAt":
+		if e.complexity.RoomUser.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.CreatedAt(childComplexity), true
+
+	case "RoomUser.createdBy":
+		if e.complexity.RoomUser.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.CreatedBy(childComplexity), true
+
+	case "RoomUser.deletedAt":
+		if e.complexity.RoomUser.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.DeletedAt(childComplexity), true
+
+	case "RoomUser.id":
+		if e.complexity.RoomUser.ID == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.ID(childComplexity), true
+
+	case "RoomUser.room":
+		if e.complexity.RoomUser.Room == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.Room(childComplexity), true
+
+	case "RoomUser.updatedAt":
+		if e.complexity.RoomUser.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.UpdatedAt(childComplexity), true
+
+	case "RoomUser.updatedBy":
+		if e.complexity.RoomUser.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.UpdatedBy(childComplexity), true
+
+	case "RoomUser.userID":
+		if e.complexity.RoomUser.UserID == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.UserID(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -217,7 +525,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCardOrder,
 		ec.unmarshalInputCardWhereInput,
 		ec.unmarshalInputCreateCardInput,
+		ec.unmarshalInputCreateGameInput,
+		ec.unmarshalInputCreateGameUserInput,
+		ec.unmarshalInputCreateRoomInput,
+		ec.unmarshalInputCreateRoomUserInput,
+		ec.unmarshalInputGameOrder,
+		ec.unmarshalInputGameUserOrder,
+		ec.unmarshalInputGameUserWhereInput,
+		ec.unmarshalInputGameWhereInput,
+		ec.unmarshalInputRoomOrder,
+		ec.unmarshalInputRoomUserOrder,
+		ec.unmarshalInputRoomUserWhereInput,
+		ec.unmarshalInputRoomWhereInput,
 		ec.unmarshalInputUpdateCardInput,
+		ec.unmarshalInputUpdateGameInput,
+		ec.unmarshalInputUpdateGameUserInput,
+		ec.unmarshalInputUpdateRoomInput,
+		ec.unmarshalInputUpdateRoomUserInput,
 	)
 	first := true
 

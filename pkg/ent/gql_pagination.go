@@ -3,8 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/card"
-	"avalon_backend/pkg/ent/room"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -16,6 +14,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vmihailenco/msgpack/v5"
 )
@@ -558,6 +561,610 @@ func (c *Card) ToEdge(order *CardOrder) *CardEdge {
 	}
 }
 
+// GameEdge is the edge representation of Game.
+type GameEdge struct {
+	Node   *Game  `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// GameConnection is the connection containing edges to Game.
+type GameConnection struct {
+	Edges      []*GameEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
+}
+
+func (c *GameConnection) build(nodes []*Game, pager *gamePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Game
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Game {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Game {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*GameEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &GameEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// GamePaginateOption enables pagination customization.
+type GamePaginateOption func(*gamePager) error
+
+// WithGameOrder configures pagination ordering.
+func WithGameOrder(order *GameOrder) GamePaginateOption {
+	if order == nil {
+		order = DefaultGameOrder
+	}
+	o := *order
+	return func(pager *gamePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultGameOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithGameFilter configures pagination filter.
+func WithGameFilter(filter func(*GameQuery) (*GameQuery, error)) GamePaginateOption {
+	return func(pager *gamePager) error {
+		if filter == nil {
+			return errors.New("GameQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type gamePager struct {
+	order  *GameOrder
+	filter func(*GameQuery) (*GameQuery, error)
+}
+
+func newGamePager(opts []GamePaginateOption) (*gamePager, error) {
+	pager := &gamePager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultGameOrder
+	}
+	return pager, nil
+}
+
+func (p *gamePager) applyFilter(query *GameQuery) (*GameQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *gamePager) toCursor(ga *Game) Cursor {
+	return p.order.Field.toCursor(ga)
+}
+
+func (p *gamePager) applyCursors(query *GameQuery, after, before *Cursor) *GameQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultGameOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *gamePager) applyOrder(query *GameQuery, reverse bool) *GameQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultGameOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultGameOrder.Field.field))
+	}
+	return query
+}
+
+func (p *gamePager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultGameOrder.Field {
+			b.Comma().Ident(DefaultGameOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Game.
+func (ga *GameQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...GamePaginateOption,
+) (*GameConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newGamePager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ga, err = pager.applyFilter(ga); err != nil {
+		return nil, err
+	}
+	conn := &GameConnection{Edges: []*GameEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ga.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ga = pager.applyCursors(ga, after, before)
+	ga = pager.applyOrder(ga, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ga.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ga.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ga.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// GameOrderFieldCreatedAt orders Game by created_at.
+	GameOrderFieldCreatedAt = &GameOrderField{
+		field: game.FieldCreatedAt,
+		toCursor: func(ga *Game) Cursor {
+			return Cursor{
+				ID:    ga.ID,
+				Value: ga.CreatedAt,
+			}
+		},
+	}
+	// GameOrderFieldUpdatedAt orders Game by updated_at.
+	GameOrderFieldUpdatedAt = &GameOrderField{
+		field: game.FieldUpdatedAt,
+		toCursor: func(ga *Game) Cursor {
+			return Cursor{
+				ID:    ga.ID,
+				Value: ga.UpdatedAt,
+			}
+		},
+	}
+	// GameOrderFieldDeletedAt orders Game by deleted_at.
+	GameOrderFieldDeletedAt = &GameOrderField{
+		field: game.FieldDeletedAt,
+		toCursor: func(ga *Game) Cursor {
+			return Cursor{
+				ID:    ga.ID,
+				Value: ga.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f GameOrderField) String() string {
+	var str string
+	switch f.field {
+	case game.FieldCreatedAt:
+		str = "CREATED_AT"
+	case game.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case game.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f GameOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *GameOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("GameOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *GameOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *GameOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *GameOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid GameOrderField", str)
+	}
+	return nil
+}
+
+// GameOrderField defines the ordering field of Game.
+type GameOrderField struct {
+	field    string
+	toCursor func(*Game) Cursor
+}
+
+// GameOrder defines the ordering of Game.
+type GameOrder struct {
+	Direction OrderDirection  `json:"direction"`
+	Field     *GameOrderField `json:"field"`
+}
+
+// DefaultGameOrder is the default ordering of Game.
+var DefaultGameOrder = &GameOrder{
+	Direction: OrderDirectionAsc,
+	Field: &GameOrderField{
+		field: game.FieldID,
+		toCursor: func(ga *Game) Cursor {
+			return Cursor{ID: ga.ID}
+		},
+	},
+}
+
+// ToEdge converts Game into GameEdge.
+func (ga *Game) ToEdge(order *GameOrder) *GameEdge {
+	if order == nil {
+		order = DefaultGameOrder
+	}
+	return &GameEdge{
+		Node:   ga,
+		Cursor: order.Field.toCursor(ga),
+	}
+}
+
+// GameUserEdge is the edge representation of GameUser.
+type GameUserEdge struct {
+	Node   *GameUser `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// GameUserConnection is the connection containing edges to GameUser.
+type GameUserConnection struct {
+	Edges      []*GameUserEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+func (c *GameUserConnection) build(nodes []*GameUser, pager *gameuserPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *GameUser
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *GameUser {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *GameUser {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*GameUserEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &GameUserEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// GameUserPaginateOption enables pagination customization.
+type GameUserPaginateOption func(*gameuserPager) error
+
+// WithGameUserOrder configures pagination ordering.
+func WithGameUserOrder(order *GameUserOrder) GameUserPaginateOption {
+	if order == nil {
+		order = DefaultGameUserOrder
+	}
+	o := *order
+	return func(pager *gameuserPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultGameUserOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithGameUserFilter configures pagination filter.
+func WithGameUserFilter(filter func(*GameUserQuery) (*GameUserQuery, error)) GameUserPaginateOption {
+	return func(pager *gameuserPager) error {
+		if filter == nil {
+			return errors.New("GameUserQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type gameuserPager struct {
+	order  *GameUserOrder
+	filter func(*GameUserQuery) (*GameUserQuery, error)
+}
+
+func newGameUserPager(opts []GameUserPaginateOption) (*gameuserPager, error) {
+	pager := &gameuserPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultGameUserOrder
+	}
+	return pager, nil
+}
+
+func (p *gameuserPager) applyFilter(query *GameUserQuery) (*GameUserQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *gameuserPager) toCursor(gu *GameUser) Cursor {
+	return p.order.Field.toCursor(gu)
+}
+
+func (p *gameuserPager) applyCursors(query *GameUserQuery, after, before *Cursor) *GameUserQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultGameUserOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *gameuserPager) applyOrder(query *GameUserQuery, reverse bool) *GameUserQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultGameUserOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultGameUserOrder.Field.field))
+	}
+	return query
+}
+
+func (p *gameuserPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultGameUserOrder.Field {
+			b.Comma().Ident(DefaultGameUserOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to GameUser.
+func (gu *GameUserQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...GameUserPaginateOption,
+) (*GameUserConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newGameUserPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if gu, err = pager.applyFilter(gu); err != nil {
+		return nil, err
+	}
+	conn := &GameUserConnection{Edges: []*GameUserEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = gu.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	gu = pager.applyCursors(gu, after, before)
+	gu = pager.applyOrder(gu, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		gu.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := gu.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := gu.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// GameUserOrderFieldCreatedAt orders GameUser by created_at.
+	GameUserOrderFieldCreatedAt = &GameUserOrderField{
+		field: gameuser.FieldCreatedAt,
+		toCursor: func(gu *GameUser) Cursor {
+			return Cursor{
+				ID:    gu.ID,
+				Value: gu.CreatedAt,
+			}
+		},
+	}
+	// GameUserOrderFieldUpdatedAt orders GameUser by updated_at.
+	GameUserOrderFieldUpdatedAt = &GameUserOrderField{
+		field: gameuser.FieldUpdatedAt,
+		toCursor: func(gu *GameUser) Cursor {
+			return Cursor{
+				ID:    gu.ID,
+				Value: gu.UpdatedAt,
+			}
+		},
+	}
+	// GameUserOrderFieldDeletedAt orders GameUser by deleted_at.
+	GameUserOrderFieldDeletedAt = &GameUserOrderField{
+		field: gameuser.FieldDeletedAt,
+		toCursor: func(gu *GameUser) Cursor {
+			return Cursor{
+				ID:    gu.ID,
+				Value: gu.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f GameUserOrderField) String() string {
+	var str string
+	switch f.field {
+	case gameuser.FieldCreatedAt:
+		str = "CREATED_AT"
+	case gameuser.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case gameuser.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f GameUserOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *GameUserOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("GameUserOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *GameUserOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *GameUserOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *GameUserOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid GameUserOrderField", str)
+	}
+	return nil
+}
+
+// GameUserOrderField defines the ordering field of GameUser.
+type GameUserOrderField struct {
+	field    string
+	toCursor func(*GameUser) Cursor
+}
+
+// GameUserOrder defines the ordering of GameUser.
+type GameUserOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *GameUserOrderField `json:"field"`
+}
+
+// DefaultGameUserOrder is the default ordering of GameUser.
+var DefaultGameUserOrder = &GameUserOrder{
+	Direction: OrderDirectionAsc,
+	Field: &GameUserOrderField{
+		field: gameuser.FieldID,
+		toCursor: func(gu *GameUser) Cursor {
+			return Cursor{ID: gu.ID}
+		},
+	},
+}
+
+// ToEdge converts GameUser into GameUserEdge.
+func (gu *GameUser) ToEdge(order *GameUserOrder) *GameUserEdge {
+	if order == nil {
+		order = DefaultGameUserOrder
+	}
+	return &GameUserEdge{
+		Node:   gu,
+		Cursor: order.Field.toCursor(gu),
+	}
+}
+
 // RoomEdge is the edge representation of Room.
 type RoomEdge struct {
 	Node   *Room  `json:"node"`
@@ -871,5 +1478,307 @@ func (r *Room) ToEdge(order *RoomOrder) *RoomEdge {
 	return &RoomEdge{
 		Node:   r,
 		Cursor: order.Field.toCursor(r),
+	}
+}
+
+// RoomUserEdge is the edge representation of RoomUser.
+type RoomUserEdge struct {
+	Node   *RoomUser `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// RoomUserConnection is the connection containing edges to RoomUser.
+type RoomUserConnection struct {
+	Edges      []*RoomUserEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+func (c *RoomUserConnection) build(nodes []*RoomUser, pager *roomuserPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *RoomUser
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *RoomUser {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *RoomUser {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*RoomUserEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &RoomUserEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// RoomUserPaginateOption enables pagination customization.
+type RoomUserPaginateOption func(*roomuserPager) error
+
+// WithRoomUserOrder configures pagination ordering.
+func WithRoomUserOrder(order *RoomUserOrder) RoomUserPaginateOption {
+	if order == nil {
+		order = DefaultRoomUserOrder
+	}
+	o := *order
+	return func(pager *roomuserPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultRoomUserOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithRoomUserFilter configures pagination filter.
+func WithRoomUserFilter(filter func(*RoomUserQuery) (*RoomUserQuery, error)) RoomUserPaginateOption {
+	return func(pager *roomuserPager) error {
+		if filter == nil {
+			return errors.New("RoomUserQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type roomuserPager struct {
+	order  *RoomUserOrder
+	filter func(*RoomUserQuery) (*RoomUserQuery, error)
+}
+
+func newRoomUserPager(opts []RoomUserPaginateOption) (*roomuserPager, error) {
+	pager := &roomuserPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultRoomUserOrder
+	}
+	return pager, nil
+}
+
+func (p *roomuserPager) applyFilter(query *RoomUserQuery) (*RoomUserQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *roomuserPager) toCursor(ru *RoomUser) Cursor {
+	return p.order.Field.toCursor(ru)
+}
+
+func (p *roomuserPager) applyCursors(query *RoomUserQuery, after, before *Cursor) *RoomUserQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultRoomUserOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *roomuserPager) applyOrder(query *RoomUserQuery, reverse bool) *RoomUserQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultRoomUserOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultRoomUserOrder.Field.field))
+	}
+	return query
+}
+
+func (p *roomuserPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultRoomUserOrder.Field {
+			b.Comma().Ident(DefaultRoomUserOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to RoomUser.
+func (ru *RoomUserQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...RoomUserPaginateOption,
+) (*RoomUserConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newRoomUserPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if ru, err = pager.applyFilter(ru); err != nil {
+		return nil, err
+	}
+	conn := &RoomUserConnection{Edges: []*RoomUserEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = ru.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	ru = pager.applyCursors(ru, after, before)
+	ru = pager.applyOrder(ru, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		ru.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ru.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := ru.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// RoomUserOrderFieldCreatedAt orders RoomUser by created_at.
+	RoomUserOrderFieldCreatedAt = &RoomUserOrderField{
+		field: roomuser.FieldCreatedAt,
+		toCursor: func(ru *RoomUser) Cursor {
+			return Cursor{
+				ID:    ru.ID,
+				Value: ru.CreatedAt,
+			}
+		},
+	}
+	// RoomUserOrderFieldUpdatedAt orders RoomUser by updated_at.
+	RoomUserOrderFieldUpdatedAt = &RoomUserOrderField{
+		field: roomuser.FieldUpdatedAt,
+		toCursor: func(ru *RoomUser) Cursor {
+			return Cursor{
+				ID:    ru.ID,
+				Value: ru.UpdatedAt,
+			}
+		},
+	}
+	// RoomUserOrderFieldDeletedAt orders RoomUser by deleted_at.
+	RoomUserOrderFieldDeletedAt = &RoomUserOrderField{
+		field: roomuser.FieldDeletedAt,
+		toCursor: func(ru *RoomUser) Cursor {
+			return Cursor{
+				ID:    ru.ID,
+				Value: ru.DeletedAt,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RoomUserOrderField) String() string {
+	var str string
+	switch f.field {
+	case roomuser.FieldCreatedAt:
+		str = "CREATED_AT"
+	case roomuser.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case roomuser.FieldDeletedAt:
+		str = "DELETED_AT"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RoomUserOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RoomUserOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RoomUserOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *RoomUserOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *RoomUserOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *RoomUserOrderFieldDeletedAt
+	default:
+		return fmt.Errorf("%s is not a valid RoomUserOrderField", str)
+	}
+	return nil
+}
+
+// RoomUserOrderField defines the ordering field of RoomUser.
+type RoomUserOrderField struct {
+	field    string
+	toCursor func(*RoomUser) Cursor
+}
+
+// RoomUserOrder defines the ordering of RoomUser.
+type RoomUserOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *RoomUserOrderField `json:"field"`
+}
+
+// DefaultRoomUserOrder is the default ordering of RoomUser.
+var DefaultRoomUserOrder = &RoomUserOrder{
+	Direction: OrderDirectionAsc,
+	Field: &RoomUserOrderField{
+		field: roomuser.FieldID,
+		toCursor: func(ru *RoomUser) Cursor {
+			return Cursor{ID: ru.ID}
+		},
+	},
+}
+
+// ToEdge converts RoomUser into RoomUserEdge.
+func (ru *RoomUser) ToEdge(order *RoomUserOrder) *RoomUserEdge {
+	if order == nil {
+		order = DefaultRoomUserOrder
+	}
+	return &RoomUserEdge{
+		Node:   ru,
+		Cursor: order.Field.toCursor(ru),
 	}
 }

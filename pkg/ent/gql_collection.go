@@ -78,6 +78,172 @@ func newCardPaginateArgs(rv map[string]interface{}) *cardPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ga *GameQuery) CollectFields(ctx context.Context, satisfies ...string) (*GameQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ga, nil
+	}
+	if err := ga.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ga, nil
+}
+
+func (ga *GameQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "gameUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &GameUserQuery{config: ga.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ga.WithNamedGameUsers(alias, func(wq *GameUserQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type gamePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []GamePaginateOption
+}
+
+func newGamePaginateArgs(rv map[string]interface{}) *gamePaginateArgs {
+	args := &gamePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &GameOrder{Field: &GameOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithGameOrder(order))
+			}
+		case *GameOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithGameOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*GameWhereInput); ok {
+		args.opts = append(args.opts, WithGameFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (gu *GameUserQuery) CollectFields(ctx context.Context, satisfies ...string) (*GameUserQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return gu, nil
+	}
+	if err := gu.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return gu, nil
+}
+
+func (gu *GameUserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "game":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &GameQuery{config: gu.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			gu.withGame = query
+		}
+	}
+	return nil
+}
+
+type gameuserPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []GameUserPaginateOption
+}
+
+func newGameUserPaginateArgs(rv map[string]interface{}) *gameuserPaginateArgs {
+	args := &gameuserPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &GameUserOrder{Field: &GameUserOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithGameUserOrder(order))
+			}
+		case *GameUserOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithGameUserOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*GameUserWhereInput); ok {
+		args.opts = append(args.opts, WithGameUserFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (r *RoomQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoomQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -91,6 +257,22 @@ func (r *RoomQuery) CollectFields(ctx context.Context, satisfies ...string) (*Ro
 
 func (r *RoomQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "roomUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoomUserQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedRoomUsers(alias, func(wq *RoomUserQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 
@@ -141,6 +323,88 @@ func newRoomPaginateArgs(rv map[string]interface{}) *roomPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*RoomWhereInput); ok {
 		args.opts = append(args.opts, WithRoomFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ru *RoomUserQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoomUserQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ru, nil
+	}
+	if err := ru.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ru, nil
+}
+
+func (ru *RoomUserQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "room":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoomQuery{config: ru.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ru.withRoom = query
+		}
+	}
+	return nil
+}
+
+type roomuserPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RoomUserPaginateOption
+}
+
+func newRoomUserPaginateArgs(rv map[string]interface{}) *roomuserPaginateArgs {
+	args := &roomuserPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &RoomUserOrder{Field: &RoomUserOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRoomUserOrder(order))
+			}
+		case *RoomUserOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRoomUserOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*RoomUserWhereInput); ok {
+		args.opts = append(args.opts, WithRoomUserFilter(v.Filter))
 	}
 	return args
 }

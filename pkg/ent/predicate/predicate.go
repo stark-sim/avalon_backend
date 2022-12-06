@@ -9,5 +9,14 @@ import (
 // Card is the predicate function for card builders.
 type Card func(*sql.Selector)
 
+// Game is the predicate function for game builders.
+type Game func(*sql.Selector)
+
+// GameUser is the predicate function for gameuser builders.
+type GameUser func(*sql.Selector)
+
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
+
+// RoomUser is the predicate function for roomuser builders.
+type RoomUser func(*sql.Selector)

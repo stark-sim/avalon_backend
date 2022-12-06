@@ -3,8 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/card"
-	"avalon_backend/pkg/ent/room"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +10,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -32,8 +35,11 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		card.Table: card.ValidColumn,
-		room.Table: room.ValidColumn,
+		card.Table:     card.ValidColumn,
+		game.Table:     game.ValidColumn,
+		gameuser.Table: gameuser.ValidColumn,
+		room.Table:     room.ValidColumn,
+		roomuser.Table: roomuser.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

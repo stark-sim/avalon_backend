@@ -3,9 +3,10 @@
 package hook
 
 import (
-	"avalon_backend/pkg/ent"
 	"context"
 	"fmt"
+
+	"github.com/stark-sim/avalon_backend/pkg/ent"
 )
 
 // The CardFunc type is an adapter to allow the use of ordinary
@@ -21,6 +22,32 @@ func (f CardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return f(ctx, mv)
 }
 
+// The GameFunc type is an adapter to allow the use of ordinary
+// function as Game mutator.
+type GameFunc func(context.Context, *ent.GameMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.GameMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GameMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The GameUserFunc type is an adapter to allow the use of ordinary
+// function as GameUser mutator.
+type GameUserFunc func(context.Context, *ent.GameUserMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.GameUserMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GameUserMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RoomFunc type is an adapter to allow the use of ordinary
 // function as Room mutator.
 type RoomFunc func(context.Context, *ent.RoomMutation) (ent.Value, error)
@@ -30,6 +57,19 @@ func (f RoomFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	mv, ok := m.(*ent.RoomMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoomMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The RoomUserFunc type is an adapter to allow the use of ordinary
+// function as RoomUser mutator.
+type RoomUserFunc func(context.Context, *ent.RoomUserMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoomUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RoomUserMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoomUserMutation", m)
 	}
 	return f(ctx, mv)
 }

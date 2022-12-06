@@ -23,8 +23,17 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// EdgeRoomUsers holds the string denoting the room_users edge name in mutations.
+	EdgeRoomUsers = "room_users"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
+	// RoomUsersTable is the table that holds the room_users relation/edge.
+	RoomUsersTable = "room_users"
+	// RoomUsersInverseTable is the table name for the RoomUser entity.
+	// It exists in this package in order to avoid circular dependency with the "roomuser" package.
+	RoomUsersInverseTable = "room_users"
+	// RoomUsersColumn is the table column denoting the room_users relation/edge.
+	RoomUsersColumn = "room_id"
 )
 
 // Columns holds all SQL columns for room fields.

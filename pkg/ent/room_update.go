@@ -3,8 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/predicate"
-	"avalon_backend/pkg/ent/room"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
 
 // RoomUpdate is the builder for updating Room entities.
@@ -104,9 +105,45 @@ func (ru *RoomUpdate) SetNillableName(s *string) *RoomUpdate {
 	return ru
 }
 
+// AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
+func (ru *RoomUpdate) AddRoomUserIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.AddRoomUserIDs(ids...)
+	return ru
+}
+
+// AddRoomUsers adds the "room_users" edges to the RoomUser entity.
+func (ru *RoomUpdate) AddRoomUsers(r ...*RoomUser) *RoomUpdate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ru.AddRoomUserIDs(ids...)
+}
+
 // Mutation returns the RoomMutation object of the builder.
 func (ru *RoomUpdate) Mutation() *RoomMutation {
 	return ru.mutation
+}
+
+// ClearRoomUsers clears all "room_users" edges to the RoomUser entity.
+func (ru *RoomUpdate) ClearRoomUsers() *RoomUpdate {
+	ru.mutation.ClearRoomUsers()
+	return ru
+}
+
+// RemoveRoomUserIDs removes the "room_users" edge to RoomUser entities by IDs.
+func (ru *RoomUpdate) RemoveRoomUserIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.RemoveRoomUserIDs(ids...)
+	return ru
+}
+
+// RemoveRoomUsers removes "room_users" edges to RoomUser entities.
+func (ru *RoomUpdate) RemoveRoomUsers(r ...*RoomUser) *RoomUpdate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ru.RemoveRoomUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -211,6 +248,60 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ru.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
+	if ru.mutation.RoomUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedRoomUsersIDs(); len(nodes) > 0 && !ru.mutation.RoomUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RoomUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{room.Label}
@@ -306,9 +397,45 @@ func (ruo *RoomUpdateOne) SetNillableName(s *string) *RoomUpdateOne {
 	return ruo
 }
 
+// AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
+func (ruo *RoomUpdateOne) AddRoomUserIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.AddRoomUserIDs(ids...)
+	return ruo
+}
+
+// AddRoomUsers adds the "room_users" edges to the RoomUser entity.
+func (ruo *RoomUpdateOne) AddRoomUsers(r ...*RoomUser) *RoomUpdateOne {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ruo.AddRoomUserIDs(ids...)
+}
+
 // Mutation returns the RoomMutation object of the builder.
 func (ruo *RoomUpdateOne) Mutation() *RoomMutation {
 	return ruo.mutation
+}
+
+// ClearRoomUsers clears all "room_users" edges to the RoomUser entity.
+func (ruo *RoomUpdateOne) ClearRoomUsers() *RoomUpdateOne {
+	ruo.mutation.ClearRoomUsers()
+	return ruo
+}
+
+// RemoveRoomUserIDs removes the "room_users" edge to RoomUser entities by IDs.
+func (ruo *RoomUpdateOne) RemoveRoomUserIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.RemoveRoomUserIDs(ids...)
+	return ruo
+}
+
+// RemoveRoomUsers removes "room_users" edges to RoomUser entities.
+func (ruo *RoomUpdateOne) RemoveRoomUsers(r ...*RoomUser) *RoomUpdateOne {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ruo.RemoveRoomUserIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -442,6 +569,60 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	}
 	if value, ok := ruo.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
+	}
+	if ruo.mutation.RoomUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedRoomUsersIDs(); len(nodes) > 0 && !ruo.mutation.RoomUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RoomUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Room{config: ruo.config}
 	_spec.Assign = _node.assignValues

@@ -3,8 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/card"
-	"avalon_backend/pkg/ent/predicate"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
 // CardUpdate is the builder for updating Card entities.

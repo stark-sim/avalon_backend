@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/card"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 )
 
 // CardCreate is the builder for creating a Card entity.

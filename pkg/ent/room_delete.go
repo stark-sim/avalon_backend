@@ -3,14 +3,14 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/predicate"
-	"avalon_backend/pkg/ent/room"
 	"context"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // RoomDelete is the builder for deleting a Room entity.

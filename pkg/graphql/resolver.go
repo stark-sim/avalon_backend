@@ -1,8 +1,8 @@
 package graphql
 
 import (
-	"avalon_backend/pkg/ent"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/stark-sim/avalon_backend/pkg/ent"
 )
 
 // This file will not be regenerated automatically.

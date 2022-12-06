@@ -31,7 +31,7 @@ model:
 # autobind tells gqngen to search for any type names in the GraphQL schema in the
 # provided package. If they match it will use them, otherwise it will generate new.
 autobind:
-  - avalon_backend/pkg/ent
+  - github.com/stark-sim/avalon_backend/pkg/ent
 
 # This section declares type mapping between the GraphQL and Go type systems.
 models:
@@ -44,4 +44,4 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
   Node:
     model:
-      - avalon_backend/pkg/ent.Noder
+      - github.com/stark-sim/avalon_backend/pkg/ent.Noder

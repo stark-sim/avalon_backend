@@ -1,4 +1,4 @@
-module avalon_backend
+module github.com/stark-sim/avalon_backend
 
 go 1.19
 

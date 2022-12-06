@@ -1,12 +1,6 @@
 package main
 
 import (
-	"avalon_backend/configs"
-	"avalon_backend/internal/db"
-	"avalon_backend/pkg/ent"
-	"avalon_backend/pkg/graphql"
-	"avalon_backend/pkg/graphql/middlewares"
-	"avalon_backend/tools"
 	"context"
 	"database/sql"
 	"database/sql/driver"
@@ -15,6 +9,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/stark-sim/avalon_backend/configs"
+	"github.com/stark-sim/avalon_backend/internal/db"
+	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/graphql"
+	"github.com/stark-sim/avalon_backend/pkg/graphql/middlewares"
+	"github.com/stark-sim/avalon_backend/tools"
 )
 
 func main() {

@@ -3,12 +3,12 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/room"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // Room is the model entity for the Room schema.
@@ -28,6 +28,31 @@ type Room struct {
 	DeletedAt time.Time `json:"deleted_at"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the RoomQuery when eager-loading is set.
+	Edges RoomEdges `json:"edges"`
+}
+
+// RoomEdges holds the relations/edges for other nodes in the graph.
+type RoomEdges struct {
+	// RoomUsers holds the value of the room_users edge.
+	RoomUsers []*RoomUser `json:"room_users,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedRoomUsers map[string][]*RoomUser
+}
+
+// RoomUsersOrErr returns the RoomUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) RoomUsersOrErr() ([]*RoomUser, error) {
+	if e.loadedTypes[0] {
+		return e.RoomUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "room_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +128,11 @@ func (r *Room) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryRoomUsers queries the "room_users" edge of the Room entity.
+func (r *Room) QueryRoomUsers() *RoomUserQuery {
+	return (&RoomClient{config: r.config}).QueryRoomUsers(r)
+}
+
 // Update returns a builder for updating this Room.
 // Note that you need to call Room.Unwrap() before calling this method if this Room
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -145,6 +175,30 @@ func (r *Room) String() string {
 	builder.WriteString(r.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedRoomUsers returns the RoomUsers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedRoomUsers(name string) ([]*RoomUser, error) {
+	if r.Edges.namedRoomUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedRoomUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedRoomUsers(name string, edges ...*RoomUser) {
+	if r.Edges.namedRoomUsers == nil {
+		r.Edges.namedRoomUsers = make(map[string][]*RoomUser)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedRoomUsers[name] = []*RoomUser{}
+	} else {
+		r.Edges.namedRoomUsers[name] = append(r.Edges.namedRoomUsers[name], edges...)
+	}
 }
 
 // Rooms is a parsable slice of Room.

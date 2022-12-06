@@ -3,14 +3,14 @@
 package enttest
 
 import (
-	"avalon_backend/pkg/ent"
 	"context"
-	// required by schema hooks.
-	_ "avalon_backend/pkg/ent/runtime"
 
-	"avalon_backend/pkg/ent/migrate"
+	"github.com/stark-sim/avalon_backend/pkg/ent"
+	// required by schema hooks.
+	_ "github.com/stark-sim/avalon_backend/pkg/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
+	"github.com/stark-sim/avalon_backend/pkg/ent/migrate"
 )
 
 type (

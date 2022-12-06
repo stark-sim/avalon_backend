@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/room"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
 
 // RoomCreate is the builder for creating a Room entity.
@@ -116,6 +117,21 @@ func (rc *RoomCreate) SetNillableID(i *int64) *RoomCreate {
 		rc.SetID(*i)
 	}
 	return rc
+}
+
+// AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
+func (rc *RoomCreate) AddRoomUserIDs(ids ...int64) *RoomCreate {
+	rc.mutation.AddRoomUserIDs(ids...)
+	return rc
+}
+
+// AddRoomUsers adds the "room_users" edges to the RoomUser entity.
+func (rc *RoomCreate) AddRoomUsers(r ...*RoomUser) *RoomCreate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rc.AddRoomUserIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -301,6 +317,25 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if nodes := rc.mutation.RoomUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RoomUsersTable,
+			Columns: []string{room.RoomUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

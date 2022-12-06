@@ -3,12 +3,12 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/card"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 )
 
 // Card is the model entity for the Card schema.

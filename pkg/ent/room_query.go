@@ -3,28 +3,32 @@
 package ent
 
 import (
-	"avalon_backend/pkg/ent/predicate"
-	"avalon_backend/pkg/ent/room"
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
 
 // RoomQuery is the builder for querying Room entities.
 type RoomQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Room
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Room) error
+	limit              *int
+	offset             *int
+	unique             *bool
+	order              []OrderFunc
+	fields             []string
+	predicates         []predicate.Room
+	withRoomUsers      *RoomUserQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*Room) error
+	withNamedRoomUsers map[string]*RoomUserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (rq *RoomQuery) Unique(unique bool) *RoomQuery {
 func (rq *RoomQuery) Order(o ...OrderFunc) *RoomQuery {
 	rq.order = append(rq.order, o...)
 	return rq
+}
+
+// QueryRoomUsers chains the current query on the "room_users" edge.
+func (rq *RoomQuery) QueryRoomUsers() *RoomUserQuery {
+	query := &RoomUserQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(roomuser.Table, roomuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.RoomUsersTable, room.RoomUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Room entity from the query.
@@ -237,16 +263,28 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		return nil
 	}
 	return &RoomQuery{
-		config:     rq.config,
-		limit:      rq.limit,
-		offset:     rq.offset,
-		order:      append([]OrderFunc{}, rq.order...),
-		predicates: append([]predicate.Room{}, rq.predicates...),
+		config:        rq.config,
+		limit:         rq.limit,
+		offset:        rq.offset,
+		order:         append([]OrderFunc{}, rq.order...),
+		predicates:    append([]predicate.Room{}, rq.predicates...),
+		withRoomUsers: rq.withRoomUsers.Clone(),
 		// clone intermediate query.
 		sql:    rq.sql.Clone(),
 		path:   rq.path,
 		unique: rq.unique,
 	}
+}
+
+// WithRoomUsers tells the query-builder to eager-load the nodes that are connected to
+// the "room_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithRoomUsers(opts ...func(*RoomUserQuery)) *RoomQuery {
+	query := &RoomUserQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withRoomUsers = query
+	return rq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -320,8 +358,11 @@ func (rq *RoomQuery) prepareQuery(ctx context.Context) error {
 
 func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, error) {
 	var (
-		nodes = []*Room{}
-		_spec = rq.querySpec()
+		nodes       = []*Room{}
+		_spec       = rq.querySpec()
+		loadedTypes = [1]bool{
+			rq.withRoomUsers != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Room).scanValues(nil, columns)
@@ -329,6 +370,7 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Room{config: rq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(rq.modifiers) > 0 {
@@ -343,12 +385,54 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := rq.withRoomUsers; query != nil {
+		if err := rq.loadRoomUsers(ctx, query, nodes,
+			func(n *Room) { n.Edges.RoomUsers = []*RoomUser{} },
+			func(n *Room, e *RoomUser) { n.Edges.RoomUsers = append(n.Edges.RoomUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedRoomUsers {
+		if err := rq.loadRoomUsers(ctx, query, nodes,
+			func(n *Room) { n.appendNamedRoomUsers(name) },
+			func(n *Room, e *RoomUser) { n.appendNamedRoomUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range rq.loadTotal {
 		if err := rq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (rq *RoomQuery) loadRoomUsers(ctx context.Context, query *RoomUserQuery, nodes []*Room, init func(*Room), assign func(*Room, *RoomUser)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.RoomUser(func(s *sql.Selector) {
+		s.Where(sql.InValues(room.RoomUsersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoomID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (rq *RoomQuery) sqlCount(ctx context.Context) (int, error) {
@@ -452,6 +536,20 @@ func (rq *RoomQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedRoomUsers tells the query-builder to eager-load the nodes that are connected to the "room_users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedRoomUsers(name string, opts ...func(*RoomUserQuery)) *RoomQuery {
+	query := &RoomUserQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedRoomUsers == nil {
+		rq.withNamedRoomUsers = make(map[string]*RoomUserQuery)
+	}
+	rq.withNamedRoomUsers[name] = query
+	return rq
 }
 
 // RoomGroupBy is the group-by builder for Room entities.
