@@ -4,6 +4,7 @@ package ent
 
 import (
 	"avalon_backend/pkg/ent/card"
+	"avalon_backend/pkg/ent/room"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -105,6 +106,65 @@ func (c *Card) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (r *Room) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     r.ID,
+		Type:   "Room",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(r.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int64",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UpdatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "int64",
+		Name:  "updated_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	return node, nil
+}
+
 func (c *Client) Node(ctx context.Context, id int64) (*Node, error) {
 	n, err := c.Noder(ctx, id)
 	if err != nil {
@@ -175,6 +235,18 @@ func (c *Client) noder(ctx context.Context, table string, id int64) (Noder, erro
 		query := c.Card.Query().
 			Where(card.ID(id))
 		query, err := query.CollectFields(ctx, "Card")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case room.Table:
+		query := c.Room.Query().
+			Where(room.ID(id))
+		query, err := query.CollectFields(ctx, "Room")
 		if err != nil {
 			return nil, err
 		}
@@ -260,6 +332,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int64) ([]Noder
 		query := c.Card.Query().
 			Where(card.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "Card")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case room.Table:
+		query := c.Room.Query().
+			Where(room.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Room")
 		if err != nil {
 			return nil, err
 		}

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"avalon_backend/pkg/ent/card"
+	"avalon_backend/pkg/ent/room"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -554,5 +555,321 @@ func (c *Card) ToEdge(order *CardOrder) *CardEdge {
 	return &CardEdge{
 		Node:   c,
 		Cursor: order.Field.toCursor(c),
+	}
+}
+
+// RoomEdge is the edge representation of Room.
+type RoomEdge struct {
+	Node   *Room  `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// RoomConnection is the connection containing edges to Room.
+type RoomConnection struct {
+	Edges      []*RoomEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
+}
+
+func (c *RoomConnection) build(nodes []*Room, pager *roomPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Room
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Room {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Room {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*RoomEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &RoomEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// RoomPaginateOption enables pagination customization.
+type RoomPaginateOption func(*roomPager) error
+
+// WithRoomOrder configures pagination ordering.
+func WithRoomOrder(order *RoomOrder) RoomPaginateOption {
+	if order == nil {
+		order = DefaultRoomOrder
+	}
+	o := *order
+	return func(pager *roomPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultRoomOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithRoomFilter configures pagination filter.
+func WithRoomFilter(filter func(*RoomQuery) (*RoomQuery, error)) RoomPaginateOption {
+	return func(pager *roomPager) error {
+		if filter == nil {
+			return errors.New("RoomQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type roomPager struct {
+	order  *RoomOrder
+	filter func(*RoomQuery) (*RoomQuery, error)
+}
+
+func newRoomPager(opts []RoomPaginateOption) (*roomPager, error) {
+	pager := &roomPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultRoomOrder
+	}
+	return pager, nil
+}
+
+func (p *roomPager) applyFilter(query *RoomQuery) (*RoomQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *roomPager) toCursor(r *Room) Cursor {
+	return p.order.Field.toCursor(r)
+}
+
+func (p *roomPager) applyCursors(query *RoomQuery, after, before *Cursor) *RoomQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultRoomOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *roomPager) applyOrder(query *RoomQuery, reverse bool) *RoomQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultRoomOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultRoomOrder.Field.field))
+	}
+	return query
+}
+
+func (p *roomPager) orderExpr(reverse bool) sql.Querier {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.field).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultRoomOrder.Field {
+			b.Comma().Ident(DefaultRoomOrder.Field.field).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Room.
+func (r *RoomQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...RoomPaginateOption,
+) (*RoomConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newRoomPager(opts)
+	if err != nil {
+		return nil, err
+	}
+	if r, err = pager.applyFilter(r); err != nil {
+		return nil, err
+	}
+	conn := &RoomConnection{Edges: []*RoomEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			if conn.TotalCount, err = r.Clone().Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+
+	r = pager.applyCursors(r, after, before)
+	r = pager.applyOrder(r, last != nil)
+	if limit := paginateLimit(first, last); limit != 0 {
+		r.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := r.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+
+	nodes, err := r.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+var (
+	// RoomOrderFieldCreatedAt orders Room by created_at.
+	RoomOrderFieldCreatedAt = &RoomOrderField{
+		field: room.FieldCreatedAt,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.CreatedAt,
+			}
+		},
+	}
+	// RoomOrderFieldUpdatedAt orders Room by updated_at.
+	RoomOrderFieldUpdatedAt = &RoomOrderField{
+		field: room.FieldUpdatedAt,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.UpdatedAt,
+			}
+		},
+	}
+	// RoomOrderFieldDeletedAt orders Room by deleted_at.
+	RoomOrderFieldDeletedAt = &RoomOrderField{
+		field: room.FieldDeletedAt,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.DeletedAt,
+			}
+		},
+	}
+	// RoomOrderFieldName orders Room by name.
+	RoomOrderFieldName = &RoomOrderField{
+		field: room.FieldName,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{
+				ID:    r.ID,
+				Value: r.Name,
+			}
+		},
+	}
+)
+
+// String implement fmt.Stringer interface.
+func (f RoomOrderField) String() string {
+	var str string
+	switch f.field {
+	case room.FieldCreatedAt:
+		str = "CREATED_AT"
+	case room.FieldUpdatedAt:
+		str = "UPDATED_AT"
+	case room.FieldDeletedAt:
+		str = "DELETED_AT"
+	case room.FieldName:
+		str = "NAME"
+	}
+	return str
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (f RoomOrderField) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(f.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (f *RoomOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("RoomOrderField %T must be a string", v)
+	}
+	switch str {
+	case "CREATED_AT":
+		*f = *RoomOrderFieldCreatedAt
+	case "UPDATED_AT":
+		*f = *RoomOrderFieldUpdatedAt
+	case "DELETED_AT":
+		*f = *RoomOrderFieldDeletedAt
+	case "NAME":
+		*f = *RoomOrderFieldName
+	default:
+		return fmt.Errorf("%s is not a valid RoomOrderField", str)
+	}
+	return nil
+}
+
+// RoomOrderField defines the ordering field of Room.
+type RoomOrderField struct {
+	field    string
+	toCursor func(*Room) Cursor
+}
+
+// RoomOrder defines the ordering of Room.
+type RoomOrder struct {
+	Direction OrderDirection  `json:"direction"`
+	Field     *RoomOrderField `json:"field"`
+}
+
+// DefaultRoomOrder is the default ordering of Room.
+var DefaultRoomOrder = &RoomOrder{
+	Direction: OrderDirectionAsc,
+	Field: &RoomOrderField{
+		field: room.FieldID,
+		toCursor: func(r *Room) Cursor {
+			return Cursor{ID: r.ID}
+		},
+	},
+}
+
+// ToEdge converts Room into RoomEdge.
+func (r *Room) ToEdge(order *RoomOrder) *RoomEdge {
+	if order == nil {
+		order = DefaultRoomOrder
+	}
+	return &RoomEdge{
+		Node:   r,
+		Cursor: order.Field.toCursor(r),
 	}
 }

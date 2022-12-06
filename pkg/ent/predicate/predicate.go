@@ -8,3 +8,6 @@ import (
 
 // Card is the predicate function for card builders.
 type Card func(*sql.Selector)
+
+// Room is the predicate function for room builders.
+type Room func(*sql.Selector)

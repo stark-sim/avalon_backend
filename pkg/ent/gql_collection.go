@@ -77,6 +77,74 @@ func newCardPaginateArgs(rv map[string]interface{}) *cardPaginateArgs {
 	return args
 }
 
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (r *RoomQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoomQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return r, nil
+	}
+	if err := r.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func (r *RoomQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	return nil
+}
+
+type roomPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RoomPaginateOption
+}
+
+func newRoomPaginateArgs(rv map[string]interface{}) *roomPaginateArgs {
+	args := &roomPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &RoomOrder{Field: &RoomOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRoomOrder(order))
+			}
+		case *RoomOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRoomOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*RoomWhereInput); ok {
+		args.opts = append(args.opts, WithRoomFilter(v.Filter))
+	}
+	return args
+}
+
 const (
 	afterField     = "after"
 	firstField     = "first"

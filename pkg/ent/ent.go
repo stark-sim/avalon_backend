@@ -4,6 +4,7 @@ package ent
 
 import (
 	"avalon_backend/pkg/ent/card"
+	"avalon_backend/pkg/ent/room"
 	"context"
 	"errors"
 	"fmt"
@@ -32,6 +33,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		card.Table: card.ValidColumn,
+		room.Table: room.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

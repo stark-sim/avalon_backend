@@ -83,3 +83,81 @@ func (c *CardUpdateOne) SetInput(i UpdateCardInput) *CardUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
+
+// CreateRoomInput represents a mutation input for creating rooms.
+type CreateRoomInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	Name      *string
+}
+
+// Mutate applies the CreateRoomInput on the RoomMutation builder.
+func (i *CreateRoomInput) Mutate(m *RoomMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateRoomInput on the RoomCreate builder.
+func (c *RoomCreate) SetInput(i CreateRoomInput) *RoomCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateRoomInput represents a mutation input for updating rooms.
+type UpdateRoomInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	Name      *string
+}
+
+// Mutate applies the UpdateRoomInput on the RoomMutation builder.
+func (i *UpdateRoomInput) Mutate(m *RoomMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateRoomInput on the RoomUpdate builder.
+func (c *RoomUpdate) SetInput(i UpdateRoomInput) *RoomUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateRoomInput on the RoomUpdateOne builder.
+func (c *RoomUpdateOne) SetInput(i UpdateRoomInput) *RoomUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
