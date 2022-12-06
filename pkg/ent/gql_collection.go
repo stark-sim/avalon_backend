@@ -23,6 +23,22 @@ func (c *CardQuery) CollectFields(ctx context.Context, satisfies ...string) (*Ca
 
 func (c *CardQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "gameUsers":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &GameUserQuery{config: c.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			c.WithNamedGameUsers(alias, func(wq *GameUserQuery) {
+				*wq = *query
+			})
+		}
+	}
 	return nil
 }
 
@@ -187,6 +203,16 @@ func (gu *GameUserQuery) collectField(ctx context.Context, op *graphql.Operation
 				return err
 			}
 			gu.withGame = query
+		case "card":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &CardQuery{config: gu.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			gu.withCard = query
 		}
 	}
 	return nil

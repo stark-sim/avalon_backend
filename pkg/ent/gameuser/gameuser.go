@@ -25,8 +25,14 @@ const (
 	FieldUserID = "user_id"
 	// FieldGameID holds the string denoting the game_id field in the database.
 	FieldGameID = "game_id"
+	// FieldCardID holds the string denoting the card_id field in the database.
+	FieldCardID = "card_id"
+	// FieldNumber holds the string denoting the number field in the database.
+	FieldNumber = "number"
 	// EdgeGame holds the string denoting the game edge name in mutations.
 	EdgeGame = "game"
+	// EdgeCard holds the string denoting the card edge name in mutations.
+	EdgeCard = "card"
 	// Table holds the table name of the gameuser in the database.
 	Table = "game_users"
 	// GameTable is the table that holds the game relation/edge.
@@ -36,6 +42,13 @@ const (
 	GameInverseTable = "games"
 	// GameColumn is the table column denoting the game relation/edge.
 	GameColumn = "game_id"
+	// CardTable is the table that holds the card relation/edge.
+	CardTable = "game_users"
+	// CardInverseTable is the table name for the Card entity.
+	// It exists in this package in order to avoid circular dependency with the "card" package.
+	CardInverseTable = "cards"
+	// CardColumn is the table column denoting the card relation/edge.
+	CardColumn = "card_id"
 )
 
 // Columns holds all SQL columns for gameuser fields.
@@ -48,6 +61,8 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldUserID,
 	FieldGameID,
+	FieldCardID,
+	FieldNumber,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

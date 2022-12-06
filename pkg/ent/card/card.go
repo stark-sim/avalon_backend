@@ -23,8 +23,17 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
+	EdgeGameUsers = "game_users"
 	// Table holds the table name of the card in the database.
 	Table = "cards"
+	// GameUsersTable is the table that holds the game_users relation/edge.
+	GameUsersTable = "game_users"
+	// GameUsersInverseTable is the table name for the GameUser entity.
+	// It exists in this package in order to avoid circular dependency with the "gameuser" package.
+	GameUsersInverseTable = "game_users"
+	// GameUsersColumn is the table column denoting the game_users relation/edge.
+	GameUsersColumn = "card_id"
 )
 
 // Columns holds all SQL columns for card fields.

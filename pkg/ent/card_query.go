@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,20 +12,23 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
 // CardQuery is the builder for querying Card entities.
 type CardQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
-	predicates []predicate.Card
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Card) error
+	limit              *int
+	offset             *int
+	unique             *bool
+	order              []OrderFunc
+	fields             []string
+	predicates         []predicate.Card
+	withGameUsers      *GameUserQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*Card) error
+	withNamedGameUsers map[string]*GameUserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (cq *CardQuery) Unique(unique bool) *CardQuery {
 func (cq *CardQuery) Order(o ...OrderFunc) *CardQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryGameUsers chains the current query on the "game_users" edge.
+func (cq *CardQuery) QueryGameUsers() *GameUserQuery {
+	query := &GameUserQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(card.Table, card.FieldID, selector),
+			sqlgraph.To(gameuser.Table, gameuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, card.GameUsersTable, card.GameUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Card entity from the query.
@@ -237,16 +263,28 @@ func (cq *CardQuery) Clone() *CardQuery {
 		return nil
 	}
 	return &CardQuery{
-		config:     cq.config,
-		limit:      cq.limit,
-		offset:     cq.offset,
-		order:      append([]OrderFunc{}, cq.order...),
-		predicates: append([]predicate.Card{}, cq.predicates...),
+		config:        cq.config,
+		limit:         cq.limit,
+		offset:        cq.offset,
+		order:         append([]OrderFunc{}, cq.order...),
+		predicates:    append([]predicate.Card{}, cq.predicates...),
+		withGameUsers: cq.withGameUsers.Clone(),
 		// clone intermediate query.
 		sql:    cq.sql.Clone(),
 		path:   cq.path,
 		unique: cq.unique,
 	}
+}
+
+// WithGameUsers tells the query-builder to eager-load the nodes that are connected to
+// the "game_users" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CardQuery) WithGameUsers(opts ...func(*GameUserQuery)) *CardQuery {
+	query := &GameUserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withGameUsers = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -320,8 +358,11 @@ func (cq *CardQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CardQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Card, error) {
 	var (
-		nodes = []*Card{}
-		_spec = cq.querySpec()
+		nodes       = []*Card{}
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withGameUsers != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Card).scanValues(nil, columns)
@@ -329,6 +370,7 @@ func (cq *CardQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Card, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Card{config: cq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(cq.modifiers) > 0 {
@@ -343,12 +385,54 @@ func (cq *CardQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Card, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := cq.withGameUsers; query != nil {
+		if err := cq.loadGameUsers(ctx, query, nodes,
+			func(n *Card) { n.Edges.GameUsers = []*GameUser{} },
+			func(n *Card, e *GameUser) { n.Edges.GameUsers = append(n.Edges.GameUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range cq.withNamedGameUsers {
+		if err := cq.loadGameUsers(ctx, query, nodes,
+			func(n *Card) { n.appendNamedGameUsers(name) },
+			func(n *Card, e *GameUser) { n.appendNamedGameUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range cq.loadTotal {
 		if err := cq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (cq *CardQuery) loadGameUsers(ctx context.Context, query *GameUserQuery, nodes []*Card, init func(*Card), assign func(*Card, *GameUser)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Card)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.InValues(card.GameUsersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CardID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "card_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (cq *CardQuery) sqlCount(ctx context.Context) (int, error) {
@@ -452,6 +536,20 @@ func (cq *CardQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedGameUsers tells the query-builder to eager-load the nodes that are connected to the "game_users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (cq *CardQuery) WithNamedGameUsers(name string, opts ...func(*GameUserQuery)) *CardQuery {
+	query := &GameUserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if cq.withNamedGameUsers == nil {
+		cq.withNamedGameUsers = make(map[string]*GameUserQuery)
+	}
+	cq.withNamedGameUsers[name] = query
+	return cq
 }
 
 // CardGroupBy is the group-by builder for Card entities.

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
@@ -110,9 +111,33 @@ func (guu *GameUserUpdate) SetGameID(i int64) *GameUserUpdate {
 	return guu
 }
 
+// SetCardID sets the "card_id" field.
+func (guu *GameUserUpdate) SetCardID(i int64) *GameUserUpdate {
+	guu.mutation.SetCardID(i)
+	return guu
+}
+
+// SetNumber sets the "number" field.
+func (guu *GameUserUpdate) SetNumber(u uint8) *GameUserUpdate {
+	guu.mutation.ResetNumber()
+	guu.mutation.SetNumber(u)
+	return guu
+}
+
+// AddNumber adds u to the "number" field.
+func (guu *GameUserUpdate) AddNumber(u int8) *GameUserUpdate {
+	guu.mutation.AddNumber(u)
+	return guu
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (guu *GameUserUpdate) SetGame(g *Game) *GameUserUpdate {
 	return guu.SetGameID(g.ID)
+}
+
+// SetCard sets the "card" edge to the Card entity.
+func (guu *GameUserUpdate) SetCard(c *Card) *GameUserUpdate {
+	return guu.SetCardID(c.ID)
 }
 
 // Mutation returns the GameUserMutation object of the builder.
@@ -123,6 +148,12 @@ func (guu *GameUserUpdate) Mutation() *GameUserMutation {
 // ClearGame clears the "game" edge to the Game entity.
 func (guu *GameUserUpdate) ClearGame() *GameUserUpdate {
 	guu.mutation.ClearGame()
+	return guu
+}
+
+// ClearCard clears the "card" edge to the Card entity.
+func (guu *GameUserUpdate) ClearCard() *GameUserUpdate {
+	guu.mutation.ClearCard()
 	return guu
 }
 
@@ -200,6 +231,9 @@ func (guu *GameUserUpdate) check() error {
 	if _, ok := guu.mutation.GameID(); guu.mutation.GameCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GameUser.game"`)
 	}
+	if _, ok := guu.mutation.CardID(); guu.mutation.CardCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "GameUser.card"`)
+	}
 	return nil
 }
 
@@ -245,6 +279,12 @@ func (guu *GameUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := guu.mutation.AddedUserID(); ok {
 		_spec.AddField(gameuser.FieldUserID, field.TypeInt64, value)
 	}
+	if value, ok := guu.mutation.Number(); ok {
+		_spec.SetField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
+	if value, ok := guu.mutation.AddedNumber(); ok {
+		_spec.AddField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
 	if guu.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -272,6 +312,41 @@ func (guu *GameUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guu.mutation.CardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   gameuser.CardTable,
+			Columns: []string{gameuser.CardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: card.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guu.mutation.CardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   gameuser.CardTable,
+			Columns: []string{gameuser.CardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: card.FieldID,
 				},
 			},
 		}
@@ -380,9 +455,33 @@ func (guuo *GameUserUpdateOne) SetGameID(i int64) *GameUserUpdateOne {
 	return guuo
 }
 
+// SetCardID sets the "card_id" field.
+func (guuo *GameUserUpdateOne) SetCardID(i int64) *GameUserUpdateOne {
+	guuo.mutation.SetCardID(i)
+	return guuo
+}
+
+// SetNumber sets the "number" field.
+func (guuo *GameUserUpdateOne) SetNumber(u uint8) *GameUserUpdateOne {
+	guuo.mutation.ResetNumber()
+	guuo.mutation.SetNumber(u)
+	return guuo
+}
+
+// AddNumber adds u to the "number" field.
+func (guuo *GameUserUpdateOne) AddNumber(u int8) *GameUserUpdateOne {
+	guuo.mutation.AddNumber(u)
+	return guuo
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (guuo *GameUserUpdateOne) SetGame(g *Game) *GameUserUpdateOne {
 	return guuo.SetGameID(g.ID)
+}
+
+// SetCard sets the "card" edge to the Card entity.
+func (guuo *GameUserUpdateOne) SetCard(c *Card) *GameUserUpdateOne {
+	return guuo.SetCardID(c.ID)
 }
 
 // Mutation returns the GameUserMutation object of the builder.
@@ -393,6 +492,12 @@ func (guuo *GameUserUpdateOne) Mutation() *GameUserMutation {
 // ClearGame clears the "game" edge to the Game entity.
 func (guuo *GameUserUpdateOne) ClearGame() *GameUserUpdateOne {
 	guuo.mutation.ClearGame()
+	return guuo
+}
+
+// ClearCard clears the "card" edge to the Card entity.
+func (guuo *GameUserUpdateOne) ClearCard() *GameUserUpdateOne {
+	guuo.mutation.ClearCard()
 	return guuo
 }
 
@@ -483,6 +588,9 @@ func (guuo *GameUserUpdateOne) check() error {
 	if _, ok := guuo.mutation.GameID(); guuo.mutation.GameCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "GameUser.game"`)
 	}
+	if _, ok := guuo.mutation.CardID(); guuo.mutation.CardCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "GameUser.card"`)
+	}
 	return nil
 }
 
@@ -545,6 +653,12 @@ func (guuo *GameUserUpdateOne) sqlSave(ctx context.Context) (_node *GameUser, er
 	if value, ok := guuo.mutation.AddedUserID(); ok {
 		_spec.AddField(gameuser.FieldUserID, field.TypeInt64, value)
 	}
+	if value, ok := guuo.mutation.Number(); ok {
+		_spec.SetField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
+	if value, ok := guuo.mutation.AddedNumber(); ok {
+		_spec.AddField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
 	if guuo.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -572,6 +686,41 @@ func (guuo *GameUserUpdateOne) sqlSave(ctx context.Context) (_node *GameUser, er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guuo.mutation.CardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   gameuser.CardTable,
+			Columns: []string{gameuser.CardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: card.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guuo.mutation.CardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   gameuser.CardTable,
+			Columns: []string{gameuser.CardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: card.FieldID,
 				},
 			},
 		}

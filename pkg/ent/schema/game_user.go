@@ -18,6 +18,8 @@ func (GameUser) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("user_id").StructTag(`json:"user_id"`),
 		field.Int64("game_id").StructTag(`json:"game_id"`),
+		field.Int64("card_id").StructTag(`json:"card_id"`),
+		field.Uint8("number").StructTag(`json:"number"`),
 	}
 }
 
@@ -25,6 +27,7 @@ func (GameUser) Fields() []ent.Field {
 func (GameUser) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("game", Game.Type).Ref("game_users").Field("game_id").Unique().Required(),
+		edge.From("card", Card.Type).Ref("game_users").Field("card_id").Unique().Required(),
 	}
 }
 

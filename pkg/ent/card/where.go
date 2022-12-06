@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
@@ -538,6 +539,34 @@ func NameEqualFold(v string) predicate.Card {
 func NameContainsFold(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// HasGameUsers applies the HasEdge predicate on the "game_users" edge.
+func HasGameUsers() predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GameUsersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GameUsersTable, GameUsersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGameUsersWith applies the HasEdge predicate on the "game_users" edge with a given conditions (other predicates).
+func HasGameUsersWith(preds ...predicate.GameUser) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GameUsersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GameUsersTable, GameUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

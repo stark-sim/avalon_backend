@@ -30,6 +30,16 @@ func (r *gameUserResolver) GameID(ctx context.Context, obj *ent.GameUser) (strin
 	panic(fmt.Errorf("not implemented: GameID - gameID"))
 }
 
+// CardID is the resolver for the cardID field.
+func (r *gameUserResolver) CardID(ctx context.Context, obj *ent.GameUser) (string, error) {
+	panic(fmt.Errorf("not implemented: CardID - cardID"))
+}
+
+// Number is the resolver for the number field.
+func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int, error) {
+	panic(fmt.Errorf("not implemented: Number - number"))
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 	panic(fmt.Errorf("not implemented: Node - node"))
@@ -121,13 +131,28 @@ func (r *cardWhereInputResolver) IDLte(ctx context.Context, obj *ent.CardWhereIn
 }
 
 // GameUserIDs is the resolver for the gameUserIDs field.
+func (r *createCardInputResolver) GameUserIDs(ctx context.Context, obj *ent.CreateCardInput, data []string) error {
+	panic(fmt.Errorf("not implemented: GameUserIDs - gameUserIDs"))
+}
+
+// GameUserIDs is the resolver for the gameUserIDs field.
 func (r *createGameInputResolver) GameUserIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error {
 	panic(fmt.Errorf("not implemented: GameUserIDs - gameUserIDs"))
+}
+
+// Number is the resolver for the number field.
+func (r *createGameUserInputResolver) Number(ctx context.Context, obj *ent.CreateGameUserInput, data int) error {
+	panic(fmt.Errorf("not implemented: Number - number"))
 }
 
 // GameID is the resolver for the gameID field.
 func (r *createGameUserInputResolver) GameID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error {
 	panic(fmt.Errorf("not implemented: GameID - gameID"))
+}
+
+// CardID is the resolver for the cardID field.
+func (r *createGameUserInputResolver) CardID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error {
+	panic(fmt.Errorf("not implemented: CardID - cardID"))
 }
 
 // RoomUserIDs is the resolver for the roomUserIDs field.
@@ -198,6 +223,66 @@ func (r *gameUserWhereInputResolver) GameIDIn(ctx context.Context, obj *ent.Game
 // GameIDNotIn is the resolver for the gameIDNotIn field.
 func (r *gameUserWhereInputResolver) GameIDNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
 	panic(fmt.Errorf("not implemented: GameIDNotIn - gameIDNotIn"))
+}
+
+// CardID is the resolver for the cardID field.
+func (r *gameUserWhereInputResolver) CardID(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: CardID - cardID"))
+}
+
+// CardIDNeq is the resolver for the cardIDNEQ field.
+func (r *gameUserWhereInputResolver) CardIDNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: CardIDNeq - cardIDNEQ"))
+}
+
+// CardIDIn is the resolver for the cardIDIn field.
+func (r *gameUserWhereInputResolver) CardIDIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: CardIDIn - cardIDIn"))
+}
+
+// CardIDNotIn is the resolver for the cardIDNotIn field.
+func (r *gameUserWhereInputResolver) CardIDNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: CardIDNotIn - cardIDNotIn"))
+}
+
+// Number is the resolver for the number field.
+func (r *gameUserWhereInputResolver) Number(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: Number - number"))
+}
+
+// NumberNeq is the resolver for the numberNEQ field.
+func (r *gameUserWhereInputResolver) NumberNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: NumberNeq - numberNEQ"))
+}
+
+// NumberIn is the resolver for the numberIn field.
+func (r *gameUserWhereInputResolver) NumberIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error {
+	panic(fmt.Errorf("not implemented: NumberIn - numberIn"))
+}
+
+// NumberNotIn is the resolver for the numberNotIn field.
+func (r *gameUserWhereInputResolver) NumberNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error {
+	panic(fmt.Errorf("not implemented: NumberNotIn - numberNotIn"))
+}
+
+// NumberGt is the resolver for the numberGT field.
+func (r *gameUserWhereInputResolver) NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: NumberGt - numberGT"))
+}
+
+// NumberGte is the resolver for the numberGTE field.
+func (r *gameUserWhereInputResolver) NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: NumberGte - numberGTE"))
+}
+
+// NumberLt is the resolver for the numberLT field.
+func (r *gameUserWhereInputResolver) NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: NumberLt - numberLT"))
+}
+
+// NumberLte is the resolver for the numberLTE field.
+func (r *gameUserWhereInputResolver) NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
+	panic(fmt.Errorf("not implemented: NumberLte - numberLTE"))
 }
 
 // ID is the resolver for the id field.
@@ -341,6 +426,16 @@ func (r *roomWhereInputResolver) IDLte(ctx context.Context, obj *ent.RoomWhereIn
 }
 
 // AddGameUserIDs is the resolver for the addGameUserIDs field.
+func (r *updateCardInputResolver) AddGameUserIDs(ctx context.Context, obj *ent.UpdateCardInput, data []string) error {
+	panic(fmt.Errorf("not implemented: AddGameUserIDs - addGameUserIDs"))
+}
+
+// RemoveGameUserIDs is the resolver for the removeGameUserIDs field.
+func (r *updateCardInputResolver) RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateCardInput, data []string) error {
+	panic(fmt.Errorf("not implemented: RemoveGameUserIDs - removeGameUserIDs"))
+}
+
+// AddGameUserIDs is the resolver for the addGameUserIDs field.
 func (r *updateGameInputResolver) AddGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error {
 	panic(fmt.Errorf("not implemented: AddGameUserIDs - addGameUserIDs"))
 }
@@ -350,9 +445,19 @@ func (r *updateGameInputResolver) RemoveGameUserIDs(ctx context.Context, obj *en
 	panic(fmt.Errorf("not implemented: RemoveGameUserIDs - removeGameUserIDs"))
 }
 
+// Number is the resolver for the number field.
+func (r *updateGameUserInputResolver) Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int) error {
+	panic(fmt.Errorf("not implemented: Number - number"))
+}
+
 // GameID is the resolver for the gameID field.
 func (r *updateGameUserInputResolver) GameID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error {
 	panic(fmt.Errorf("not implemented: GameID - gameID"))
+}
+
+// CardID is the resolver for the cardID field.
+func (r *updateGameUserInputResolver) CardID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error {
+	panic(fmt.Errorf("not implemented: CardID - cardID"))
 }
 
 // AddRoomUserIDs is the resolver for the addRoomUserIDs field.
@@ -391,6 +496,9 @@ func (r *Resolver) RoomUser() RoomUserResolver { return &roomUserResolver{r} }
 // CardWhereInput returns CardWhereInputResolver implementation.
 func (r *Resolver) CardWhereInput() CardWhereInputResolver { return &cardWhereInputResolver{r} }
 
+// CreateCardInput returns CreateCardInputResolver implementation.
+func (r *Resolver) CreateCardInput() CreateCardInputResolver { return &createCardInputResolver{r} }
+
 // CreateGameInput returns CreateGameInputResolver implementation.
 func (r *Resolver) CreateGameInput() CreateGameInputResolver { return &createGameInputResolver{r} }
 
@@ -423,6 +531,9 @@ func (r *Resolver) RoomUserWhereInput() RoomUserWhereInputResolver {
 // RoomWhereInput returns RoomWhereInputResolver implementation.
 func (r *Resolver) RoomWhereInput() RoomWhereInputResolver { return &roomWhereInputResolver{r} }
 
+// UpdateCardInput returns UpdateCardInputResolver implementation.
+func (r *Resolver) UpdateCardInput() UpdateCardInputResolver { return &updateCardInputResolver{r} }
+
 // UpdateGameInput returns UpdateGameInputResolver implementation.
 func (r *Resolver) UpdateGameInput() UpdateGameInputResolver { return &updateGameInputResolver{r} }
 
@@ -446,6 +557,7 @@ type queryResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type roomUserResolver struct{ *Resolver }
 type cardWhereInputResolver struct{ *Resolver }
+type createCardInputResolver struct{ *Resolver }
 type createGameInputResolver struct{ *Resolver }
 type createGameUserInputResolver struct{ *Resolver }
 type createRoomInputResolver struct{ *Resolver }
@@ -454,6 +566,7 @@ type gameUserWhereInputResolver struct{ *Resolver }
 type gameWhereInputResolver struct{ *Resolver }
 type roomUserWhereInputResolver struct{ *Resolver }
 type roomWhereInputResolver struct{ *Resolver }
+type updateCardInputResolver struct{ *Resolver }
 type updateGameInputResolver struct{ *Resolver }
 type updateGameUserInputResolver struct{ *Resolver }
 type updateRoomInputResolver struct{ *Resolver }

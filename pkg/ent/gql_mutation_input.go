@@ -8,12 +8,13 @@ import (
 
 // CreateCardInput represents a mutation input for creating cards.
 type CreateCardInput struct {
-	CreatedBy *int64
-	UpdatedBy *int64
-	CreatedAt *time.Time
-	UpdatedAt *time.Time
-	DeletedAt *time.Time
-	Name      *string
+	CreatedBy   *int64
+	UpdatedBy   *int64
+	CreatedAt   *time.Time
+	UpdatedAt   *time.Time
+	DeletedAt   *time.Time
+	Name        *string
+	GameUserIDs []int64
 }
 
 // Mutate applies the CreateCardInput on the CardMutation builder.
@@ -36,6 +37,9 @@ func (i *CreateCardInput) Mutate(m *CardMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.GameUserIDs; len(v) > 0 {
+		m.AddGameUserIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateCardInput on the CardCreate builder.
@@ -46,11 +50,13 @@ func (c *CardCreate) SetInput(i CreateCardInput) *CardCreate {
 
 // UpdateCardInput represents a mutation input for updating cards.
 type UpdateCardInput struct {
-	CreatedBy *int64
-	UpdatedBy *int64
-	UpdatedAt *time.Time
-	DeletedAt *time.Time
-	Name      *string
+	CreatedBy         *int64
+	UpdatedBy         *int64
+	UpdatedAt         *time.Time
+	DeletedAt         *time.Time
+	Name              *string
+	AddGameUserIDs    []int64
+	RemoveGameUserIDs []int64
 }
 
 // Mutate applies the UpdateCardInput on the CardMutation builder.
@@ -69,6 +75,12 @@ func (i *UpdateCardInput) Mutate(m *CardMutation) {
 	}
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.AddGameUserIDs; len(v) > 0 {
+		m.AddGameUserIDs(v...)
+	}
+	if v := i.RemoveGameUserIDs; len(v) > 0 {
+		m.RemoveGameUserIDs(v...)
 	}
 }
 
@@ -174,7 +186,9 @@ type CreateGameUserInput struct {
 	UpdatedAt *time.Time
 	DeletedAt *time.Time
 	UserID    int64
+	Number    uint8
 	GameID    int64
+	CardID    int64
 }
 
 // Mutate applies the CreateGameUserInput on the GameUserMutation builder.
@@ -195,7 +209,9 @@ func (i *CreateGameUserInput) Mutate(m *GameUserMutation) {
 		m.SetDeletedAt(*v)
 	}
 	m.SetUserID(i.UserID)
+	m.SetNumber(i.Number)
 	m.SetGameID(i.GameID)
+	m.SetCardID(i.CardID)
 }
 
 // SetInput applies the change-set in the CreateGameUserInput on the GameUserCreate builder.
@@ -211,8 +227,11 @@ type UpdateGameUserInput struct {
 	UpdatedAt *time.Time
 	DeletedAt *time.Time
 	UserID    *int64
+	Number    *uint8
 	ClearGame bool
 	GameID    *int64
+	ClearCard bool
+	CardID    *int64
 }
 
 // Mutate applies the UpdateGameUserInput on the GameUserMutation builder.
@@ -232,11 +251,20 @@ func (i *UpdateGameUserInput) Mutate(m *GameUserMutation) {
 	if v := i.UserID; v != nil {
 		m.SetUserID(*v)
 	}
+	if v := i.Number; v != nil {
+		m.SetNumber(*v)
+	}
 	if i.ClearGame {
 		m.ClearGame()
 	}
 	if v := i.GameID; v != nil {
 		m.SetGameID(*v)
+	}
+	if i.ClearCard {
+		m.ClearCard()
+	}
+	if v := i.CardID; v != nil {
+		m.SetCardID(*v)
 	}
 }
 

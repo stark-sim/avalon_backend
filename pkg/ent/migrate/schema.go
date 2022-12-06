@@ -48,6 +48,8 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "number", Type: field.TypeUint8},
+		{Name: "card_id", Type: field.TypeInt64},
 		{Name: "game_id", Type: field.TypeInt64},
 	}
 	// GameUsersTable holds the schema information for the "game_users" table.
@@ -57,8 +59,14 @@ var (
 		PrimaryKey: []*schema.Column{GameUsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "game_users_cards_game_users",
+				Columns:    []*schema.Column{GameUsersColumns[8]},
+				RefColumns: []*schema.Column{CardsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "game_users_games_game_users",
-				Columns:    []*schema.Column{GameUsersColumns[7]},
+				Columns:    []*schema.Column{GameUsersColumns[9]},
 				RefColumns: []*schema.Column{GamesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -116,6 +124,7 @@ var (
 )
 
 func init() {
-	GameUsersTable.ForeignKeys[0].RefTable = GamesTable
+	GameUsersTable.ForeignKeys[0].RefTable = CardsTable
+	GameUsersTable.ForeignKeys[1].RefTable = GamesTable
 	RoomUsersTable.ForeignKeys[0].RefTable = RoomsTable
 }

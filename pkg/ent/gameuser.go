@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 )
@@ -31,6 +32,10 @@ type GameUser struct {
 	UserID int64 `json:"user_id"`
 	// GameID holds the value of the "game_id" field.
 	GameID int64 `json:"game_id"`
+	// CardID holds the value of the "card_id" field.
+	CardID int64 `json:"card_id"`
+	// Number holds the value of the "number" field.
+	Number uint8 `json:"number"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameUserQuery when eager-loading is set.
 	Edges GameUserEdges `json:"edges"`
@@ -40,11 +45,13 @@ type GameUser struct {
 type GameUserEdges struct {
 	// Game holds the value of the game edge.
 	Game *Game `json:"game,omitempty"`
+	// Card holds the value of the card edge.
+	Card *Card `json:"card,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // GameOrErr returns the Game value or an error if the edge
@@ -60,12 +67,25 @@ func (e GameUserEdges) GameOrErr() (*Game, error) {
 	return nil, &NotLoadedError{edge: "game"}
 }
 
+// CardOrErr returns the Card value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GameUserEdges) CardOrErr() (*Card, error) {
+	if e.loadedTypes[1] {
+		if e.Card == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: card.Label}
+		}
+		return e.Card, nil
+	}
+	return nil, &NotLoadedError{edge: "card"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*GameUser) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case gameuser.FieldID, gameuser.FieldCreatedBy, gameuser.FieldUpdatedBy, gameuser.FieldUserID, gameuser.FieldGameID:
+		case gameuser.FieldID, gameuser.FieldCreatedBy, gameuser.FieldUpdatedBy, gameuser.FieldUserID, gameuser.FieldGameID, gameuser.FieldCardID, gameuser.FieldNumber:
 			values[i] = new(sql.NullInt64)
 		case gameuser.FieldCreatedAt, gameuser.FieldUpdatedAt, gameuser.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -132,6 +152,18 @@ func (gu *GameUser) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gu.GameID = value.Int64
 			}
+		case gameuser.FieldCardID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field card_id", values[i])
+			} else if value.Valid {
+				gu.CardID = value.Int64
+			}
+		case gameuser.FieldNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field number", values[i])
+			} else if value.Valid {
+				gu.Number = uint8(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -140,6 +172,11 @@ func (gu *GameUser) assignValues(columns []string, values []any) error {
 // QueryGame queries the "game" edge of the GameUser entity.
 func (gu *GameUser) QueryGame() *GameQuery {
 	return (&GameUserClient{config: gu.config}).QueryGame(gu)
+}
+
+// QueryCard queries the "card" edge of the GameUser entity.
+func (gu *GameUser) QueryCard() *CardQuery {
+	return (&GameUserClient{config: gu.config}).QueryCard(gu)
 }
 
 // Update returns a builder for updating this GameUser.
@@ -185,6 +222,12 @@ func (gu *GameUser) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("game_id=")
 	builder.WriteString(fmt.Sprintf("%v", gu.GameID))
+	builder.WriteString(", ")
+	builder.WriteString("card_id=")
+	builder.WriteString(fmt.Sprintf("%v", gu.CardID))
+	builder.WriteString(", ")
+	builder.WriteString("number=")
+	builder.WriteString(fmt.Sprintf("%v", gu.Number))
 	builder.WriteByte(')')
 	return builder.String()
 }

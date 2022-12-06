@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
@@ -25,6 +26,7 @@ type GameUserQuery struct {
 	fields     []string
 	predicates []predicate.GameUser
 	withGame   *GameQuery
+	withCard   *CardQuery
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*GameUser) error
 	// intermediate query (i.e. traversal path).
@@ -78,6 +80,28 @@ func (guq *GameUserQuery) QueryGame() *GameQuery {
 			sqlgraph.From(gameuser.Table, gameuser.FieldID, selector),
 			sqlgraph.To(game.Table, game.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, gameuser.GameTable, gameuser.GameColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(guq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCard chains the current query on the "card" edge.
+func (guq *GameUserQuery) QueryCard() *CardQuery {
+	query := &CardQuery{config: guq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := guq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := guq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(gameuser.Table, gameuser.FieldID, selector),
+			sqlgraph.To(card.Table, card.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, gameuser.CardTable, gameuser.CardColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(guq.driver.Dialect(), step)
 		return fromU, nil
@@ -267,6 +291,7 @@ func (guq *GameUserQuery) Clone() *GameUserQuery {
 		order:      append([]OrderFunc{}, guq.order...),
 		predicates: append([]predicate.GameUser{}, guq.predicates...),
 		withGame:   guq.withGame.Clone(),
+		withCard:   guq.withCard.Clone(),
 		// clone intermediate query.
 		sql:    guq.sql.Clone(),
 		path:   guq.path,
@@ -282,6 +307,17 @@ func (guq *GameUserQuery) WithGame(opts ...func(*GameQuery)) *GameUserQuery {
 		opt(query)
 	}
 	guq.withGame = query
+	return guq
+}
+
+// WithCard tells the query-builder to eager-load the nodes that are connected to
+// the "card" edge. The optional arguments are used to configure the query builder of the edge.
+func (guq *GameUserQuery) WithCard(opts ...func(*CardQuery)) *GameUserQuery {
+	query := &CardQuery{config: guq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	guq.withCard = query
 	return guq
 }
 
@@ -358,8 +394,9 @@ func (guq *GameUserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ga
 	var (
 		nodes       = []*GameUser{}
 		_spec       = guq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			guq.withGame != nil,
+			guq.withCard != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -386,6 +423,12 @@ func (guq *GameUserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ga
 	if query := guq.withGame; query != nil {
 		if err := guq.loadGame(ctx, query, nodes, nil,
 			func(n *GameUser, e *Game) { n.Edges.Game = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := guq.withCard; query != nil {
+		if err := guq.loadCard(ctx, query, nodes, nil,
+			func(n *GameUser, e *Card) { n.Edges.Card = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -416,6 +459,32 @@ func (guq *GameUserQuery) loadGame(ctx context.Context, query *GameQuery, nodes 
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "game_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (guq *GameUserQuery) loadCard(ctx context.Context, query *CardQuery, nodes []*GameUser, init func(*GameUser), assign func(*GameUser, *Card)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*GameUser)
+	for i := range nodes {
+		fk := nodes[i].CardID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(card.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "card_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

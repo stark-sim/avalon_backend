@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -21,7 +22,9 @@ func (Card) Fields() []ent.Field {
 
 // Edges of the Card.
 func (Card) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("game_users", GameUser.Type),
+	}
 }
 
 func (Card) Mixin() []ent.Mixin {

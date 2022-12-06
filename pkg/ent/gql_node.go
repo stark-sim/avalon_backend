@@ -55,7 +55,7 @@ func (c *Card) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Card",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 0),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreatedBy); err != nil {
@@ -105,6 +105,16 @@ func (c *Card) Node(ctx context.Context) (node *Node, err error) {
 		Type:  "string",
 		Name:  "name",
 		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "GameUser",
+		Name: "game_users",
+	}
+	err = c.QueryGameUsers().
+		Select(gameuser.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
 	}
 	return node, nil
 }
@@ -174,8 +184,8 @@ func (gu *GameUser) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     gu.ID,
 		Type:   "GameUser",
-		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 9),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(gu.CreatedBy); err != nil {
@@ -234,6 +244,22 @@ func (gu *GameUser) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "game_id",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(gu.CardID); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "int64",
+		Name:  "card_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(gu.Number); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "uint8",
+		Name:  "number",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Game",
 		Name: "game",
@@ -241,6 +267,16 @@ func (gu *GameUser) Node(ctx context.Context) (node *Node, err error) {
 	err = gu.QueryGame().
 		Select(game.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Card",
+		Name: "card",
+	}
+	err = gu.QueryCard().
+		Select(card.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

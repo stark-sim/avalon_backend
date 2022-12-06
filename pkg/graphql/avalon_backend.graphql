@@ -8,6 +8,7 @@ type Card implements Node {
   updatedAt: Time!
   deletedAt: Time!
   name: String!
+  gameUsers: [GameUser!]
 }
 """Ordering options for Card connections"""
 input CardOrder {
@@ -99,6 +100,9 @@ input CardWhereInput {
   nameHasSuffix: String
   nameEqualFold: String
   nameContainsFold: String
+  """game_users edge predicates"""
+  hasGameUsers: Boolean
+  hasGameUsersWith: [GameUserWhereInput!]
 }
 """
 CreateCardInput is used for create Card object.
@@ -111,6 +115,7 @@ input CreateCardInput {
   updatedAt: Time
   deletedAt: Time
   name: String
+  gameUserIDs: [ID!]
 }
 """
 CreateGameInput is used for create Game object.
@@ -135,7 +140,9 @@ input CreateGameUserInput {
   updatedAt: Time
   deletedAt: Time
   userID: Int!
+  number: Int!
   gameID: ID!
+  cardID: ID!
 }
 """
 CreateRoomInput is used for create Room object.
@@ -199,7 +206,10 @@ type GameUser implements Node {
   deletedAt: Time!
   userID: Int!
   gameID: ID!
+  cardID: ID!
+  number: Int!
   game: Game!
+  card: Card!
 }
 """Ordering options for GameUser connections"""
 input GameUserOrder {
@@ -290,9 +300,26 @@ input GameUserWhereInput {
   gameIDNEQ: ID
   gameIDIn: [ID!]
   gameIDNotIn: [ID!]
+  """card_id field predicates"""
+  cardID: ID
+  cardIDNEQ: ID
+  cardIDIn: [ID!]
+  cardIDNotIn: [ID!]
+  """number field predicates"""
+  number: Int
+  numberNEQ: Int
+  numberIn: [Int!]
+  numberNotIn: [Int!]
+  numberGT: Int
+  numberGTE: Int
+  numberLT: Int
+  numberLTE: Int
   """game edge predicates"""
   hasGame: Boolean
   hasGameWith: [GameWhereInput!]
+  """card edge predicates"""
+  hasCard: Boolean
+  hasCardWith: [CardWhereInput!]
 }
 """
 GameWhereInput is used for filtering Game objects.
@@ -626,6 +653,8 @@ input UpdateCardInput {
   updatedAt: Time
   deletedAt: Time
   name: String
+  addGameUserIDs: [ID!]
+  removeGameUserIDs: [ID!]
 }
 """
 UpdateGameInput is used for update Game object.
@@ -649,8 +678,11 @@ input UpdateGameUserInput {
   updatedAt: Time
   deletedAt: Time
   userID: Int
+  number: Int
   clearGame: Boolean
   gameID: ID
+  clearCard: Boolean
+  cardID: ID
 }
 """
 UpdateRoomInput is used for update Room object.

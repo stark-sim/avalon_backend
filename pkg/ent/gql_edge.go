@@ -8,6 +8,18 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+func (c *Card) GameUsers(ctx context.Context) (result []*GameUser, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = c.NamedGameUsers(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = c.Edges.GameUsersOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = c.QueryGameUsers().All(ctx)
+	}
+	return result, err
+}
+
 func (ga *Game) GameUsers(ctx context.Context) (result []*GameUser, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ga.NamedGameUsers(graphql.GetFieldContext(ctx).Field.Alias)
@@ -24,6 +36,14 @@ func (gu *GameUser) Game(ctx context.Context) (*Game, error) {
 	result, err := gu.Edges.GameOrErr()
 	if IsNotLoaded(err) {
 		result, err = gu.QueryGame().Only(ctx)
+	}
+	return result, err
+}
+
+func (gu *GameUser) Card(ctx context.Context) (*Card, error) {
+	result, err := gu.Edges.CardOrErr()
+	if IsNotLoaded(err) {
+		result, err = gu.QueryCard().Only(ctx)
 	}
 	return result, err
 }

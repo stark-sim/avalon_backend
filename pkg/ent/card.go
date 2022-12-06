@@ -28,6 +28,31 @@ type Card struct {
 	DeletedAt time.Time `json:"deleted_at"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CardQuery when eager-loading is set.
+	Edges CardEdges `json:"edges"`
+}
+
+// CardEdges holds the relations/edges for other nodes in the graph.
+type CardEdges struct {
+	// GameUsers holds the value of the game_users edge.
+	GameUsers []*GameUser `json:"game_users,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedGameUsers map[string][]*GameUser
+}
+
+// GameUsersOrErr returns the GameUsers value or an error if the edge
+// was not loaded in eager-loading.
+func (e CardEdges) GameUsersOrErr() ([]*GameUser, error) {
+	if e.loadedTypes[0] {
+		return e.GameUsers, nil
+	}
+	return nil, &NotLoadedError{edge: "game_users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +128,11 @@ func (c *Card) assignValues(columns []string, values []any) error {
 	return nil
 }
 
+// QueryGameUsers queries the "game_users" edge of the Card entity.
+func (c *Card) QueryGameUsers() *GameUserQuery {
+	return (&CardClient{config: c.config}).QueryGameUsers(c)
+}
+
 // Update returns a builder for updating this Card.
 // Note that you need to call Card.Unwrap() before calling this method if this Card
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -145,6 +175,30 @@ func (c *Card) String() string {
 	builder.WriteString(c.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedGameUsers returns the GameUsers named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (c *Card) NamedGameUsers(name string) ([]*GameUser, error) {
+	if c.Edges.namedGameUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := c.Edges.namedGameUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (c *Card) appendNamedGameUsers(name string, edges ...*GameUser) {
+	if c.Edges.namedGameUsers == nil {
+		c.Edges.namedGameUsers = make(map[string][]*GameUser)
+	}
+	if len(edges) == 0 {
+		c.Edges.namedGameUsers[name] = []*GameUser{}
+	} else {
+		c.Edges.namedGameUsers[name] = append(c.Edges.namedGameUsers[name], edges...)
+	}
 }
 
 // Cards is a parsable slice of Card.

@@ -130,6 +130,20 @@ func GameID(v int64) predicate.GameUser {
 	})
 }
 
+// CardID applies equality check predicate on the "card_id" field. It's identical to CardIDEQ.
+func CardID(v int64) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCardID), v))
+	})
+}
+
+// Number applies equality check predicate on the "number" field. It's identical to NumberEQ.
+func Number(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNumber), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.GameUser {
 	return predicate.GameUser(func(s *sql.Selector) {
@@ -550,6 +564,106 @@ func GameIDNotIn(vs ...int64) predicate.GameUser {
 	})
 }
 
+// CardIDEQ applies the EQ predicate on the "card_id" field.
+func CardIDEQ(v int64) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCardID), v))
+	})
+}
+
+// CardIDNEQ applies the NEQ predicate on the "card_id" field.
+func CardIDNEQ(v int64) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCardID), v))
+	})
+}
+
+// CardIDIn applies the In predicate on the "card_id" field.
+func CardIDIn(vs ...int64) predicate.GameUser {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCardID), v...))
+	})
+}
+
+// CardIDNotIn applies the NotIn predicate on the "card_id" field.
+func CardIDNotIn(vs ...int64) predicate.GameUser {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCardID), v...))
+	})
+}
+
+// NumberEQ applies the EQ predicate on the "number" field.
+func NumberEQ(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNumber), v))
+	})
+}
+
+// NumberNEQ applies the NEQ predicate on the "number" field.
+func NumberNEQ(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNumber), v))
+	})
+}
+
+// NumberIn applies the In predicate on the "number" field.
+func NumberIn(vs ...uint8) predicate.GameUser {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldNumber), v...))
+	})
+}
+
+// NumberNotIn applies the NotIn predicate on the "number" field.
+func NumberNotIn(vs ...uint8) predicate.GameUser {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldNumber), v...))
+	})
+}
+
+// NumberGT applies the GT predicate on the "number" field.
+func NumberGT(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNumber), v))
+	})
+}
+
+// NumberGTE applies the GTE predicate on the "number" field.
+func NumberGTE(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNumber), v))
+	})
+}
+
+// NumberLT applies the LT predicate on the "number" field.
+func NumberLT(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNumber), v))
+	})
+}
+
+// NumberLTE applies the LTE predicate on the "number" field.
+func NumberLTE(v uint8) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNumber), v))
+	})
+}
+
 // HasGame applies the HasEdge predicate on the "game" edge.
 func HasGame() predicate.GameUser {
 	return predicate.GameUser(func(s *sql.Selector) {
@@ -569,6 +683,34 @@ func HasGameWith(preds ...predicate.Game) predicate.GameUser {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(GameInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, GameTable, GameColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCard applies the HasEdge predicate on the "card" edge.
+func HasCard() predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CardTable, CardColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCardWith applies the HasEdge predicate on the "card" edge with a given conditions (other predicates).
+func HasCardWith(preds ...predicate.Card) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CardTable, CardColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

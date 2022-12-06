@@ -238,6 +238,22 @@ func (c *CardClient) GetX(ctx context.Context, id int64) *Card {
 	return obj
 }
 
+// QueryGameUsers queries the game_users edge of a Card.
+func (c *CardClient) QueryGameUsers(ca *Card) *GameUserQuery {
+	query := &GameUserQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ca.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(card.Table, card.FieldID, id),
+			sqlgraph.To(gameuser.Table, gameuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, card.GameUsersTable, card.GameUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ca.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CardClient) Hooks() []Hook {
 	return c.hooks.Card
@@ -443,6 +459,22 @@ func (c *GameUserClient) QueryGame(gu *GameUser) *GameQuery {
 			sqlgraph.From(gameuser.Table, gameuser.FieldID, id),
 			sqlgraph.To(game.Table, game.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, gameuser.GameTable, gameuser.GameColumn),
+		)
+		fromV = sqlgraph.Neighbors(gu.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCard queries the card edge of a GameUser.
+func (c *GameUserClient) QueryCard(gu *GameUser) *CardQuery {
+	query := &CardQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gu.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(gameuser.Table, gameuser.FieldID, id),
+			sqlgraph.To(card.Table, card.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, gameuser.CardTable, gameuser.CardColumn),
 		)
 		fromV = sqlgraph.Neighbors(gu.driver.Dialect(), step)
 		return fromV, nil

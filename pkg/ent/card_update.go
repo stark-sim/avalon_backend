@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
 )
 
@@ -104,9 +105,45 @@ func (cu *CardUpdate) SetNillableName(s *string) *CardUpdate {
 	return cu
 }
 
+// AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
+func (cu *CardUpdate) AddGameUserIDs(ids ...int64) *CardUpdate {
+	cu.mutation.AddGameUserIDs(ids...)
+	return cu
+}
+
+// AddGameUsers adds the "game_users" edges to the GameUser entity.
+func (cu *CardUpdate) AddGameUsers(g ...*GameUser) *CardUpdate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return cu.AddGameUserIDs(ids...)
+}
+
 // Mutation returns the CardMutation object of the builder.
 func (cu *CardUpdate) Mutation() *CardMutation {
 	return cu.mutation
+}
+
+// ClearGameUsers clears all "game_users" edges to the GameUser entity.
+func (cu *CardUpdate) ClearGameUsers() *CardUpdate {
+	cu.mutation.ClearGameUsers()
+	return cu
+}
+
+// RemoveGameUserIDs removes the "game_users" edge to GameUser entities by IDs.
+func (cu *CardUpdate) RemoveGameUserIDs(ids ...int64) *CardUpdate {
+	cu.mutation.RemoveGameUserIDs(ids...)
+	return cu
+}
+
+// RemoveGameUsers removes "game_users" edges to GameUser entities.
+func (cu *CardUpdate) RemoveGameUsers(g ...*GameUser) *CardUpdate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return cu.RemoveGameUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -211,6 +248,60 @@ func (cu *CardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(card.FieldName, field.TypeString, value)
 	}
+	if cu.mutation.GameUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedGameUsersIDs(); len(nodes) > 0 && !cu.mutation.GameUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.GameUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{card.Label}
@@ -306,9 +397,45 @@ func (cuo *CardUpdateOne) SetNillableName(s *string) *CardUpdateOne {
 	return cuo
 }
 
+// AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
+func (cuo *CardUpdateOne) AddGameUserIDs(ids ...int64) *CardUpdateOne {
+	cuo.mutation.AddGameUserIDs(ids...)
+	return cuo
+}
+
+// AddGameUsers adds the "game_users" edges to the GameUser entity.
+func (cuo *CardUpdateOne) AddGameUsers(g ...*GameUser) *CardUpdateOne {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return cuo.AddGameUserIDs(ids...)
+}
+
 // Mutation returns the CardMutation object of the builder.
 func (cuo *CardUpdateOne) Mutation() *CardMutation {
 	return cuo.mutation
+}
+
+// ClearGameUsers clears all "game_users" edges to the GameUser entity.
+func (cuo *CardUpdateOne) ClearGameUsers() *CardUpdateOne {
+	cuo.mutation.ClearGameUsers()
+	return cuo
+}
+
+// RemoveGameUserIDs removes the "game_users" edge to GameUser entities by IDs.
+func (cuo *CardUpdateOne) RemoveGameUserIDs(ids ...int64) *CardUpdateOne {
+	cuo.mutation.RemoveGameUserIDs(ids...)
+	return cuo
+}
+
+// RemoveGameUsers removes "game_users" edges to GameUser entities.
+func (cuo *CardUpdateOne) RemoveGameUsers(g ...*GameUser) *CardUpdateOne {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return cuo.RemoveGameUserIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -442,6 +569,60 @@ func (cuo *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) 
 	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(card.FieldName, field.TypeString, value)
+	}
+	if cuo.mutation.GameUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedGameUsersIDs(); len(nodes) > 0 && !cuo.mutation.GameUsersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.GameUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Card{config: cuo.config}
 	_spec.Assign = _node.assignValues

@@ -38,6 +38,7 @@ type ResolverRoot interface {
 	Room() RoomResolver
 	RoomUser() RoomUserResolver
 	CardWhereInput() CardWhereInputResolver
+	CreateCardInput() CreateCardInputResolver
 	CreateGameInput() CreateGameInputResolver
 	CreateGameUserInput() CreateGameUserInputResolver
 	CreateRoomInput() CreateRoomInputResolver
@@ -46,6 +47,7 @@ type ResolverRoot interface {
 	GameWhereInput() GameWhereInputResolver
 	RoomUserWhereInput() RoomUserWhereInputResolver
 	RoomWhereInput() RoomWhereInputResolver
+	UpdateCardInput() UpdateCardInputResolver
 	UpdateGameInput() UpdateGameInputResolver
 	UpdateGameUserInput() UpdateGameUserInputResolver
 	UpdateRoomInput() UpdateRoomInputResolver
@@ -60,6 +62,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		GameUsers func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
@@ -77,12 +80,15 @@ type ComplexityRoot struct {
 	}
 
 	GameUser struct {
+		Card      func(childComplexity int) int
+		CardID    func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
 		Game      func(childComplexity int) int
 		GameID    func(childComplexity int) int
 		ID        func(childComplexity int) int
+		Number    func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
 		UserID    func(childComplexity int) int
@@ -170,6 +176,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Card.DeletedAt(childComplexity), true
 
+	case "Card.gameUsers":
+		if e.complexity.Card.GameUsers == nil {
+			break
+		}
+
+		return e.complexity.Card.GameUsers(childComplexity), true
+
 	case "Card.id":
 		if e.complexity.Card.ID == nil {
 			break
@@ -247,6 +260,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Game.UpdatedBy(childComplexity), true
 
+	case "GameUser.card":
+		if e.complexity.GameUser.Card == nil {
+			break
+		}
+
+		return e.complexity.GameUser.Card(childComplexity), true
+
+	case "GameUser.cardID":
+		if e.complexity.GameUser.CardID == nil {
+			break
+		}
+
+		return e.complexity.GameUser.CardID(childComplexity), true
+
 	case "GameUser.createdAt":
 		if e.complexity.GameUser.CreatedAt == nil {
 			break
@@ -288,6 +315,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GameUser.ID(childComplexity), true
+
+	case "GameUser.number":
+		if e.complexity.GameUser.Number == nil {
+			break
+		}
+
+		return e.complexity.GameUser.Number(childComplexity), true
 
 	case "GameUser.updatedAt":
 		if e.complexity.GameUser.UpdatedAt == nil {

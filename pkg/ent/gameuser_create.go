@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 )
@@ -103,6 +104,18 @@ func (guc *GameUserCreate) SetGameID(i int64) *GameUserCreate {
 	return guc
 }
 
+// SetCardID sets the "card_id" field.
+func (guc *GameUserCreate) SetCardID(i int64) *GameUserCreate {
+	guc.mutation.SetCardID(i)
+	return guc
+}
+
+// SetNumber sets the "number" field.
+func (guc *GameUserCreate) SetNumber(u uint8) *GameUserCreate {
+	guc.mutation.SetNumber(u)
+	return guc
+}
+
 // SetID sets the "id" field.
 func (guc *GameUserCreate) SetID(i int64) *GameUserCreate {
 	guc.mutation.SetID(i)
@@ -120,6 +133,11 @@ func (guc *GameUserCreate) SetNillableID(i *int64) *GameUserCreate {
 // SetGame sets the "game" edge to the Game entity.
 func (guc *GameUserCreate) SetGame(g *Game) *GameUserCreate {
 	return guc.SetGameID(g.ID)
+}
+
+// SetCard sets the "card" edge to the Card entity.
+func (guc *GameUserCreate) SetCard(c *Card) *GameUserCreate {
+	return guc.SetCardID(c.ID)
 }
 
 // Mutation returns the GameUserMutation object of the builder.
@@ -248,8 +266,17 @@ func (guc *GameUserCreate) check() error {
 	if _, ok := guc.mutation.GameID(); !ok {
 		return &ValidationError{Name: "game_id", err: errors.New(`ent: missing required field "GameUser.game_id"`)}
 	}
+	if _, ok := guc.mutation.CardID(); !ok {
+		return &ValidationError{Name: "card_id", err: errors.New(`ent: missing required field "GameUser.card_id"`)}
+	}
+	if _, ok := guc.mutation.Number(); !ok {
+		return &ValidationError{Name: "number", err: errors.New(`ent: missing required field "GameUser.number"`)}
+	}
 	if _, ok := guc.mutation.GameID(); !ok {
 		return &ValidationError{Name: "game", err: errors.New(`ent: missing required edge "GameUser.game"`)}
+	}
+	if _, ok := guc.mutation.CardID(); !ok {
+		return &ValidationError{Name: "card", err: errors.New(`ent: missing required edge "GameUser.card"`)}
 	}
 	return nil
 }
@@ -308,6 +335,10 @@ func (guc *GameUserCreate) createSpec() (*GameUser, *sqlgraph.CreateSpec) {
 		_spec.SetField(gameuser.FieldUserID, field.TypeInt64, value)
 		_node.UserID = value
 	}
+	if value, ok := guc.mutation.Number(); ok {
+		_spec.SetField(gameuser.FieldNumber, field.TypeUint8, value)
+		_node.Number = value
+	}
 	if nodes := guc.mutation.GameIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -326,6 +357,26 @@ func (guc *GameUserCreate) createSpec() (*GameUser, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GameID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := guc.mutation.CardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   gameuser.CardTable,
+			Columns: []string{gameuser.CardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: card.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CardID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

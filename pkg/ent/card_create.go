@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 )
 
 // CardCreate is the builder for creating a Card entity.
@@ -116,6 +117,21 @@ func (cc *CardCreate) SetNillableID(i *int64) *CardCreate {
 		cc.SetID(*i)
 	}
 	return cc
+}
+
+// AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
+func (cc *CardCreate) AddGameUserIDs(ids ...int64) *CardCreate {
+	cc.mutation.AddGameUserIDs(ids...)
+	return cc
+}
+
+// AddGameUsers adds the "game_users" edges to the GameUser entity.
+func (cc *CardCreate) AddGameUsers(g ...*GameUser) *CardCreate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return cc.AddGameUserIDs(ids...)
 }
 
 // Mutation returns the CardMutation object of the builder.
@@ -301,6 +317,25 @@ func (cc *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(card.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if nodes := cc.mutation.GameUsersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   card.GameUsersTable,
+			Columns: []string{card.GameUsersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

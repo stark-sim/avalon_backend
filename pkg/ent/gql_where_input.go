@@ -96,6 +96,10 @@ type CardWhereInput struct {
 	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
 	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
 	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
+
+	// "game_users" edge predicates.
+	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
+	HasGameUsersWith []*GameUserWhereInput `json:"hasGameUsersWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -353,6 +357,24 @@ func (i *CardWhereInput) P() (predicate.Card, error) {
 		predicates = append(predicates, card.NameContainsFold(*i.NameContainsFold))
 	}
 
+	if i.HasGameUsers != nil {
+		p := card.HasGameUsers()
+		if !*i.HasGameUsers {
+			p = card.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasGameUsersWith) > 0 {
+		with := make([]predicate.GameUser, 0, len(i.HasGameUsersWith))
+		for _, w := range i.HasGameUsersWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasGameUsersWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, card.HasGameUsersWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyCardWhereInput
@@ -762,9 +784,29 @@ type GameUserWhereInput struct {
 	GameIDIn    []int64 `json:"gameIDIn,omitempty"`
 	GameIDNotIn []int64 `json:"gameIDNotIn,omitempty"`
 
+	// "card_id" field predicates.
+	CardID      *int64  `json:"cardID,omitempty"`
+	CardIDNEQ   *int64  `json:"cardIDNEQ,omitempty"`
+	CardIDIn    []int64 `json:"cardIDIn,omitempty"`
+	CardIDNotIn []int64 `json:"cardIDNotIn,omitempty"`
+
+	// "number" field predicates.
+	Number      *uint8  `json:"number,omitempty"`
+	NumberNEQ   *uint8  `json:"numberNEQ,omitempty"`
+	NumberIn    []uint8 `json:"numberIn,omitempty"`
+	NumberNotIn []uint8 `json:"numberNotIn,omitempty"`
+	NumberGT    *uint8  `json:"numberGT,omitempty"`
+	NumberGTE   *uint8  `json:"numberGTE,omitempty"`
+	NumberLT    *uint8  `json:"numberLT,omitempty"`
+	NumberLTE   *uint8  `json:"numberLTE,omitempty"`
+
 	// "game" edge predicates.
 	HasGame     *bool             `json:"hasGame,omitempty"`
 	HasGameWith []*GameWhereInput `json:"hasGameWith,omitempty"`
+
+	// "card" edge predicates.
+	HasCard     *bool             `json:"hasCard,omitempty"`
+	HasCardWith []*CardWhereInput `json:"hasCardWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1018,6 +1060,42 @@ func (i *GameUserWhereInput) P() (predicate.GameUser, error) {
 	if len(i.GameIDNotIn) > 0 {
 		predicates = append(predicates, gameuser.GameIDNotIn(i.GameIDNotIn...))
 	}
+	if i.CardID != nil {
+		predicates = append(predicates, gameuser.CardIDEQ(*i.CardID))
+	}
+	if i.CardIDNEQ != nil {
+		predicates = append(predicates, gameuser.CardIDNEQ(*i.CardIDNEQ))
+	}
+	if len(i.CardIDIn) > 0 {
+		predicates = append(predicates, gameuser.CardIDIn(i.CardIDIn...))
+	}
+	if len(i.CardIDNotIn) > 0 {
+		predicates = append(predicates, gameuser.CardIDNotIn(i.CardIDNotIn...))
+	}
+	if i.Number != nil {
+		predicates = append(predicates, gameuser.NumberEQ(*i.Number))
+	}
+	if i.NumberNEQ != nil {
+		predicates = append(predicates, gameuser.NumberNEQ(*i.NumberNEQ))
+	}
+	if len(i.NumberIn) > 0 {
+		predicates = append(predicates, gameuser.NumberIn(i.NumberIn...))
+	}
+	if len(i.NumberNotIn) > 0 {
+		predicates = append(predicates, gameuser.NumberNotIn(i.NumberNotIn...))
+	}
+	if i.NumberGT != nil {
+		predicates = append(predicates, gameuser.NumberGT(*i.NumberGT))
+	}
+	if i.NumberGTE != nil {
+		predicates = append(predicates, gameuser.NumberGTE(*i.NumberGTE))
+	}
+	if i.NumberLT != nil {
+		predicates = append(predicates, gameuser.NumberLT(*i.NumberLT))
+	}
+	if i.NumberLTE != nil {
+		predicates = append(predicates, gameuser.NumberLTE(*i.NumberLTE))
+	}
 
 	if i.HasGame != nil {
 		p := gameuser.HasGame()
@@ -1036,6 +1114,24 @@ func (i *GameUserWhereInput) P() (predicate.GameUser, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, gameuser.HasGameWith(with...))
+	}
+	if i.HasCard != nil {
+		p := gameuser.HasCard()
+		if !*i.HasCard {
+			p = gameuser.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasCardWith) > 0 {
+		with := make([]predicate.Card, 0, len(i.HasCardWith))
+		for _, w := range i.HasCardWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasCardWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, gameuser.HasCardWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

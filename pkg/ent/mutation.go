@@ -38,21 +38,24 @@ const (
 // CardMutation represents an operation that mutates the Card nodes in the graph.
 type CardMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	created_by    *int64
-	addcreated_by *int64
-	updated_by    *int64
-	addupdated_by *int64
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	name          *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Card, error)
-	predicates    []predicate.Card
+	op                Op
+	typ               string
+	id                *int64
+	created_by        *int64
+	addcreated_by     *int64
+	updated_by        *int64
+	addupdated_by     *int64
+	created_at        *time.Time
+	updated_at        *time.Time
+	deleted_at        *time.Time
+	name              *string
+	clearedFields     map[string]struct{}
+	game_users        map[int64]struct{}
+	removedgame_users map[int64]struct{}
+	clearedgame_users bool
+	done              bool
+	oldValue          func(context.Context) (*Card, error)
+	predicates        []predicate.Card
 }
 
 var _ ent.Mutation = (*CardMutation)(nil)
@@ -415,6 +418,60 @@ func (m *CardMutation) ResetName() {
 	m.name = nil
 }
 
+// AddGameUserIDs adds the "game_users" edge to the GameUser entity by ids.
+func (m *CardMutation) AddGameUserIDs(ids ...int64) {
+	if m.game_users == nil {
+		m.game_users = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.game_users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGameUsers clears the "game_users" edge to the GameUser entity.
+func (m *CardMutation) ClearGameUsers() {
+	m.clearedgame_users = true
+}
+
+// GameUsersCleared reports if the "game_users" edge to the GameUser entity was cleared.
+func (m *CardMutation) GameUsersCleared() bool {
+	return m.clearedgame_users
+}
+
+// RemoveGameUserIDs removes the "game_users" edge to the GameUser entity by IDs.
+func (m *CardMutation) RemoveGameUserIDs(ids ...int64) {
+	if m.removedgame_users == nil {
+		m.removedgame_users = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.game_users, ids[i])
+		m.removedgame_users[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGameUsers returns the removed IDs of the "game_users" edge to the GameUser entity.
+func (m *CardMutation) RemovedGameUsersIDs() (ids []int64) {
+	for id := range m.removedgame_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GameUsersIDs returns the "game_users" edge IDs in the mutation.
+func (m *CardMutation) GameUsersIDs() (ids []int64) {
+	for id := range m.game_users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGameUsers resets all changes to the "game_users" edge.
+func (m *CardMutation) ResetGameUsers() {
+	m.game_users = nil
+	m.clearedgame_users = false
+	m.removedgame_users = nil
+}
+
 // Where appends a list predicates to the CardMutation builder.
 func (m *CardMutation) Where(ps ...predicate.Card) {
 	m.predicates = append(m.predicates, ps...)
@@ -645,49 +702,85 @@ func (m *CardMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CardMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.game_users != nil {
+		edges = append(edges, card.EdgeGameUsers)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CardMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case card.EdgeGameUsers:
+		ids := make([]ent.Value, 0, len(m.game_users))
+		for id := range m.game_users {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CardMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedgame_users != nil {
+		edges = append(edges, card.EdgeGameUsers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CardMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case card.EdgeGameUsers:
+		ids := make([]ent.Value, 0, len(m.removedgame_users))
+		for id := range m.removedgame_users {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CardMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedgame_users {
+		edges = append(edges, card.EdgeGameUsers)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CardMutation) EdgeCleared(name string) bool {
+	switch name {
+	case card.EdgeGameUsers:
+		return m.clearedgame_users
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CardMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Card unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CardMutation) ResetEdge(name string) error {
+	switch name {
+	case card.EdgeGameUsers:
+		m.ResetGameUsers()
+		return nil
+	}
 	return fmt.Errorf("unknown Card edge %s", name)
 }
 
@@ -1401,9 +1494,13 @@ type GameUserMutation struct {
 	deleted_at    *time.Time
 	user_id       *int64
 	adduser_id    *int64
+	number        *uint8
+	addnumber     *int8
 	clearedFields map[string]struct{}
 	game          *int64
 	clearedgame   bool
+	card          *int64
+	clearedcard   bool
 	done          bool
 	oldValue      func(context.Context) (*GameUser, error)
 	predicates    []predicate.GameUser
@@ -1825,6 +1922,98 @@ func (m *GameUserMutation) ResetGameID() {
 	m.game = nil
 }
 
+// SetCardID sets the "card_id" field.
+func (m *GameUserMutation) SetCardID(i int64) {
+	m.card = &i
+}
+
+// CardID returns the value of the "card_id" field in the mutation.
+func (m *GameUserMutation) CardID() (r int64, exists bool) {
+	v := m.card
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCardID returns the old "card_id" field's value of the GameUser entity.
+// If the GameUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameUserMutation) OldCardID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCardID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCardID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCardID: %w", err)
+	}
+	return oldValue.CardID, nil
+}
+
+// ResetCardID resets all changes to the "card_id" field.
+func (m *GameUserMutation) ResetCardID() {
+	m.card = nil
+}
+
+// SetNumber sets the "number" field.
+func (m *GameUserMutation) SetNumber(u uint8) {
+	m.number = &u
+	m.addnumber = nil
+}
+
+// Number returns the value of the "number" field in the mutation.
+func (m *GameUserMutation) Number() (r uint8, exists bool) {
+	v := m.number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNumber returns the old "number" field's value of the GameUser entity.
+// If the GameUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameUserMutation) OldNumber(ctx context.Context) (v uint8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNumber: %w", err)
+	}
+	return oldValue.Number, nil
+}
+
+// AddNumber adds u to the "number" field.
+func (m *GameUserMutation) AddNumber(u int8) {
+	if m.addnumber != nil {
+		*m.addnumber += u
+	} else {
+		m.addnumber = &u
+	}
+}
+
+// AddedNumber returns the value that was added to the "number" field in this mutation.
+func (m *GameUserMutation) AddedNumber() (r int8, exists bool) {
+	v := m.addnumber
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNumber resets all changes to the "number" field.
+func (m *GameUserMutation) ResetNumber() {
+	m.number = nil
+	m.addnumber = nil
+}
+
 // ClearGame clears the "game" edge to the Game entity.
 func (m *GameUserMutation) ClearGame() {
 	m.clearedgame = true
@@ -1851,6 +2040,32 @@ func (m *GameUserMutation) ResetGame() {
 	m.clearedgame = false
 }
 
+// ClearCard clears the "card" edge to the Card entity.
+func (m *GameUserMutation) ClearCard() {
+	m.clearedcard = true
+}
+
+// CardCleared reports if the "card" edge to the Card entity was cleared.
+func (m *GameUserMutation) CardCleared() bool {
+	return m.clearedcard
+}
+
+// CardIDs returns the "card" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CardID instead. It exists only for internal usage by the builders.
+func (m *GameUserMutation) CardIDs() (ids []int64) {
+	if id := m.card; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCard resets all changes to the "card" edge.
+func (m *GameUserMutation) ResetCard() {
+	m.card = nil
+	m.clearedcard = false
+}
+
 // Where appends a list predicates to the GameUserMutation builder.
 func (m *GameUserMutation) Where(ps ...predicate.GameUser) {
 	m.predicates = append(m.predicates, ps...)
@@ -1870,7 +2085,7 @@ func (m *GameUserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameUserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.created_by != nil {
 		fields = append(fields, gameuser.FieldCreatedBy)
 	}
@@ -1891,6 +2106,12 @@ func (m *GameUserMutation) Fields() []string {
 	}
 	if m.game != nil {
 		fields = append(fields, gameuser.FieldGameID)
+	}
+	if m.card != nil {
+		fields = append(fields, gameuser.FieldCardID)
+	}
+	if m.number != nil {
+		fields = append(fields, gameuser.FieldNumber)
 	}
 	return fields
 }
@@ -1914,6 +2135,10 @@ func (m *GameUserMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case gameuser.FieldGameID:
 		return m.GameID()
+	case gameuser.FieldCardID:
+		return m.CardID()
+	case gameuser.FieldNumber:
+		return m.Number()
 	}
 	return nil, false
 }
@@ -1937,6 +2162,10 @@ func (m *GameUserMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldUserID(ctx)
 	case gameuser.FieldGameID:
 		return m.OldGameID(ctx)
+	case gameuser.FieldCardID:
+		return m.OldCardID(ctx)
+	case gameuser.FieldNumber:
+		return m.OldNumber(ctx)
 	}
 	return nil, fmt.Errorf("unknown GameUser field %s", name)
 }
@@ -1995,6 +2224,20 @@ func (m *GameUserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGameID(v)
 		return nil
+	case gameuser.FieldCardID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCardID(v)
+		return nil
+	case gameuser.FieldNumber:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNumber(v)
+		return nil
 	}
 	return fmt.Errorf("unknown GameUser field %s", name)
 }
@@ -2012,6 +2255,9 @@ func (m *GameUserMutation) AddedFields() []string {
 	if m.adduser_id != nil {
 		fields = append(fields, gameuser.FieldUserID)
 	}
+	if m.addnumber != nil {
+		fields = append(fields, gameuser.FieldNumber)
+	}
 	return fields
 }
 
@@ -2026,6 +2272,8 @@ func (m *GameUserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedUpdatedBy()
 	case gameuser.FieldUserID:
 		return m.AddedUserID()
+	case gameuser.FieldNumber:
+		return m.AddedNumber()
 	}
 	return nil, false
 }
@@ -2055,6 +2303,13 @@ func (m *GameUserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUserID(v)
+		return nil
+	case gameuser.FieldNumber:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNumber(v)
 		return nil
 	}
 	return fmt.Errorf("unknown GameUser numeric field %s", name)
@@ -2104,15 +2359,24 @@ func (m *GameUserMutation) ResetField(name string) error {
 	case gameuser.FieldGameID:
 		m.ResetGameID()
 		return nil
+	case gameuser.FieldCardID:
+		m.ResetCardID()
+		return nil
+	case gameuser.FieldNumber:
+		m.ResetNumber()
+		return nil
 	}
 	return fmt.Errorf("unknown GameUser field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GameUserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.game != nil {
 		edges = append(edges, gameuser.EdgeGame)
+	}
+	if m.card != nil {
+		edges = append(edges, gameuser.EdgeCard)
 	}
 	return edges
 }
@@ -2125,13 +2389,17 @@ func (m *GameUserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.game; id != nil {
 			return []ent.Value{*id}
 		}
+	case gameuser.EdgeCard:
+		if id := m.card; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GameUserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -2143,9 +2411,12 @@ func (m *GameUserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GameUserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedgame {
 		edges = append(edges, gameuser.EdgeGame)
+	}
+	if m.clearedcard {
+		edges = append(edges, gameuser.EdgeCard)
 	}
 	return edges
 }
@@ -2156,6 +2427,8 @@ func (m *GameUserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case gameuser.EdgeGame:
 		return m.clearedgame
+	case gameuser.EdgeCard:
+		return m.clearedcard
 	}
 	return false
 }
@@ -2167,6 +2440,9 @@ func (m *GameUserMutation) ClearEdge(name string) error {
 	case gameuser.EdgeGame:
 		m.ClearGame()
 		return nil
+	case gameuser.EdgeCard:
+		m.ClearCard()
+		return nil
 	}
 	return fmt.Errorf("unknown GameUser unique edge %s", name)
 }
@@ -2177,6 +2453,9 @@ func (m *GameUserMutation) ResetEdge(name string) error {
 	switch name {
 	case gameuser.EdgeGame:
 		m.ResetGame()
+		return nil
+	case gameuser.EdgeCard:
+		m.ResetCard()
 		return nil
 	}
 	return fmt.Errorf("unknown GameUser edge %s", name)
