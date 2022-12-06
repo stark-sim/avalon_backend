@@ -2,16 +2,16 @@ version: "3.8"
 
 services:
   app:
-    image: starksim/drive_backend
+    image: starksim/avalon_backend
     ports:
-      - "8080:8080"
+      - "8082:8080"
     volumes:
       - ./config.yaml:/app/avalon_backend/config.yaml
     container_name: "avalon_backend"
     networks:
       default:
-        - aliases:
-            - avalon_backend
+        aliases:
+          - avalon_backend
 
 networks:
   default:
