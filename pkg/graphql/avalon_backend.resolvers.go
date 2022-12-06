@@ -25,6 +25,11 @@ func (r *gameUserResolver) ID(ctx context.Context, obj *ent.GameUser) (string, e
 	panic(fmt.Errorf("not implemented: ID - id"))
 }
 
+// GameID is the resolver for the gameID field.
+func (r *gameUserResolver) GameID(ctx context.Context, obj *ent.GameUser) (string, error) {
+	panic(fmt.Errorf("not implemented: GameID - gameID"))
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 	panic(fmt.Errorf("not implemented: Node - node"))
@@ -68,6 +73,11 @@ func (r *roomResolver) ID(ctx context.Context, obj *ent.Room) (string, error) {
 // ID is the resolver for the id field.
 func (r *roomUserResolver) ID(ctx context.Context, obj *ent.RoomUser) (string, error) {
 	panic(fmt.Errorf("not implemented: ID - id"))
+}
+
+// RoomID is the resolver for the roomID field.
+func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (string, error) {
+	panic(fmt.Errorf("not implemented: RoomID - roomID"))
 }
 
 // ID is the resolver for the id field.
@@ -170,6 +180,26 @@ func (r *gameUserWhereInputResolver) IDLte(ctx context.Context, obj *ent.GameUse
 	panic(fmt.Errorf("not implemented: IDLte - idLTE"))
 }
 
+// GameID is the resolver for the gameID field.
+func (r *gameUserWhereInputResolver) GameID(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: GameID - gameID"))
+}
+
+// GameIDNeq is the resolver for the gameIDNEQ field.
+func (r *gameUserWhereInputResolver) GameIDNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: GameIDNeq - gameIDNEQ"))
+}
+
+// GameIDIn is the resolver for the gameIDIn field.
+func (r *gameUserWhereInputResolver) GameIDIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: GameIDIn - gameIDIn"))
+}
+
+// GameIDNotIn is the resolver for the gameIDNotIn field.
+func (r *gameUserWhereInputResolver) GameIDNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: GameIDNotIn - gameIDNotIn"))
+}
+
 // ID is the resolver for the id field.
 func (r *gameWhereInputResolver) ID(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
 	panic(fmt.Errorf("not implemented: ID - id"))
@@ -248,6 +278,26 @@ func (r *roomUserWhereInputResolver) IDLt(ctx context.Context, obj *ent.RoomUser
 // IDLte is the resolver for the idLTE field.
 func (r *roomUserWhereInputResolver) IDLte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error {
 	panic(fmt.Errorf("not implemented: IDLte - idLTE"))
+}
+
+// RoomID is the resolver for the roomID field.
+func (r *roomUserWhereInputResolver) RoomID(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+}
+
+// RoomIDNeq is the resolver for the roomIDNEQ field.
+func (r *roomUserWhereInputResolver) RoomIDNeq(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: RoomIDNeq - roomIDNEQ"))
+}
+
+// RoomIDIn is the resolver for the roomIDIn field.
+func (r *roomUserWhereInputResolver) RoomIDIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: RoomIDIn - roomIDIn"))
+}
+
+// RoomIDNotIn is the resolver for the roomIDNotIn field.
+func (r *roomUserWhereInputResolver) RoomIDNotIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error {
+	panic(fmt.Errorf("not implemented: RoomIDNotIn - roomIDNotIn"))
 }
 
 // ID is the resolver for the id field.

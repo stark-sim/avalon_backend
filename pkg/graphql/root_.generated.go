@@ -81,6 +81,7 @@ type ComplexityRoot struct {
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
 		Game      func(childComplexity int) int
+		GameID    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
@@ -122,6 +123,7 @@ type ComplexityRoot struct {
 		DeletedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Room      func(childComplexity int) int
+		RoomID    func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
 		UserID    func(childComplexity int) int
@@ -272,6 +274,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GameUser.Game(childComplexity), true
+
+	case "GameUser.gameID":
+		if e.complexity.GameUser.GameID == nil {
+			break
+		}
+
+		return e.complexity.GameUser.GameID(childComplexity), true
 
 	case "GameUser.id":
 		if e.complexity.GameUser.ID == nil {
@@ -485,6 +494,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoomUser.Room(childComplexity), true
+
+	case "RoomUser.roomID":
+		if e.complexity.RoomUser.RoomID == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.RoomID(childComplexity), true
 
 	case "RoomUser.updatedAt":
 		if e.complexity.RoomUser.UpdatedAt == nil {
