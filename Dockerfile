@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.18-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.19-alpine AS builder
 
 LABEL maintainer="StarkSim<gooda159753@163.com>"
 
@@ -21,7 +21,7 @@ COPY . .
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN CGO_ENABLE=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags "-s -w" -o apiserver ./
+RUN CGO_ENABLE=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags "-s -w" -o http_server ./
 
 FROM alpine:latest
 

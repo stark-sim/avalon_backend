@@ -6,14 +6,14 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./config.yaml:/app/config.yaml
-    container_name: "drive_backend"
+      - ./config.yaml:/app/avalon_backend/config.yaml
+    container_name: "avalon_backend"
     networks:
       default:
         - aliases:
-            - drive_backend
+            - avalon_backend
 
 networks:
   default:
-    name: drive
+    name: graphql_federation
     external: true
