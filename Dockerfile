@@ -21,7 +21,7 @@ COPY . .
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN CGO_ENABLE=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags "-s -w" -o http_server ./
+RUN CGO_ENABLE=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags "-s -w" -o http_server ./internal/cmd/avalon_http/main.go
 
 FROM alpine:latest
 
@@ -30,9 +30,9 @@ RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
-COPY --from=builder /src/apiserver /app/
-COPY --from=builder /src/migrations /app/migrations/
+COPY --from=builder /src/http_server /app/
+COPY --from=builder /src/internal/db/migrations /app/internal/db/migrations/
 
-EXPOSE 8081
+EXPOSE 8080
 
-ENTRYPOINT ["./apiserver"]
+ENTRYPOINT ["./http_server"]
