@@ -39,9 +39,6 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
-  Int64:
-    model:
-      - github.com/99designs/gqlgen/graphql.Int64
   Node:
     model:
       - github.com/stark-sim/avalon_backend/pkg/ent.Noder

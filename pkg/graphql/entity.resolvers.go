@@ -5,12 +5,14 @@ package graphql
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 )
 
 // FindUserByID is the resolver for the findUserByID field.
 func (r *entityResolver) FindUserByID(ctx context.Context, id string) (*model.User, error) {
-	return &model.User{ID: id}, nil
+	panic(fmt.Errorf("not implemented: FindUserByID - findUserByID"))
 }
 
 // Entity returns EntityResolver implementation.

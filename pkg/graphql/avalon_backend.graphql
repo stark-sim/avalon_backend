@@ -464,7 +464,7 @@ type RoomUser implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
-  userID: Int!
+  userID: ID!
   roomID: ID!
   room: Room!
   user: User!
