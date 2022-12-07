@@ -467,6 +467,7 @@ type RoomUser implements Node {
   userID: Int!
   roomID: ID!
   room: Room!
+  user: User!
 }
 """Ordering options for RoomUser connections"""
 input RoomUserOrder {
@@ -709,4 +710,14 @@ input UpdateRoomUserInput {
   userID: Int
   clearRoom: Boolean
   roomID: ID
+}
+
+
+type Mutation {
+  createRoom(req: CreateRoomInput!): Room
+  joinRoom(req: CreateRoomUserInput!): RoomUser
+}
+
+type User @key(fields: "id", resolvable: false) {
+  id: ID!
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/stark-sim/avalon_backend/pkg/ent"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -32,8 +33,10 @@ type Config struct {
 
 type ResolverRoot interface {
 	Card() CardResolver
+	Entity() EntityResolver
 	Game() GameResolver
 	GameUser() GameUserResolver
+	Mutation() MutationResolver
 	Query() QueryResolver
 	Room() RoomResolver
 	RoomUser() RoomUserResolver
@@ -69,6 +72,10 @@ type ComplexityRoot struct {
 		UpdatedBy func(childComplexity int) int
 	}
 
+	Entity struct {
+		FindUserByID func(childComplexity int, id string) int
+	}
+
 	Game struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
@@ -94,6 +101,11 @@ type ComplexityRoot struct {
 		UserID    func(childComplexity int) int
 	}
 
+	Mutation struct {
+		CreateRoom func(childComplexity int, req ent.CreateRoomInput) int
+		JoinRoom   func(childComplexity int, req ent.CreateRoomUserInput) int
+	}
+
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -110,6 +122,7 @@ type ComplexityRoot struct {
 		RoomUsers          func(childComplexity int) int
 		Rooms              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
+		__resolve_entities func(childComplexity int, representations []map[string]interface{}) int
 	}
 
 	Room struct {
@@ -132,7 +145,12 @@ type ComplexityRoot struct {
 		RoomID    func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
+	}
+
+	User struct {
+		ID func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -210,6 +228,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Card.UpdatedBy(childComplexity), true
+
+	case "Entity.findUserByID":
+		if e.complexity.Entity.FindUserByID == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findUserByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindUserByID(childComplexity, args["id"].(string)), true
 
 	case "Game.createdAt":
 		if e.complexity.Game.CreatedAt == nil {
@@ -344,6 +374,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GameUser.UserID(childComplexity), true
 
+	case "Mutation.createRoom":
+		if e.complexity.Mutation.CreateRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateRoom(childComplexity, args["req"].(ent.CreateRoomInput)), true
+
+	case "Mutation.joinRoom":
+		if e.complexity.Mutation.JoinRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinRoom(childComplexity, args["req"].(ent.CreateRoomUserInput)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -437,6 +491,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
+
+	case "Query._entities":
+		if e.complexity.Query.__resolve_entities == nil {
+			break
+		}
+
+		args, err := ec.field_Query__entities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.__resolve_entities(childComplexity, args["representations"].([]map[string]interface{})), true
 
 	case "Room.createdAt":
 		if e.complexity.Room.CreatedAt == nil {
@@ -550,12 +616,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RoomUser.UpdatedBy(childComplexity), true
 
+	case "RoomUser.user":
+		if e.complexity.RoomUser.User == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.User(childComplexity), true
+
 	case "RoomUser.userID":
 		if e.complexity.RoomUser.UserID == nil {
 			break
 		}
 
 		return e.complexity.RoomUser.UserID(childComplexity), true
+
+	case "User.id":
+		if e.complexity.User.ID == nil {
+			break
+		}
+
+		return e.complexity.User.ID(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -604,6 +684,21 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			first = false
 			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -666,11 +761,21 @@ var sources = []*ast.Source{
 	directive @inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 `, BuiltIn: true},
 	{Name: "federation/entity.graphql", Input: `
+# a union of all types that use the @key directive
+union _Entity = User
+
+# fake type to build resolver interfaces for users to implement
+type Entity {
+		findUserByID(id: ID!,): User!
+
+}
+
 type _Service {
   sdl: String
 }
 
 extend type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
 }
 `, BuiltIn: true},

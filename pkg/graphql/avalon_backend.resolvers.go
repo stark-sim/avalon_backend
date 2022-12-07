@@ -7,10 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stark-sim/avalon_backend/tools"
 	"strconv"
 
 	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
+	"github.com/stark-sim/avalon_backend/tools"
 )
 
 // ID is the resolver for the id field.
@@ -41,6 +42,16 @@ func (r *gameUserResolver) CardID(ctx context.Context, obj *ent.GameUser) (strin
 // Number is the resolver for the number field.
 func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int, error) {
 	return int(obj.Number), nil
+}
+
+// CreateRoom is the resolver for the createRoom field.
+func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error) {
+	return r.client.Room.Create().SetInput(req).Save(ctx)
+}
+
+// JoinRoom is the resolver for the joinRoom field.
+func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
+	return r.client.RoomUser.Create().SetInput(req).Save(ctx)
 }
 
 // Node is the resolver for the node field.
@@ -91,6 +102,11 @@ func (r *roomUserResolver) ID(ctx context.Context, obj *ent.RoomUser) (string, e
 // RoomID is the resolver for the roomID field.
 func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (string, error) {
 	return strconv.FormatInt(obj.RoomID, 10), nil
+}
+
+// User is the resolver for the user field.
+func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
 }
 
 // ID is the resolver for the id field.
@@ -846,6 +862,9 @@ func (r *Resolver) Game() GameResolver { return &gameResolver{r} }
 // GameUser returns GameUserResolver implementation.
 func (r *Resolver) GameUser() GameUserResolver { return &gameUserResolver{r} }
 
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -915,6 +934,7 @@ func (r *Resolver) UpdateRoomUserInput() UpdateRoomUserInputResolver {
 type cardResolver struct{ *Resolver }
 type gameResolver struct{ *Resolver }
 type gameUserResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type roomUserResolver struct{ *Resolver }
