@@ -241,6 +241,13 @@ func (r *createRoomInputResolver) RoomUserIDs(ctx context.Context, obj *ent.Crea
 	return nil
 }
 
+// UserID is the resolver for the userID field.
+func (r *createRoomUserInputResolver) UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error {
+	tempID := tools.StringToInt64(data)
+	obj.RoomID = tempID
+	return nil
+}
+
 // RoomID is the resolver for the roomID field.
 func (r *createRoomUserInputResolver) RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error {
 	tempID := tools.StringToInt64(data)
@@ -845,6 +852,18 @@ func (r *updateRoomInputResolver) RemoveRoomUserIDs(ctx context.Context, obj *en
 		obj.RemoveRoomUserIDs = append(obj.RemoveRoomUserIDs, tools.StringToInt64(v))
 	}
 	return nil
+}
+
+// UserID is the resolver for the userID field.
+func (r *updateRoomUserInputResolver) UserID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error {
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
+
 }
 
 // RoomID is the resolver for the roomID field.

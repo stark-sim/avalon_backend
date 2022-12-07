@@ -167,7 +167,7 @@ input CreateRoomUserInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
-  userID: Int!
+  userID: ID!
   roomID: ID!
 }
 """
@@ -707,7 +707,7 @@ input UpdateRoomUserInput {
   updatedBy: Int
   updatedAt: Time
   deletedAt: Time
-  userID: Int
+  userID: ID
   clearRoom: Boolean
   roomID: ID
 }

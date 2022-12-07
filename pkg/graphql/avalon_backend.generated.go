@@ -84,6 +84,7 @@ type CreateRoomInputResolver interface {
 	RoomUserIDs(ctx context.Context, obj *ent.CreateRoomInput, data []string) error
 }
 type CreateRoomUserInputResolver interface {
+	UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 	RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 }
 type GameUserWhereInputResolver interface {
@@ -168,6 +169,8 @@ type UpdateRoomInputResolver interface {
 	RemoveRoomUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error
 }
 type UpdateRoomUserInputResolver interface {
+	UserID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
+
 	RoomID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
 }
 
@@ -4395,8 +4398,11 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNInt2int64(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomUserInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "roomID":
@@ -7313,8 +7319,11 @@ func (ec *executionContext) unmarshalInputUpdateRoomUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateRoomUserInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "clearRoom":
