@@ -32,7 +32,7 @@ type GameUserResolver interface {
 
 	GameID(ctx context.Context, obj *ent.GameUser) (string, error)
 	CardID(ctx context.Context, obj *ent.GameUser) (string, error)
-	Number(ctx context.Context, obj *ent.GameUser) (int64, error)
+	Number(ctx context.Context, obj *ent.GameUser) (int, error)
 }
 type MutationResolver interface {
 	CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error)
@@ -76,7 +76,7 @@ type CreateGameInputResolver interface {
 	GameUserIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 }
 type CreateGameUserInputResolver interface {
-	Number(ctx context.Context, obj *ent.CreateGameUserInput, data int64) error
+	Number(ctx context.Context, obj *ent.CreateGameUserInput, data int) error
 	GameID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 	CardID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 }
@@ -104,14 +104,14 @@ type GameUserWhereInputResolver interface {
 	CardIDNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	CardIDIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
 	CardIDNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
-	Number(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
-	NumberNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
-	NumberIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int64) error
-	NumberNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int64) error
-	NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
-	NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
-	NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
-	NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error
+	Number(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
+	NumberNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
+	NumberIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error
+	NumberNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error
+	NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
+	NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
+	NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
+	NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error
 }
 type GameWhereInputResolver interface {
 	ID(ctx context.Context, obj *ent.GameWhereInput, data *string) error
@@ -157,7 +157,7 @@ type UpdateGameInputResolver interface {
 	RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 }
 type UpdateGameUserInputResolver interface {
-	Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int64) error
+	Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int) error
 
 	GameID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
 
@@ -1401,9 +1401,9 @@ func (ec *executionContext) _GameUser_number(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GameUser_number(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4223,7 +4223,7 @@ func (ec *executionContext) unmarshalInputCreateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
-			data, err := ec.unmarshalNInt2int64(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5098,7 +5098,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5109,7 +5109,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberNEQ"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5120,7 +5120,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberIn"))
-			data, err := ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5131,7 +5131,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberNotIn"))
-			data, err := ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5142,7 +5142,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberGT"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5153,7 +5153,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberGTE"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5164,7 +5164,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberLT"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5175,7 +5175,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("numberLTE"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7130,7 +7130,7 @@ func (ec *executionContext) unmarshalInputUpdateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
-			data, err := ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}

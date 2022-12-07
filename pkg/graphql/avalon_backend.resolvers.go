@@ -40,8 +40,8 @@ func (r *gameUserResolver) CardID(ctx context.Context, obj *ent.GameUser) (strin
 }
 
 // Number is the resolver for the number field.
-func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int64, error) {
-	return int64(obj.Number), nil
+func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int, error) {
+	return int(obj.Number), nil
 }
 
 // CreateRoom is the resolver for the createRoom field.
@@ -213,7 +213,7 @@ func (r *createGameInputResolver) GameUserIDs(ctx context.Context, obj *ent.Crea
 }
 
 // Number is the resolver for the number field.
-func (r *createGameUserInputResolver) Number(ctx context.Context, obj *ent.CreateGameUserInput, data int64) error {
+func (r *createGameUserInputResolver) Number(ctx context.Context, obj *ent.CreateGameUserInput, data int) error {
 	tempNum := uint8(data)
 	obj.Number = tempNum
 	return nil
@@ -407,7 +407,7 @@ func (r *gameUserWhereInputResolver) CardIDNotIn(ctx context.Context, obj *ent.G
 }
 
 // Number is the resolver for the number field.
-func (r *gameUserWhereInputResolver) Number(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) Number(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.Number = &tempNum
@@ -418,12 +418,12 @@ func (r *gameUserWhereInputResolver) Number(ctx context.Context, obj *ent.GameUs
 }
 
 // NumberNeq is the resolver for the numberNEQ field.
-func (r *gameUserWhereInputResolver) NumberNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) NumberNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	panic(fmt.Errorf("not implemented: NumberNeq - numberNEQ"))
 }
 
 // NumberIn is the resolver for the numberIn field.
-func (r *gameUserWhereInputResolver) NumberIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int64) error {
+func (r *gameUserWhereInputResolver) NumberIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error {
 	for _, v := range data {
 		obj.NumberIn = append(obj.NumberIn, uint8(v))
 	}
@@ -431,7 +431,7 @@ func (r *gameUserWhereInputResolver) NumberIn(ctx context.Context, obj *ent.Game
 }
 
 // NumberNotIn is the resolver for the numberNotIn field.
-func (r *gameUserWhereInputResolver) NumberNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int64) error {
+func (r *gameUserWhereInputResolver) NumberNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []int) error {
 	for _, v := range data {
 		obj.NumberNotIn = append(obj.NumberNotIn, uint8(v))
 	}
@@ -439,7 +439,7 @@ func (r *gameUserWhereInputResolver) NumberNotIn(ctx context.Context, obj *ent.G
 }
 
 // NumberGt is the resolver for the numberGT field.
-func (r *gameUserWhereInputResolver) NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.NumberGT = &tempNum
@@ -450,7 +450,7 @@ func (r *gameUserWhereInputResolver) NumberGt(ctx context.Context, obj *ent.Game
 }
 
 // NumberGte is the resolver for the numberGTE field.
-func (r *gameUserWhereInputResolver) NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.NumberGTE = &tempNum
@@ -461,7 +461,7 @@ func (r *gameUserWhereInputResolver) NumberGte(ctx context.Context, obj *ent.Gam
 }
 
 // NumberLt is the resolver for the numberLT field.
-func (r *gameUserWhereInputResolver) NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.NumberLT = &tempNum
@@ -472,7 +472,7 @@ func (r *gameUserWhereInputResolver) NumberLt(ctx context.Context, obj *ent.Game
 }
 
 // NumberLte is the resolver for the numberLTE field.
-func (r *gameUserWhereInputResolver) NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int64) error {
+func (r *gameUserWhereInputResolver) NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.NumberLTE = &tempNum
@@ -799,7 +799,7 @@ func (r *updateGameInputResolver) RemoveGameUserIDs(ctx context.Context, obj *en
 }
 
 // Number is the resolver for the number field.
-func (r *updateGameUserInputResolver) Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int64) error {
+func (r *updateGameUserInputResolver) Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int) error {
 	if data != nil {
 		tempNum := uint8(*data)
 		obj.Number = &tempNum
