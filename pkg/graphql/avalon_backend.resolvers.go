@@ -101,7 +101,7 @@ func (r *roomUserResolver) ID(ctx context.Context, obj *ent.RoomUser) (string, e
 
 // UserID is the resolver for the userID field.
 func (r *roomUserResolver) UserID(ctx context.Context, obj *ent.RoomUser) (string, error) {
-	return strconv.FormatInt(obj.RoomID, 10), nil
+	return strconv.FormatInt(obj.UserID, 10), nil
 }
 
 // RoomID is the resolver for the roomID field.
@@ -111,7 +111,7 @@ func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (strin
 
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
 }
 
 // ID is the resolver for the id field.
@@ -244,7 +244,7 @@ func (r *createRoomInputResolver) RoomUserIDs(ctx context.Context, obj *ent.Crea
 // UserID is the resolver for the userID field.
 func (r *createRoomUserInputResolver) UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error {
 	tempID := tools.StringToInt64(data)
-	obj.RoomID = tempID
+	obj.UserID = tempID
 	return nil
 }
 
@@ -858,7 +858,7 @@ func (r *updateRoomInputResolver) RemoveRoomUserIDs(ctx context.Context, obj *en
 func (r *updateRoomUserInputResolver) UserID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error {
 	if data != nil {
 		tempID := tools.StringToInt64(*data)
-		obj.RoomID = &tempID
+		obj.UserID = &tempID
 		return nil
 	} else {
 		return errors.New("null")
