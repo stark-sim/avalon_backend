@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // GameCreate is the builder for creating a Game entity.
@@ -91,6 +93,40 @@ func (gc *GameCreate) SetNillableDeletedAt(t *time.Time) *GameCreate {
 	return gc
 }
 
+// SetRoomID sets the "room_id" field.
+func (gc *GameCreate) SetRoomID(i int64) *GameCreate {
+	gc.mutation.SetRoomID(i)
+	return gc
+}
+
+// SetEndBy sets the "end_by" field.
+func (gc *GameCreate) SetEndBy(gb game.EndBy) *GameCreate {
+	gc.mutation.SetEndBy(gb)
+	return gc
+}
+
+// SetNillableEndBy sets the "end_by" field if the given value is not nil.
+func (gc *GameCreate) SetNillableEndBy(gb *game.EndBy) *GameCreate {
+	if gb != nil {
+		gc.SetEndBy(*gb)
+	}
+	return gc
+}
+
+// SetCapacity sets the "capacity" field.
+func (gc *GameCreate) SetCapacity(u uint8) *GameCreate {
+	gc.mutation.SetCapacity(u)
+	return gc
+}
+
+// SetNillableCapacity sets the "capacity" field if the given value is not nil.
+func (gc *GameCreate) SetNillableCapacity(u *uint8) *GameCreate {
+	if u != nil {
+		gc.SetCapacity(*u)
+	}
+	return gc
+}
+
 // SetID sets the "id" field.
 func (gc *GameCreate) SetID(i int64) *GameCreate {
 	gc.mutation.SetID(i)
@@ -118,6 +154,26 @@ func (gc *GameCreate) AddGameUsers(g ...*GameUser) *GameCreate {
 		ids[i] = g[i].ID
 	}
 	return gc.AddGameUserIDs(ids...)
+}
+
+// AddMissionIDs adds the "missions" edge to the Mission entity by IDs.
+func (gc *GameCreate) AddMissionIDs(ids ...int64) *GameCreate {
+	gc.mutation.AddMissionIDs(ids...)
+	return gc
+}
+
+// AddMissions adds the "missions" edges to the Mission entity.
+func (gc *GameCreate) AddMissions(m ...*Mission) *GameCreate {
+	ids := make([]int64, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return gc.AddMissionIDs(ids...)
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (gc *GameCreate) SetRoom(r *Room) *GameCreate {
+	return gc.SetRoomID(r.ID)
 }
 
 // Mutation returns the GameMutation object of the builder.
@@ -217,6 +273,14 @@ func (gc *GameCreate) defaults() {
 		v := game.DefaultDeletedAt
 		gc.mutation.SetDeletedAt(v)
 	}
+	if _, ok := gc.mutation.EndBy(); !ok {
+		v := game.DefaultEndBy
+		gc.mutation.SetEndBy(v)
+	}
+	if _, ok := gc.mutation.Capacity(); !ok {
+		v := game.DefaultCapacity
+		gc.mutation.SetCapacity(v)
+	}
 	if _, ok := gc.mutation.ID(); !ok {
 		v := game.DefaultID()
 		gc.mutation.SetID(v)
@@ -239,6 +303,23 @@ func (gc *GameCreate) check() error {
 	}
 	if _, ok := gc.mutation.DeletedAt(); !ok {
 		return &ValidationError{Name: "deleted_at", err: errors.New(`ent: missing required field "Game.deleted_at"`)}
+	}
+	if _, ok := gc.mutation.RoomID(); !ok {
+		return &ValidationError{Name: "room_id", err: errors.New(`ent: missing required field "Game.room_id"`)}
+	}
+	if _, ok := gc.mutation.EndBy(); !ok {
+		return &ValidationError{Name: "end_by", err: errors.New(`ent: missing required field "Game.end_by"`)}
+	}
+	if v, ok := gc.mutation.EndBy(); ok {
+		if err := game.EndByValidator(v); err != nil {
+			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+		}
+	}
+	if _, ok := gc.mutation.Capacity(); !ok {
+		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "Game.capacity"`)}
+	}
+	if _, ok := gc.mutation.RoomID(); !ok {
+		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "Game.room"`)}
 	}
 	return nil
 }
@@ -293,6 +374,14 @@ func (gc *GameCreate) createSpec() (*Game, *sqlgraph.CreateSpec) {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
 	}
+	if value, ok := gc.mutation.EndBy(); ok {
+		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
+		_node.EndBy = value
+	}
+	if value, ok := gc.mutation.Capacity(); ok {
+		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
+		_node.Capacity = value
+	}
 	if nodes := gc.mutation.GameUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -310,6 +399,45 @@ func (gc *GameCreate) createSpec() (*Game, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.MissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := gc.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   game.RoomTable,
+			Columns: []string{game.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: room.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.RoomID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

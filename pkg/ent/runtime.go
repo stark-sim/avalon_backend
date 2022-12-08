@@ -8,9 +8,13 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/schema"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -79,6 +83,10 @@ func init() {
 	gameDescDeletedAt := gameMixinFields0[5].Descriptor()
 	// game.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	game.DefaultDeletedAt = gameDescDeletedAt.Default.(time.Time)
+	// gameDescCapacity is the schema descriptor for capacity field.
+	gameDescCapacity := gameFields[2].Descriptor()
+	// game.DefaultCapacity holds the default value on creation for the capacity field.
+	game.DefaultCapacity = gameDescCapacity.Default.(uint8)
 	// gameDescID is the schema descriptor for id field.
 	gameDescID := gameMixinFields0[0].Descriptor()
 	// game.DefaultID holds the default value on creation for the id field.
@@ -114,6 +122,98 @@ func init() {
 	gameuserDescID := gameuserMixinFields0[0].Descriptor()
 	// gameuser.DefaultID holds the default value on creation for the id field.
 	gameuser.DefaultID = gameuserDescID.Default.(func() int64)
+	missionMixin := schema.Mission{}.Mixin()
+	missionMixinFields0 := missionMixin[0].Fields()
+	_ = missionMixinFields0
+	missionFields := schema.Mission{}.Fields()
+	_ = missionFields
+	// missionDescCreatedBy is the schema descriptor for created_by field.
+	missionDescCreatedBy := missionMixinFields0[1].Descriptor()
+	// mission.DefaultCreatedBy holds the default value on creation for the created_by field.
+	mission.DefaultCreatedBy = missionDescCreatedBy.Default.(int64)
+	// missionDescUpdatedBy is the schema descriptor for updated_by field.
+	missionDescUpdatedBy := missionMixinFields0[2].Descriptor()
+	// mission.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	mission.DefaultUpdatedBy = missionDescUpdatedBy.Default.(int64)
+	// missionDescCreatedAt is the schema descriptor for created_at field.
+	missionDescCreatedAt := missionMixinFields0[3].Descriptor()
+	// mission.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mission.DefaultCreatedAt = missionDescCreatedAt.Default.(func() time.Time)
+	// missionDescUpdatedAt is the schema descriptor for updated_at field.
+	missionDescUpdatedAt := missionMixinFields0[4].Descriptor()
+	// mission.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	mission.DefaultUpdatedAt = missionDescUpdatedAt.Default.(func() time.Time)
+	// mission.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	mission.UpdateDefaultUpdatedAt = missionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// missionDescDeletedAt is the schema descriptor for deleted_at field.
+	missionDescDeletedAt := missionMixinFields0[5].Descriptor()
+	// mission.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	mission.DefaultDeletedAt = missionDescDeletedAt.Default.(time.Time)
+	// missionDescSequence is the schema descriptor for sequence field.
+	missionDescSequence := missionFields[0].Descriptor()
+	// mission.SequenceValidator is a validator for the "sequence" field. It is called by the builders before save.
+	mission.SequenceValidator = func() func(uint8) error {
+		validators := missionDescSequence.Validators
+		fns := [...]func(uint8) error{
+			validators[0].(func(uint8) error),
+			validators[1].(func(uint8) error),
+		}
+		return func(sequence uint8) error {
+			for _, fn := range fns {
+				if err := fn(sequence); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// missionDescFailed is the schema descriptor for failed field.
+	missionDescFailed := missionFields[2].Descriptor()
+	// mission.DefaultFailed holds the default value on creation for the failed field.
+	mission.DefaultFailed = missionDescFailed.Default.(bool)
+	// missionDescCapacity is the schema descriptor for capacity field.
+	missionDescCapacity := missionFields[4].Descriptor()
+	// mission.DefaultCapacity holds the default value on creation for the capacity field.
+	mission.DefaultCapacity = missionDescCapacity.Default.(uint8)
+	// missionDescID is the schema descriptor for id field.
+	missionDescID := missionMixinFields0[0].Descriptor()
+	// mission.DefaultID holds the default value on creation for the id field.
+	mission.DefaultID = missionDescID.Default.(func() int64)
+	recordMixin := schema.Record{}.Mixin()
+	recordMixinFields0 := recordMixin[0].Fields()
+	_ = recordMixinFields0
+	recordFields := schema.Record{}.Fields()
+	_ = recordFields
+	// recordDescCreatedBy is the schema descriptor for created_by field.
+	recordDescCreatedBy := recordMixinFields0[1].Descriptor()
+	// record.DefaultCreatedBy holds the default value on creation for the created_by field.
+	record.DefaultCreatedBy = recordDescCreatedBy.Default.(int64)
+	// recordDescUpdatedBy is the schema descriptor for updated_by field.
+	recordDescUpdatedBy := recordMixinFields0[2].Descriptor()
+	// record.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	record.DefaultUpdatedBy = recordDescUpdatedBy.Default.(int64)
+	// recordDescCreatedAt is the schema descriptor for created_at field.
+	recordDescCreatedAt := recordMixinFields0[3].Descriptor()
+	// record.DefaultCreatedAt holds the default value on creation for the created_at field.
+	record.DefaultCreatedAt = recordDescCreatedAt.Default.(func() time.Time)
+	// recordDescUpdatedAt is the schema descriptor for updated_at field.
+	recordDescUpdatedAt := recordMixinFields0[4].Descriptor()
+	// record.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	record.DefaultUpdatedAt = recordDescUpdatedAt.Default.(func() time.Time)
+	// record.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	record.UpdateDefaultUpdatedAt = recordDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// recordDescDeletedAt is the schema descriptor for deleted_at field.
+	recordDescDeletedAt := recordMixinFields0[5].Descriptor()
+	// record.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	record.DefaultDeletedAt = recordDescDeletedAt.Default.(time.Time)
+	// recordDescScore is the schema descriptor for score field.
+	recordDescScore := recordFields[2].Descriptor()
+	// record.DefaultScore holds the default value on creation for the score field.
+	record.DefaultScore = recordDescScore.Default.(int32)
+	// recordDescID is the schema descriptor for id field.
+	recordDescID := recordMixinFields0[0].Descriptor()
+	// record.DefaultID holds the default value on creation for the id field.
+	record.DefaultID = recordDescID.Default.(func() int64)
 	roomMixin := schema.Room{}.Mixin()
 	roomMixinFields0 := roomMixin[0].Fields()
 	_ = roomMixinFields0
@@ -145,6 +245,10 @@ func init() {
 	roomDescName := roomFields[0].Descriptor()
 	// room.DefaultName holds the default value on creation for the name field.
 	room.DefaultName = roomDescName.Default.(string)
+	// roomDescClosed is the schema descriptor for closed field.
+	roomDescClosed := roomFields[1].Descriptor()
+	// room.DefaultClosed holds the default value on creation for the closed field.
+	room.DefaultClosed = roomDescClosed.Default.(bool)
 	// roomDescID is the schema descriptor for id field.
 	roomDescID := roomMixinFields0[0].Descriptor()
 	// room.DefaultID holds the default value on creation for the id field.
@@ -180,4 +284,74 @@ func init() {
 	roomuserDescID := roomuserMixinFields0[0].Descriptor()
 	// roomuser.DefaultID holds the default value on creation for the id field.
 	roomuser.DefaultID = roomuserDescID.Default.(func() int64)
+	squadMixin := schema.Squad{}.Mixin()
+	squadMixinFields0 := squadMixin[0].Fields()
+	_ = squadMixinFields0
+	squadFields := schema.Squad{}.Fields()
+	_ = squadFields
+	// squadDescCreatedBy is the schema descriptor for created_by field.
+	squadDescCreatedBy := squadMixinFields0[1].Descriptor()
+	// squad.DefaultCreatedBy holds the default value on creation for the created_by field.
+	squad.DefaultCreatedBy = squadDescCreatedBy.Default.(int64)
+	// squadDescUpdatedBy is the schema descriptor for updated_by field.
+	squadDescUpdatedBy := squadMixinFields0[2].Descriptor()
+	// squad.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	squad.DefaultUpdatedBy = squadDescUpdatedBy.Default.(int64)
+	// squadDescCreatedAt is the schema descriptor for created_at field.
+	squadDescCreatedAt := squadMixinFields0[3].Descriptor()
+	// squad.DefaultCreatedAt holds the default value on creation for the created_at field.
+	squad.DefaultCreatedAt = squadDescCreatedAt.Default.(func() time.Time)
+	// squadDescUpdatedAt is the schema descriptor for updated_at field.
+	squadDescUpdatedAt := squadMixinFields0[4].Descriptor()
+	// squad.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	squad.DefaultUpdatedAt = squadDescUpdatedAt.Default.(func() time.Time)
+	// squad.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	squad.UpdateDefaultUpdatedAt = squadDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// squadDescDeletedAt is the schema descriptor for deleted_at field.
+	squadDescDeletedAt := squadMixinFields0[5].Descriptor()
+	// squad.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	squad.DefaultDeletedAt = squadDescDeletedAt.Default.(time.Time)
+	// squadDescRat is the schema descriptor for rat field.
+	squadDescRat := squadFields[2].Descriptor()
+	// squad.DefaultRat holds the default value on creation for the rat field.
+	squad.DefaultRat = squadDescRat.Default.(bool)
+	// squadDescID is the schema descriptor for id field.
+	squadDescID := squadMixinFields0[0].Descriptor()
+	// squad.DefaultID holds the default value on creation for the id field.
+	squad.DefaultID = squadDescID.Default.(func() int64)
+	voteMixin := schema.Vote{}.Mixin()
+	voteMixinFields0 := voteMixin[0].Fields()
+	_ = voteMixinFields0
+	voteFields := schema.Vote{}.Fields()
+	_ = voteFields
+	// voteDescCreatedBy is the schema descriptor for created_by field.
+	voteDescCreatedBy := voteMixinFields0[1].Descriptor()
+	// vote.DefaultCreatedBy holds the default value on creation for the created_by field.
+	vote.DefaultCreatedBy = voteDescCreatedBy.Default.(int64)
+	// voteDescUpdatedBy is the schema descriptor for updated_by field.
+	voteDescUpdatedBy := voteMixinFields0[2].Descriptor()
+	// vote.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	vote.DefaultUpdatedBy = voteDescUpdatedBy.Default.(int64)
+	// voteDescCreatedAt is the schema descriptor for created_at field.
+	voteDescCreatedAt := voteMixinFields0[3].Descriptor()
+	// vote.DefaultCreatedAt holds the default value on creation for the created_at field.
+	vote.DefaultCreatedAt = voteDescCreatedAt.Default.(func() time.Time)
+	// voteDescUpdatedAt is the schema descriptor for updated_at field.
+	voteDescUpdatedAt := voteMixinFields0[4].Descriptor()
+	// vote.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	vote.DefaultUpdatedAt = voteDescUpdatedAt.Default.(func() time.Time)
+	// vote.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	vote.UpdateDefaultUpdatedAt = voteDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// voteDescDeletedAt is the schema descriptor for deleted_at field.
+	voteDescDeletedAt := voteMixinFields0[5].Descriptor()
+	// vote.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	vote.DefaultDeletedAt = voteDescDeletedAt.Default.(time.Time)
+	// voteDescPass is the schema descriptor for pass field.
+	voteDescPass := voteFields[2].Descriptor()
+	// vote.DefaultPass holds the default value on creation for the pass field.
+	vote.DefaultPass = voteDescPass.Default.(bool)
+	// voteDescID is the schema descriptor for id field.
+	voteDescID := voteMixinFields0[0].Descriptor()
+	// vote.DefaultID holds the default value on creation for the id field.
+	vote.DefaultID = voteDescID.Default.(func() int64)
 }

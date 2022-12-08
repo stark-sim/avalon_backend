@@ -116,6 +116,20 @@ func DeletedAt(v time.Time) predicate.Game {
 	})
 }
 
+// RoomID applies equality check predicate on the "room_id" field. It's identical to RoomIDEQ.
+func RoomID(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRoomID), v))
+	})
+}
+
+// Capacity applies equality check predicate on the "capacity" field. It's identical to CapacityEQ.
+func Capacity(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCapacity), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
@@ -436,6 +450,142 @@ func DeletedAtLTE(v time.Time) predicate.Game {
 	})
 }
 
+// RoomIDEQ applies the EQ predicate on the "room_id" field.
+func RoomIDEQ(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRoomID), v))
+	})
+}
+
+// RoomIDNEQ applies the NEQ predicate on the "room_id" field.
+func RoomIDNEQ(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRoomID), v))
+	})
+}
+
+// RoomIDIn applies the In predicate on the "room_id" field.
+func RoomIDIn(vs ...int64) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldRoomID), v...))
+	})
+}
+
+// RoomIDNotIn applies the NotIn predicate on the "room_id" field.
+func RoomIDNotIn(vs ...int64) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldRoomID), v...))
+	})
+}
+
+// EndByEQ applies the EQ predicate on the "end_by" field.
+func EndByEQ(v EndBy) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEndBy), v))
+	})
+}
+
+// EndByNEQ applies the NEQ predicate on the "end_by" field.
+func EndByNEQ(v EndBy) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEndBy), v))
+	})
+}
+
+// EndByIn applies the In predicate on the "end_by" field.
+func EndByIn(vs ...EndBy) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldEndBy), v...))
+	})
+}
+
+// EndByNotIn applies the NotIn predicate on the "end_by" field.
+func EndByNotIn(vs ...EndBy) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldEndBy), v...))
+	})
+}
+
+// CapacityEQ applies the EQ predicate on the "capacity" field.
+func CapacityEQ(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCapacity), v))
+	})
+}
+
+// CapacityNEQ applies the NEQ predicate on the "capacity" field.
+func CapacityNEQ(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCapacity), v))
+	})
+}
+
+// CapacityIn applies the In predicate on the "capacity" field.
+func CapacityIn(vs ...uint8) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldCapacity), v...))
+	})
+}
+
+// CapacityNotIn applies the NotIn predicate on the "capacity" field.
+func CapacityNotIn(vs ...uint8) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldCapacity), v...))
+	})
+}
+
+// CapacityGT applies the GT predicate on the "capacity" field.
+func CapacityGT(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCapacity), v))
+	})
+}
+
+// CapacityGTE applies the GTE predicate on the "capacity" field.
+func CapacityGTE(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCapacity), v))
+	})
+}
+
+// CapacityLT applies the LT predicate on the "capacity" field.
+func CapacityLT(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCapacity), v))
+	})
+}
+
+// CapacityLTE applies the LTE predicate on the "capacity" field.
+func CapacityLTE(v uint8) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCapacity), v))
+	})
+}
+
 // HasGameUsers applies the HasEdge predicate on the "game_users" edge.
 func HasGameUsers() predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
@@ -455,6 +605,62 @@ func HasGameUsersWith(preds ...predicate.GameUser) predicate.Game {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(GameUsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, GameUsersTable, GameUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMissions applies the HasEdge predicate on the "missions" edge.
+func HasMissions() predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MissionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MissionsTable, MissionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMissionsWith applies the HasEdge predicate on the "missions" edge with a given conditions (other predicates).
+func HasMissionsWith(preds ...predicate.Mission) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MissionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MissionsTable, MissionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoom applies the HasEdge predicate on the "room" edge.
+func HasRoom() predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoomTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoomWith applies the HasEdge predicate on the "room" edge with a given conditions (other predicates).
+func HasRoomWith(preds ...predicate.Room) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RoomInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RoomTable, RoomColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

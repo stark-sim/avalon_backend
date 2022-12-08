@@ -18,10 +18,18 @@ type Tx struct {
 	Game *GameClient
 	// GameUser is the client for interacting with the GameUser builders.
 	GameUser *GameUserClient
+	// Mission is the client for interacting with the Mission builders.
+	Mission *MissionClient
+	// Record is the client for interacting with the Record builders.
+	Record *RecordClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// RoomUser is the client for interacting with the RoomUser builders.
 	RoomUser *RoomUserClient
+	// Squad is the client for interacting with the Squad builders.
+	Squad *SquadClient
+	// Vote is the client for interacting with the Vote builders.
+	Vote *VoteClient
 
 	// lazily loaded.
 	client     *Client
@@ -156,8 +164,12 @@ func (tx *Tx) init() {
 	tx.Card = NewCardClient(tx.config)
 	tx.Game = NewGameClient(tx.config)
 	tx.GameUser = NewGameUserClient(tx.config)
+	tx.Mission = NewMissionClient(tx.config)
+	tx.Record = NewRecordClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.RoomUser = NewRoomUserClient(tx.config)
+	tx.Squad = NewSquadClient(tx.config)
+	tx.Vote = NewVoteClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

@@ -48,6 +48,32 @@ func (f GameUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return f(ctx, mv)
 }
 
+// The MissionFunc type is an adapter to allow the use of ordinary
+// function as Mission mutator.
+type MissionFunc func(context.Context, *ent.MissionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.MissionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MissionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The RecordFunc type is an adapter to allow the use of ordinary
+// function as Record mutator.
+type RecordFunc func(context.Context, *ent.RecordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RecordMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RecordMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RoomFunc type is an adapter to allow the use of ordinary
 // function as Room mutator.
 type RoomFunc func(context.Context, *ent.RoomMutation) (ent.Value, error)
@@ -70,6 +96,32 @@ func (f RoomUserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	mv, ok := m.(*ent.RoomUserMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoomUserMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The SquadFunc type is an adapter to allow the use of ordinary
+// function as Squad mutator.
+type SquadFunc func(context.Context, *ent.SquadMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SquadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SquadMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SquadMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The VoteFunc type is an adapter to allow the use of ordinary
+// function as Vote mutator.
+type VoteFunc func(context.Context, *ent.VoteMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f VoteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.VoteMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.VoteMutation", m)
 	}
 	return f(ctx, mv)
 }

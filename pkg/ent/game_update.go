@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // GameUpdate is the builder for updating Game entities.
@@ -91,6 +93,47 @@ func (gu *GameUpdate) SetNillableDeletedAt(t *time.Time) *GameUpdate {
 	return gu
 }
 
+// SetRoomID sets the "room_id" field.
+func (gu *GameUpdate) SetRoomID(i int64) *GameUpdate {
+	gu.mutation.SetRoomID(i)
+	return gu
+}
+
+// SetEndBy sets the "end_by" field.
+func (gu *GameUpdate) SetEndBy(gb game.EndBy) *GameUpdate {
+	gu.mutation.SetEndBy(gb)
+	return gu
+}
+
+// SetNillableEndBy sets the "end_by" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableEndBy(gb *game.EndBy) *GameUpdate {
+	if gb != nil {
+		gu.SetEndBy(*gb)
+	}
+	return gu
+}
+
+// SetCapacity sets the "capacity" field.
+func (gu *GameUpdate) SetCapacity(u uint8) *GameUpdate {
+	gu.mutation.ResetCapacity()
+	gu.mutation.SetCapacity(u)
+	return gu
+}
+
+// SetNillableCapacity sets the "capacity" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableCapacity(u *uint8) *GameUpdate {
+	if u != nil {
+		gu.SetCapacity(*u)
+	}
+	return gu
+}
+
+// AddCapacity adds u to the "capacity" field.
+func (gu *GameUpdate) AddCapacity(u int8) *GameUpdate {
+	gu.mutation.AddCapacity(u)
+	return gu
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
 func (gu *GameUpdate) AddGameUserIDs(ids ...int64) *GameUpdate {
 	gu.mutation.AddGameUserIDs(ids...)
@@ -104,6 +147,26 @@ func (gu *GameUpdate) AddGameUsers(g ...*GameUser) *GameUpdate {
 		ids[i] = g[i].ID
 	}
 	return gu.AddGameUserIDs(ids...)
+}
+
+// AddMissionIDs adds the "missions" edge to the Mission entity by IDs.
+func (gu *GameUpdate) AddMissionIDs(ids ...int64) *GameUpdate {
+	gu.mutation.AddMissionIDs(ids...)
+	return gu
+}
+
+// AddMissions adds the "missions" edges to the Mission entity.
+func (gu *GameUpdate) AddMissions(m ...*Mission) *GameUpdate {
+	ids := make([]int64, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return gu.AddMissionIDs(ids...)
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (gu *GameUpdate) SetRoom(r *Room) *GameUpdate {
+	return gu.SetRoomID(r.ID)
 }
 
 // Mutation returns the GameMutation object of the builder.
@@ -132,6 +195,33 @@ func (gu *GameUpdate) RemoveGameUsers(g ...*GameUser) *GameUpdate {
 	return gu.RemoveGameUserIDs(ids...)
 }
 
+// ClearMissions clears all "missions" edges to the Mission entity.
+func (gu *GameUpdate) ClearMissions() *GameUpdate {
+	gu.mutation.ClearMissions()
+	return gu
+}
+
+// RemoveMissionIDs removes the "missions" edge to Mission entities by IDs.
+func (gu *GameUpdate) RemoveMissionIDs(ids ...int64) *GameUpdate {
+	gu.mutation.RemoveMissionIDs(ids...)
+	return gu
+}
+
+// RemoveMissions removes "missions" edges to Mission entities.
+func (gu *GameUpdate) RemoveMissions(m ...*Mission) *GameUpdate {
+	ids := make([]int64, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return gu.RemoveMissionIDs(ids...)
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (gu *GameUpdate) ClearRoom() *GameUpdate {
+	gu.mutation.ClearRoom()
+	return gu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (gu *GameUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -140,12 +230,18 @@ func (gu *GameUpdate) Save(ctx context.Context) (int, error) {
 	)
 	gu.defaults()
 	if len(gu.hooks) == 0 {
+		if err = gu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = gu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*GameMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = gu.check(); err != nil {
+				return 0, err
 			}
 			gu.mutation = mutation
 			affected, err = gu.sqlSave(ctx)
@@ -195,6 +291,19 @@ func (gu *GameUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (gu *GameUpdate) check() error {
+	if v, ok := gu.mutation.EndBy(); ok {
+		if err := game.EndByValidator(v); err != nil {
+			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+		}
+	}
+	if _, ok := gu.mutation.RoomID(); gu.mutation.RoomCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Game.room"`)
+	}
+	return nil
+}
+
 func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -230,6 +339,15 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.DeletedAt(); ok {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
+	}
+	if value, ok := gu.mutation.EndBy(); ok {
+		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
+	}
+	if value, ok := gu.mutation.Capacity(); ok {
+		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
+	}
+	if value, ok := gu.mutation.AddedCapacity(); ok {
+		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
 	}
 	if gu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -277,6 +395,95 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gu.mutation.MissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.RemovedMissionsIDs(); len(nodes) > 0 && !gu.mutation.MissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.MissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if gu.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   game.RoomTable,
+			Columns: []string{game.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: room.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := gu.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   game.RoomTable,
+			Columns: []string{game.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: room.FieldID,
 				},
 			},
 		}
@@ -366,6 +573,47 @@ func (guo *GameUpdateOne) SetNillableDeletedAt(t *time.Time) *GameUpdateOne {
 	return guo
 }
 
+// SetRoomID sets the "room_id" field.
+func (guo *GameUpdateOne) SetRoomID(i int64) *GameUpdateOne {
+	guo.mutation.SetRoomID(i)
+	return guo
+}
+
+// SetEndBy sets the "end_by" field.
+func (guo *GameUpdateOne) SetEndBy(gb game.EndBy) *GameUpdateOne {
+	guo.mutation.SetEndBy(gb)
+	return guo
+}
+
+// SetNillableEndBy sets the "end_by" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableEndBy(gb *game.EndBy) *GameUpdateOne {
+	if gb != nil {
+		guo.SetEndBy(*gb)
+	}
+	return guo
+}
+
+// SetCapacity sets the "capacity" field.
+func (guo *GameUpdateOne) SetCapacity(u uint8) *GameUpdateOne {
+	guo.mutation.ResetCapacity()
+	guo.mutation.SetCapacity(u)
+	return guo
+}
+
+// SetNillableCapacity sets the "capacity" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableCapacity(u *uint8) *GameUpdateOne {
+	if u != nil {
+		guo.SetCapacity(*u)
+	}
+	return guo
+}
+
+// AddCapacity adds u to the "capacity" field.
+func (guo *GameUpdateOne) AddCapacity(u int8) *GameUpdateOne {
+	guo.mutation.AddCapacity(u)
+	return guo
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
 func (guo *GameUpdateOne) AddGameUserIDs(ids ...int64) *GameUpdateOne {
 	guo.mutation.AddGameUserIDs(ids...)
@@ -379,6 +627,26 @@ func (guo *GameUpdateOne) AddGameUsers(g ...*GameUser) *GameUpdateOne {
 		ids[i] = g[i].ID
 	}
 	return guo.AddGameUserIDs(ids...)
+}
+
+// AddMissionIDs adds the "missions" edge to the Mission entity by IDs.
+func (guo *GameUpdateOne) AddMissionIDs(ids ...int64) *GameUpdateOne {
+	guo.mutation.AddMissionIDs(ids...)
+	return guo
+}
+
+// AddMissions adds the "missions" edges to the Mission entity.
+func (guo *GameUpdateOne) AddMissions(m ...*Mission) *GameUpdateOne {
+	ids := make([]int64, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return guo.AddMissionIDs(ids...)
+}
+
+// SetRoom sets the "room" edge to the Room entity.
+func (guo *GameUpdateOne) SetRoom(r *Room) *GameUpdateOne {
+	return guo.SetRoomID(r.ID)
 }
 
 // Mutation returns the GameMutation object of the builder.
@@ -407,6 +675,33 @@ func (guo *GameUpdateOne) RemoveGameUsers(g ...*GameUser) *GameUpdateOne {
 	return guo.RemoveGameUserIDs(ids...)
 }
 
+// ClearMissions clears all "missions" edges to the Mission entity.
+func (guo *GameUpdateOne) ClearMissions() *GameUpdateOne {
+	guo.mutation.ClearMissions()
+	return guo
+}
+
+// RemoveMissionIDs removes the "missions" edge to Mission entities by IDs.
+func (guo *GameUpdateOne) RemoveMissionIDs(ids ...int64) *GameUpdateOne {
+	guo.mutation.RemoveMissionIDs(ids...)
+	return guo
+}
+
+// RemoveMissions removes "missions" edges to Mission entities.
+func (guo *GameUpdateOne) RemoveMissions(m ...*Mission) *GameUpdateOne {
+	ids := make([]int64, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return guo.RemoveMissionIDs(ids...)
+}
+
+// ClearRoom clears the "room" edge to the Room entity.
+func (guo *GameUpdateOne) ClearRoom() *GameUpdateOne {
+	guo.mutation.ClearRoom()
+	return guo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (guo *GameUpdateOne) Select(field string, fields ...string) *GameUpdateOne {
@@ -422,12 +717,18 @@ func (guo *GameUpdateOne) Save(ctx context.Context) (*Game, error) {
 	)
 	guo.defaults()
 	if len(guo.hooks) == 0 {
+		if err = guo.check(); err != nil {
+			return nil, err
+		}
 		node, err = guo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*GameMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = guo.check(); err != nil {
+				return nil, err
 			}
 			guo.mutation = mutation
 			node, err = guo.sqlSave(ctx)
@@ -483,6 +784,19 @@ func (guo *GameUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (guo *GameUpdateOne) check() error {
+	if v, ok := guo.mutation.EndBy(); ok {
+		if err := game.EndByValidator(v); err != nil {
+			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+		}
+	}
+	if _, ok := guo.mutation.RoomID(); guo.mutation.RoomCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Game.room"`)
+	}
+	return nil
+}
+
 func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -536,6 +850,15 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 	if value, ok := guo.mutation.DeletedAt(); ok {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
 	}
+	if value, ok := guo.mutation.EndBy(); ok {
+		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
+	}
+	if value, ok := guo.mutation.Capacity(); ok {
+		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
+	}
+	if value, ok := guo.mutation.AddedCapacity(); ok {
+		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
+	}
 	if guo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -582,6 +905,95 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: gameuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.MissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.RemovedMissionsIDs(); len(nodes) > 0 && !guo.mutation.MissionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.MissionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   game.MissionsTable,
+			Columns: []string{game.MissionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: mission.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if guo.mutation.RoomCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   game.RoomTable,
+			Columns: []string{game.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: room.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := guo.mutation.RoomIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   game.RoomTable,
+			Columns: []string{game.RoomColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: room.FieldID,
 				},
 			},
 		}

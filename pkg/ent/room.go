@@ -27,7 +27,9 @@ type Room struct {
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
+	// Closed holds the value of the "closed" field.
+	Closed bool `json:"closed"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
 	Edges RoomEdges `json:"edges"`
@@ -37,13 +39,19 @@ type Room struct {
 type RoomEdges struct {
 	// RoomUsers holds the value of the room_users edge.
 	RoomUsers []*RoomUser `json:"room_users,omitempty"`
+	// Games holds the value of the games edge.
+	Games []*Game `json:"games,omitempty"`
+	// Records holds the value of the records edge.
+	Records []*Record `json:"records,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [3]map[string]int
 
 	namedRoomUsers map[string][]*RoomUser
+	namedGames     map[string][]*Game
+	namedRecords   map[string][]*Record
 }
 
 // RoomUsersOrErr returns the RoomUsers value or an error if the edge
@@ -55,11 +63,31 @@ func (e RoomEdges) RoomUsersOrErr() ([]*RoomUser, error) {
 	return nil, &NotLoadedError{edge: "room_users"}
 }
 
+// GamesOrErr returns the Games value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) GamesOrErr() ([]*Game, error) {
+	if e.loadedTypes[1] {
+		return e.Games, nil
+	}
+	return nil, &NotLoadedError{edge: "games"}
+}
+
+// RecordsOrErr returns the Records value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) RecordsOrErr() ([]*Record, error) {
+	if e.loadedTypes[2] {
+		return e.Records, nil
+	}
+	return nil, &NotLoadedError{edge: "records"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Room) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case room.FieldClosed:
+			values[i] = new(sql.NullBool)
 		case room.FieldID, room.FieldCreatedBy, room.FieldUpdatedBy:
 			values[i] = new(sql.NullInt64)
 		case room.FieldName:
@@ -123,6 +151,12 @@ func (r *Room) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.Name = value.String
 			}
+		case room.FieldClosed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field closed", values[i])
+			} else if value.Valid {
+				r.Closed = value.Bool
+			}
 		}
 	}
 	return nil
@@ -131,6 +165,16 @@ func (r *Room) assignValues(columns []string, values []any) error {
 // QueryRoomUsers queries the "room_users" edge of the Room entity.
 func (r *Room) QueryRoomUsers() *RoomUserQuery {
 	return (&RoomClient{config: r.config}).QueryRoomUsers(r)
+}
+
+// QueryGames queries the "games" edge of the Room entity.
+func (r *Room) QueryGames() *GameQuery {
+	return (&RoomClient{config: r.config}).QueryGames(r)
+}
+
+// QueryRecords queries the "records" edge of the Room entity.
+func (r *Room) QueryRecords() *RecordQuery {
+	return (&RoomClient{config: r.config}).QueryRecords(r)
 }
 
 // Update returns a builder for updating this Room.
@@ -173,6 +217,9 @@ func (r *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(r.Name)
+	builder.WriteString(", ")
+	builder.WriteString("closed=")
+	builder.WriteString(fmt.Sprintf("%v", r.Closed))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -198,6 +245,54 @@ func (r *Room) appendNamedRoomUsers(name string, edges ...*RoomUser) {
 		r.Edges.namedRoomUsers[name] = []*RoomUser{}
 	} else {
 		r.Edges.namedRoomUsers[name] = append(r.Edges.namedRoomUsers[name], edges...)
+	}
+}
+
+// NamedGames returns the Games named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedGames(name string) ([]*Game, error) {
+	if r.Edges.namedGames == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedGames[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedGames(name string, edges ...*Game) {
+	if r.Edges.namedGames == nil {
+		r.Edges.namedGames = make(map[string][]*Game)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedGames[name] = []*Game{}
+	} else {
+		r.Edges.namedGames[name] = append(r.Edges.namedGames[name], edges...)
+	}
+}
+
+// NamedRecords returns the Records named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (r *Room) NamedRecords(name string) ([]*Record, error) {
+	if r.Edges.namedRecords == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := r.Edges.namedRecords[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (r *Room) appendNamedRecords(name string, edges ...*Record) {
+	if r.Edges.namedRecords == nil {
+		r.Edges.namedRecords = make(map[string][]*Record)
+	}
+	if len(edges) == 0 {
+		r.Edges.namedRecords[name] = []*Record{}
+	} else {
+		r.Edges.namedRecords[name] = append(r.Edges.namedRecords[name], edges...)
 	}
 }
 

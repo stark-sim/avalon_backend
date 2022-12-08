@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // Game is the model entity for the Game schema.
@@ -26,6 +27,12 @@ type Game struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
+	// RoomID holds the value of the "room_id" field.
+	RoomID int64 `json:"room_id"`
+	// EndBy holds the value of the "end_by" field.
+	EndBy game.EndBy `json:"end_by"`
+	// 游戏人数
+	Capacity uint8 `json:"capacity"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameQuery when eager-loading is set.
 	Edges GameEdges `json:"edges"`
@@ -35,13 +42,18 @@ type Game struct {
 type GameEdges struct {
 	// GameUsers holds the value of the game_users edge.
 	GameUsers []*GameUser `json:"game_users,omitempty"`
+	// Missions holds the value of the missions edge.
+	Missions []*Mission `json:"missions,omitempty"`
+	// Room holds the value of the room edge.
+	Room *Room `json:"room,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [3]map[string]int
 
 	namedGameUsers map[string][]*GameUser
+	namedMissions  map[string][]*Mission
 }
 
 // GameUsersOrErr returns the GameUsers value or an error if the edge
@@ -53,13 +65,37 @@ func (e GameEdges) GameUsersOrErr() ([]*GameUser, error) {
 	return nil, &NotLoadedError{edge: "game_users"}
 }
 
+// MissionsOrErr returns the Missions value or an error if the edge
+// was not loaded in eager-loading.
+func (e GameEdges) MissionsOrErr() ([]*Mission, error) {
+	if e.loadedTypes[1] {
+		return e.Missions, nil
+	}
+	return nil, &NotLoadedError{edge: "missions"}
+}
+
+// RoomOrErr returns the Room value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e GameEdges) RoomOrErr() (*Room, error) {
+	if e.loadedTypes[2] {
+		if e.Room == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: room.Label}
+		}
+		return e.Room, nil
+	}
+	return nil, &NotLoadedError{edge: "room"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Game) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy:
+		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity:
 			values[i] = new(sql.NullInt64)
+		case game.FieldEndBy:
+			values[i] = new(sql.NullString)
 		case game.FieldCreatedAt, game.FieldUpdatedAt, game.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
@@ -113,6 +149,24 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ga.DeletedAt = value.Time
 			}
+		case game.FieldRoomID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field room_id", values[i])
+			} else if value.Valid {
+				ga.RoomID = value.Int64
+			}
+		case game.FieldEndBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field end_by", values[i])
+			} else if value.Valid {
+				ga.EndBy = game.EndBy(value.String)
+			}
+		case game.FieldCapacity:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field capacity", values[i])
+			} else if value.Valid {
+				ga.Capacity = uint8(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -121,6 +175,16 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 // QueryGameUsers queries the "game_users" edge of the Game entity.
 func (ga *Game) QueryGameUsers() *GameUserQuery {
 	return (&GameClient{config: ga.config}).QueryGameUsers(ga)
+}
+
+// QueryMissions queries the "missions" edge of the Game entity.
+func (ga *Game) QueryMissions() *MissionQuery {
+	return (&GameClient{config: ga.config}).QueryMissions(ga)
+}
+
+// QueryRoom queries the "room" edge of the Game entity.
+func (ga *Game) QueryRoom() *RoomQuery {
+	return (&GameClient{config: ga.config}).QueryRoom(ga)
 }
 
 // Update returns a builder for updating this Game.
@@ -160,6 +224,15 @@ func (ga *Game) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
 	builder.WriteString(ga.DeletedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("room_id=")
+	builder.WriteString(fmt.Sprintf("%v", ga.RoomID))
+	builder.WriteString(", ")
+	builder.WriteString("end_by=")
+	builder.WriteString(fmt.Sprintf("%v", ga.EndBy))
+	builder.WriteString(", ")
+	builder.WriteString("capacity=")
+	builder.WriteString(fmt.Sprintf("%v", ga.Capacity))
 	builder.WriteByte(')')
 	return builder.String()
 }
@@ -185,6 +258,30 @@ func (ga *Game) appendNamedGameUsers(name string, edges ...*GameUser) {
 		ga.Edges.namedGameUsers[name] = []*GameUser{}
 	} else {
 		ga.Edges.namedGameUsers[name] = append(ga.Edges.namedGameUsers[name], edges...)
+	}
+}
+
+// NamedMissions returns the Missions named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ga *Game) NamedMissions(name string) ([]*Mission, error) {
+	if ga.Edges.namedMissions == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ga.Edges.namedMissions[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ga *Game) appendNamedMissions(name string, edges ...*Mission) {
+	if ga.Edges.namedMissions == nil {
+		ga.Edges.namedMissions = make(map[string][]*Mission)
+	}
+	if len(edges) == 0 {
+		ga.Edges.namedMissions[name] = []*Mission{}
+	} else {
+		ga.Edges.namedMissions[name] = append(ga.Edges.namedMissions[name], edges...)
 	}
 }
 

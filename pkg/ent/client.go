@@ -13,8 +13,12 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -32,10 +36,18 @@ type Client struct {
 	Game *GameClient
 	// GameUser is the client for interacting with the GameUser builders.
 	GameUser *GameUserClient
+	// Mission is the client for interacting with the Mission builders.
+	Mission *MissionClient
+	// Record is the client for interacting with the Record builders.
+	Record *RecordClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
 	// RoomUser is the client for interacting with the RoomUser builders.
 	RoomUser *RoomUserClient
+	// Squad is the client for interacting with the Squad builders.
+	Squad *SquadClient
+	// Vote is the client for interacting with the Vote builders.
+	Vote *VoteClient
 	// additional fields for node api
 	tables tables
 }
@@ -54,8 +66,12 @@ func (c *Client) init() {
 	c.Card = NewCardClient(c.config)
 	c.Game = NewGameClient(c.config)
 	c.GameUser = NewGameUserClient(c.config)
+	c.Mission = NewMissionClient(c.config)
+	c.Record = NewRecordClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.RoomUser = NewRoomUserClient(c.config)
+	c.Squad = NewSquadClient(c.config)
+	c.Vote = NewVoteClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -92,8 +108,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Card:     NewCardClient(cfg),
 		Game:     NewGameClient(cfg),
 		GameUser: NewGameUserClient(cfg),
+		Mission:  NewMissionClient(cfg),
+		Record:   NewRecordClient(cfg),
 		Room:     NewRoomClient(cfg),
 		RoomUser: NewRoomUserClient(cfg),
+		Squad:    NewSquadClient(cfg),
+		Vote:     NewVoteClient(cfg),
 	}, nil
 }
 
@@ -116,8 +136,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Card:     NewCardClient(cfg),
 		Game:     NewGameClient(cfg),
 		GameUser: NewGameUserClient(cfg),
+		Mission:  NewMissionClient(cfg),
+		Record:   NewRecordClient(cfg),
 		Room:     NewRoomClient(cfg),
 		RoomUser: NewRoomUserClient(cfg),
+		Squad:    NewSquadClient(cfg),
+		Vote:     NewVoteClient(cfg),
 	}, nil
 }
 
@@ -149,8 +173,12 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Card.Use(hooks...)
 	c.Game.Use(hooks...)
 	c.GameUser.Use(hooks...)
+	c.Mission.Use(hooks...)
+	c.Record.Use(hooks...)
 	c.Room.Use(hooks...)
 	c.RoomUser.Use(hooks...)
+	c.Squad.Use(hooks...)
+	c.Vote.Use(hooks...)
 }
 
 // CardClient is a client for the Card schema.
@@ -360,6 +388,38 @@ func (c *GameClient) QueryGameUsers(ga *Game) *GameUserQuery {
 	return query
 }
 
+// QueryMissions queries the missions edge of a Game.
+func (c *GameClient) QueryMissions(ga *Game) *MissionQuery {
+	query := &MissionQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ga.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(game.Table, game.FieldID, id),
+			sqlgraph.To(mission.Table, mission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, game.MissionsTable, game.MissionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ga.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoom queries the room edge of a Game.
+func (c *GameClient) QueryRoom(ga *Game) *RoomQuery {
+	query := &RoomQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ga.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(game.Table, game.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, game.RoomTable, game.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(ga.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *GameClient) Hooks() []Hook {
 	return c.hooks.Game
@@ -487,6 +547,250 @@ func (c *GameUserClient) Hooks() []Hook {
 	return c.hooks.GameUser
 }
 
+// MissionClient is a client for the Mission schema.
+type MissionClient struct {
+	config
+}
+
+// NewMissionClient returns a client for the Mission from the given config.
+func NewMissionClient(c config) *MissionClient {
+	return &MissionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mission.Hooks(f(g(h())))`.
+func (c *MissionClient) Use(hooks ...Hook) {
+	c.hooks.Mission = append(c.hooks.Mission, hooks...)
+}
+
+// Create returns a builder for creating a Mission entity.
+func (c *MissionClient) Create() *MissionCreate {
+	mutation := newMissionMutation(c.config, OpCreate)
+	return &MissionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Mission entities.
+func (c *MissionClient) CreateBulk(builders ...*MissionCreate) *MissionCreateBulk {
+	return &MissionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Mission.
+func (c *MissionClient) Update() *MissionUpdate {
+	mutation := newMissionMutation(c.config, OpUpdate)
+	return &MissionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MissionClient) UpdateOne(m *Mission) *MissionUpdateOne {
+	mutation := newMissionMutation(c.config, OpUpdateOne, withMission(m))
+	return &MissionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MissionClient) UpdateOneID(id int64) *MissionUpdateOne {
+	mutation := newMissionMutation(c.config, OpUpdateOne, withMissionID(id))
+	return &MissionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Mission.
+func (c *MissionClient) Delete() *MissionDelete {
+	mutation := newMissionMutation(c.config, OpDelete)
+	return &MissionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MissionClient) DeleteOne(m *Mission) *MissionDeleteOne {
+	return c.DeleteOneID(m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MissionClient) DeleteOneID(id int64) *MissionDeleteOne {
+	builder := c.Delete().Where(mission.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MissionDeleteOne{builder}
+}
+
+// Query returns a query builder for Mission.
+func (c *MissionClient) Query() *MissionQuery {
+	return &MissionQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Mission entity by its id.
+func (c *MissionClient) Get(ctx context.Context, id int64) (*Mission, error) {
+	return c.Query().Where(mission.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MissionClient) GetX(ctx context.Context, id int64) *Mission {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGame queries the game edge of a Mission.
+func (c *MissionClient) QueryGame(m *Mission) *GameQuery {
+	query := &GameQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mission.Table, mission.FieldID, id),
+			sqlgraph.To(game.Table, game.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, mission.GameTable, mission.GameColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySquads queries the squads edge of a Mission.
+func (c *MissionClient) QuerySquads(m *Mission) *SquadQuery {
+	query := &SquadQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mission.Table, mission.FieldID, id),
+			sqlgraph.To(squad.Table, squad.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, mission.SquadsTable, mission.SquadsColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMissionVotes queries the mission_votes edge of a Mission.
+func (c *MissionClient) QueryMissionVotes(m *Mission) *VoteQuery {
+	query := &VoteQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(mission.Table, mission.FieldID, id),
+			sqlgraph.To(vote.Table, vote.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, mission.MissionVotesTable, mission.MissionVotesColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MissionClient) Hooks() []Hook {
+	return c.hooks.Mission
+}
+
+// RecordClient is a client for the Record schema.
+type RecordClient struct {
+	config
+}
+
+// NewRecordClient returns a client for the Record from the given config.
+func NewRecordClient(c config) *RecordClient {
+	return &RecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `record.Hooks(f(g(h())))`.
+func (c *RecordClient) Use(hooks ...Hook) {
+	c.hooks.Record = append(c.hooks.Record, hooks...)
+}
+
+// Create returns a builder for creating a Record entity.
+func (c *RecordClient) Create() *RecordCreate {
+	mutation := newRecordMutation(c.config, OpCreate)
+	return &RecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Record entities.
+func (c *RecordClient) CreateBulk(builders ...*RecordCreate) *RecordCreateBulk {
+	return &RecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Record.
+func (c *RecordClient) Update() *RecordUpdate {
+	mutation := newRecordMutation(c.config, OpUpdate)
+	return &RecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RecordClient) UpdateOne(r *Record) *RecordUpdateOne {
+	mutation := newRecordMutation(c.config, OpUpdateOne, withRecord(r))
+	return &RecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RecordClient) UpdateOneID(id int64) *RecordUpdateOne {
+	mutation := newRecordMutation(c.config, OpUpdateOne, withRecordID(id))
+	return &RecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Record.
+func (c *RecordClient) Delete() *RecordDelete {
+	mutation := newRecordMutation(c.config, OpDelete)
+	return &RecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RecordClient) DeleteOne(r *Record) *RecordDeleteOne {
+	return c.DeleteOneID(r.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RecordClient) DeleteOneID(id int64) *RecordDeleteOne {
+	builder := c.Delete().Where(record.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RecordDeleteOne{builder}
+}
+
+// Query returns a query builder for Record.
+func (c *RecordClient) Query() *RecordQuery {
+	return &RecordQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Record entity by its id.
+func (c *RecordClient) Get(ctx context.Context, id int64) (*Record, error) {
+	return c.Query().Where(record.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RecordClient) GetX(ctx context.Context, id int64) *Record {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRoom queries the room edge of a Record.
+func (c *RecordClient) QueryRoom(r *Record) *RoomQuery {
+	query := &RoomQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(record.Table, record.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, record.RoomTable, record.RoomColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RecordClient) Hooks() []Hook {
+	return c.hooks.Record
+}
+
 // RoomClient is a client for the Room schema.
 type RoomClient struct {
 	config
@@ -581,6 +885,38 @@ func (c *RoomClient) QueryRoomUsers(r *Room) *RoomUserQuery {
 			sqlgraph.From(room.Table, room.FieldID, id),
 			sqlgraph.To(roomuser.Table, roomuser.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.RoomUsersTable, room.RoomUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGames queries the games edge of a Room.
+func (c *RoomClient) QueryGames(r *Room) *GameQuery {
+	query := &GameQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(game.Table, game.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.GamesTable, room.GamesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRecords queries the records edge of a Room.
+func (c *RoomClient) QueryRecords(r *Room) *RecordQuery {
+	query := &RecordQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(record.Table, record.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.RecordsTable, room.RecordsColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil
@@ -697,4 +1033,216 @@ func (c *RoomUserClient) QueryRoom(ru *RoomUser) *RoomQuery {
 // Hooks returns the client hooks.
 func (c *RoomUserClient) Hooks() []Hook {
 	return c.hooks.RoomUser
+}
+
+// SquadClient is a client for the Squad schema.
+type SquadClient struct {
+	config
+}
+
+// NewSquadClient returns a client for the Squad from the given config.
+func NewSquadClient(c config) *SquadClient {
+	return &SquadClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `squad.Hooks(f(g(h())))`.
+func (c *SquadClient) Use(hooks ...Hook) {
+	c.hooks.Squad = append(c.hooks.Squad, hooks...)
+}
+
+// Create returns a builder for creating a Squad entity.
+func (c *SquadClient) Create() *SquadCreate {
+	mutation := newSquadMutation(c.config, OpCreate)
+	return &SquadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Squad entities.
+func (c *SquadClient) CreateBulk(builders ...*SquadCreate) *SquadCreateBulk {
+	return &SquadCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Squad.
+func (c *SquadClient) Update() *SquadUpdate {
+	mutation := newSquadMutation(c.config, OpUpdate)
+	return &SquadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SquadClient) UpdateOne(s *Squad) *SquadUpdateOne {
+	mutation := newSquadMutation(c.config, OpUpdateOne, withSquad(s))
+	return &SquadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SquadClient) UpdateOneID(id int64) *SquadUpdateOne {
+	mutation := newSquadMutation(c.config, OpUpdateOne, withSquadID(id))
+	return &SquadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Squad.
+func (c *SquadClient) Delete() *SquadDelete {
+	mutation := newSquadMutation(c.config, OpDelete)
+	return &SquadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SquadClient) DeleteOne(s *Squad) *SquadDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SquadClient) DeleteOneID(id int64) *SquadDeleteOne {
+	builder := c.Delete().Where(squad.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SquadDeleteOne{builder}
+}
+
+// Query returns a query builder for Squad.
+func (c *SquadClient) Query() *SquadQuery {
+	return &SquadQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Squad entity by its id.
+func (c *SquadClient) Get(ctx context.Context, id int64) (*Squad, error) {
+	return c.Query().Where(squad.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SquadClient) GetX(ctx context.Context, id int64) *Squad {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMission queries the mission edge of a Squad.
+func (c *SquadClient) QueryMission(s *Squad) *MissionQuery {
+	query := &MissionQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(squad.Table, squad.FieldID, id),
+			sqlgraph.To(mission.Table, mission.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, squad.MissionTable, squad.MissionColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SquadClient) Hooks() []Hook {
+	return c.hooks.Squad
+}
+
+// VoteClient is a client for the Vote schema.
+type VoteClient struct {
+	config
+}
+
+// NewVoteClient returns a client for the Vote from the given config.
+func NewVoteClient(c config) *VoteClient {
+	return &VoteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `vote.Hooks(f(g(h())))`.
+func (c *VoteClient) Use(hooks ...Hook) {
+	c.hooks.Vote = append(c.hooks.Vote, hooks...)
+}
+
+// Create returns a builder for creating a Vote entity.
+func (c *VoteClient) Create() *VoteCreate {
+	mutation := newVoteMutation(c.config, OpCreate)
+	return &VoteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Vote entities.
+func (c *VoteClient) CreateBulk(builders ...*VoteCreate) *VoteCreateBulk {
+	return &VoteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Vote.
+func (c *VoteClient) Update() *VoteUpdate {
+	mutation := newVoteMutation(c.config, OpUpdate)
+	return &VoteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *VoteClient) UpdateOne(v *Vote) *VoteUpdateOne {
+	mutation := newVoteMutation(c.config, OpUpdateOne, withVote(v))
+	return &VoteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *VoteClient) UpdateOneID(id int64) *VoteUpdateOne {
+	mutation := newVoteMutation(c.config, OpUpdateOne, withVoteID(id))
+	return &VoteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Vote.
+func (c *VoteClient) Delete() *VoteDelete {
+	mutation := newVoteMutation(c.config, OpDelete)
+	return &VoteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *VoteClient) DeleteOne(v *Vote) *VoteDeleteOne {
+	return c.DeleteOneID(v.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *VoteClient) DeleteOneID(id int64) *VoteDeleteOne {
+	builder := c.Delete().Where(vote.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &VoteDeleteOne{builder}
+}
+
+// Query returns a query builder for Vote.
+func (c *VoteClient) Query() *VoteQuery {
+	return &VoteQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Vote entity by its id.
+func (c *VoteClient) Get(ctx context.Context, id int64) (*Vote, error) {
+	return c.Query().Where(vote.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *VoteClient) GetX(ctx context.Context, id int64) *Vote {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMission queries the mission edge of a Vote.
+func (c *VoteClient) QueryMission(v *Vote) *MissionQuery {
+	query := &MissionQuery{config: c.config}
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := v.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vote.Table, vote.FieldID, id),
+			sqlgraph.To(mission.Table, mission.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, vote.MissionTable, vote.MissionColumn),
+		)
+		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *VoteClient) Hooks() []Hook {
+	return c.hooks.Vote
 }

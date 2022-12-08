@@ -121,6 +121,28 @@ func (ga *GameQuery) collectField(ctx context.Context, op *graphql.OperationCont
 			ga.WithNamedGameUsers(alias, func(wq *GameUserQuery) {
 				*wq = *query
 			})
+		case "missions":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &MissionQuery{config: ga.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ga.WithNamedMissions(alias, func(wq *MissionQuery) {
+				*wq = *query
+			})
+		case "room":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoomQuery{config: ga.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			ga.withRoom = query
 		}
 	}
 	return nil
@@ -270,6 +292,194 @@ func newGameUserPaginateArgs(rv map[string]interface{}) *gameuserPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (m *MissionQuery) CollectFields(ctx context.Context, satisfies ...string) (*MissionQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return m, nil
+	}
+	if err := m.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (m *MissionQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "game":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &GameQuery{config: m.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			m.withGame = query
+		case "squads":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &SquadQuery{config: m.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			m.WithNamedSquads(alias, func(wq *SquadQuery) {
+				*wq = *query
+			})
+		case "missionVotes":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &VoteQuery{config: m.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			m.WithNamedMissionVotes(alias, func(wq *VoteQuery) {
+				*wq = *query
+			})
+		}
+	}
+	return nil
+}
+
+type missionPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []MissionPaginateOption
+}
+
+func newMissionPaginateArgs(rv map[string]interface{}) *missionPaginateArgs {
+	args := &missionPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &MissionOrder{Field: &MissionOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithMissionOrder(order))
+			}
+		case *MissionOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithMissionOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*MissionWhereInput); ok {
+		args.opts = append(args.opts, WithMissionFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (r *RecordQuery) CollectFields(ctx context.Context, satisfies ...string) (*RecordQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return r, nil
+	}
+	if err := r.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func (r *RecordQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "room":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RoomQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.withRoom = query
+		}
+	}
+	return nil
+}
+
+type recordPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []RecordPaginateOption
+}
+
+func newRecordPaginateArgs(rv map[string]interface{}) *recordPaginateArgs {
+	args := &recordPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &RecordOrder{Field: &RecordOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithRecordOrder(order))
+			}
+		case *RecordOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithRecordOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*RecordWhereInput); ok {
+		args.opts = append(args.opts, WithRecordFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (r *RoomQuery) CollectFields(ctx context.Context, satisfies ...string) (*RoomQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -295,6 +505,30 @@ func (r *RoomQuery) collectField(ctx context.Context, op *graphql.OperationConte
 				return err
 			}
 			r.WithNamedRoomUsers(alias, func(wq *RoomUserQuery) {
+				*wq = *query
+			})
+		case "games":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &GameQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedGames(alias, func(wq *GameQuery) {
+				*wq = *query
+			})
+		case "records":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &RecordQuery{config: r.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			r.WithNamedRecords(alias, func(wq *RecordQuery) {
 				*wq = *query
 			})
 		}
@@ -431,6 +665,170 @@ func newRoomUserPaginateArgs(rv map[string]interface{}) *roomuserPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*RoomUserWhereInput); ok {
 		args.opts = append(args.opts, WithRoomUserFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (s *SquadQuery) CollectFields(ctx context.Context, satisfies ...string) (*SquadQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return s, nil
+	}
+	if err := s.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (s *SquadQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "mission":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &MissionQuery{config: s.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			s.withMission = query
+		}
+	}
+	return nil
+}
+
+type squadPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []SquadPaginateOption
+}
+
+func newSquadPaginateArgs(rv map[string]interface{}) *squadPaginateArgs {
+	args := &squadPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &SquadOrder{Field: &SquadOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithSquadOrder(order))
+			}
+		case *SquadOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithSquadOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*SquadWhereInput); ok {
+		args.opts = append(args.opts, WithSquadFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (v *VoteQuery) CollectFields(ctx context.Context, satisfies ...string) (*VoteQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return v, nil
+	}
+	if err := v.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (v *VoteQuery) collectField(ctx context.Context, op *graphql.OperationContext, field graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	for _, field := range graphql.CollectFields(op, field.Selections, satisfies) {
+		switch field.Name {
+		case "mission":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = &MissionQuery{config: v.config}
+			)
+			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
+				return err
+			}
+			v.withMission = query
+		}
+	}
+	return nil
+}
+
+type votePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []VotePaginateOption
+}
+
+func newVotePaginateArgs(rv map[string]interface{}) *votePaginateArgs {
+	args := &votePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[orderByField]; ok {
+		switch v := v.(type) {
+		case map[string]interface{}:
+			var (
+				err1, err2 error
+				order      = &VoteOrder{Field: &VoteOrderField{}}
+			)
+			if d, ok := v[directionField]; ok {
+				err1 = order.Direction.UnmarshalGQL(d)
+			}
+			if f, ok := v[fieldField]; ok {
+				err2 = order.Field.UnmarshalGQL(f)
+			}
+			if err1 == nil && err2 == nil {
+				args.opts = append(args.opts, WithVoteOrder(order))
+			}
+		case *VoteOrder:
+			if v != nil {
+				args.opts = append(args.opts, WithVoteOrder(v))
+			}
+		}
+	}
+	if v, ok := rv[whereField].(*VoteWhereInput); ok {
+		args.opts = append(args.opts, WithVoteFilter(v.Filter))
 	}
 	return args
 }

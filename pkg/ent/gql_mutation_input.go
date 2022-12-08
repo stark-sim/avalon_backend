@@ -4,6 +4,9 @@ package ent
 
 import (
 	"time"
+
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 )
 
 // CreateCardInput represents a mutation input for creating cards.
@@ -103,7 +106,11 @@ type CreateGameInput struct {
 	CreatedAt   *time.Time
 	UpdatedAt   *time.Time
 	DeletedAt   *time.Time
+	EndBy       *game.EndBy
+	Capacity    *uint8
 	GameUserIDs []int64
+	MissionIDs  []int64
+	RoomID      int64
 }
 
 // Mutate applies the CreateGameInput on the GameMutation builder.
@@ -123,9 +130,19 @@ func (i *CreateGameInput) Mutate(m *GameMutation) {
 	if v := i.DeletedAt; v != nil {
 		m.SetDeletedAt(*v)
 	}
+	if v := i.EndBy; v != nil {
+		m.SetEndBy(*v)
+	}
+	if v := i.Capacity; v != nil {
+		m.SetCapacity(*v)
+	}
 	if v := i.GameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
 	}
+	if v := i.MissionIDs; len(v) > 0 {
+		m.AddMissionIDs(v...)
+	}
+	m.SetRoomID(i.RoomID)
 }
 
 // SetInput applies the change-set in the CreateGameInput on the GameCreate builder.
@@ -140,8 +157,14 @@ type UpdateGameInput struct {
 	UpdatedBy         *int64
 	UpdatedAt         *time.Time
 	DeletedAt         *time.Time
+	EndBy             *game.EndBy
+	Capacity          *uint8
 	AddGameUserIDs    []int64
 	RemoveGameUserIDs []int64
+	AddMissionIDs     []int64
+	RemoveMissionIDs  []int64
+	ClearRoom         bool
+	RoomID            *int64
 }
 
 // Mutate applies the UpdateGameInput on the GameMutation builder.
@@ -158,11 +181,29 @@ func (i *UpdateGameInput) Mutate(m *GameMutation) {
 	if v := i.DeletedAt; v != nil {
 		m.SetDeletedAt(*v)
 	}
+	if v := i.EndBy; v != nil {
+		m.SetEndBy(*v)
+	}
+	if v := i.Capacity; v != nil {
+		m.SetCapacity(*v)
+	}
 	if v := i.AddGameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
 	}
 	if v := i.RemoveGameUserIDs; len(v) > 0 {
 		m.RemoveGameUserIDs(v...)
+	}
+	if v := i.AddMissionIDs; len(v) > 0 {
+		m.AddMissionIDs(v...)
+	}
+	if v := i.RemoveMissionIDs; len(v) > 0 {
+		m.RemoveMissionIDs(v...)
+	}
+	if i.ClearRoom {
+		m.ClearRoom()
+	}
+	if v := i.RoomID; v != nil {
+		m.SetRoomID(*v)
 	}
 }
 
@@ -280,6 +321,240 @@ func (c *GameUserUpdateOne) SetInput(i UpdateGameUserInput) *GameUserUpdateOne {
 	return c
 }
 
+// CreateMissionInput represents a mutation input for creating missions.
+type CreateMissionInput struct {
+	CreatedBy      *int64
+	UpdatedBy      *int64
+	CreatedAt      *time.Time
+	UpdatedAt      *time.Time
+	DeletedAt      *time.Time
+	Sequence       uint8
+	Status         *mission.Status
+	Failed         *bool
+	Capacity       *uint8
+	Leader         int64
+	GameID         int64
+	SquadIDs       []int64
+	MissionVoteIDs []int64
+}
+
+// Mutate applies the CreateMissionInput on the MissionMutation builder.
+func (i *CreateMissionInput) Mutate(m *MissionMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetSequence(i.Sequence)
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.Failed; v != nil {
+		m.SetFailed(*v)
+	}
+	if v := i.Capacity; v != nil {
+		m.SetCapacity(*v)
+	}
+	m.SetLeader(i.Leader)
+	m.SetGameID(i.GameID)
+	if v := i.SquadIDs; len(v) > 0 {
+		m.AddSquadIDs(v...)
+	}
+	if v := i.MissionVoteIDs; len(v) > 0 {
+		m.AddMissionVoteIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateMissionInput on the MissionCreate builder.
+func (c *MissionCreate) SetInput(i CreateMissionInput) *MissionCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateMissionInput represents a mutation input for updating missions.
+type UpdateMissionInput struct {
+	CreatedBy            *int64
+	UpdatedBy            *int64
+	UpdatedAt            *time.Time
+	DeletedAt            *time.Time
+	Sequence             *uint8
+	Status               *mission.Status
+	Failed               *bool
+	Capacity             *uint8
+	Leader               *int64
+	ClearGame            bool
+	GameID               *int64
+	AddSquadIDs          []int64
+	RemoveSquadIDs       []int64
+	AddMissionVoteIDs    []int64
+	RemoveMissionVoteIDs []int64
+}
+
+// Mutate applies the UpdateMissionInput on the MissionMutation builder.
+func (i *UpdateMissionInput) Mutate(m *MissionMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.Sequence; v != nil {
+		m.SetSequence(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.Failed; v != nil {
+		m.SetFailed(*v)
+	}
+	if v := i.Capacity; v != nil {
+		m.SetCapacity(*v)
+	}
+	if v := i.Leader; v != nil {
+		m.SetLeader(*v)
+	}
+	if i.ClearGame {
+		m.ClearGame()
+	}
+	if v := i.GameID; v != nil {
+		m.SetGameID(*v)
+	}
+	if v := i.AddSquadIDs; len(v) > 0 {
+		m.AddSquadIDs(v...)
+	}
+	if v := i.RemoveSquadIDs; len(v) > 0 {
+		m.RemoveSquadIDs(v...)
+	}
+	if v := i.AddMissionVoteIDs; len(v) > 0 {
+		m.AddMissionVoteIDs(v...)
+	}
+	if v := i.RemoveMissionVoteIDs; len(v) > 0 {
+		m.RemoveMissionVoteIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateMissionInput on the MissionUpdate builder.
+func (c *MissionUpdate) SetInput(i UpdateMissionInput) *MissionUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateMissionInput on the MissionUpdateOne builder.
+func (c *MissionUpdateOne) SetInput(i UpdateMissionInput) *MissionUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateRecordInput represents a mutation input for creating records.
+type CreateRecordInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    int64
+	Score     *int32
+	RoomID    int64
+}
+
+// Mutate applies the CreateRecordInput on the RecordMutation builder.
+func (i *CreateRecordInput) Mutate(m *RecordMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	if v := i.Score; v != nil {
+		m.SetScore(*v)
+	}
+	m.SetRoomID(i.RoomID)
+}
+
+// SetInput applies the change-set in the CreateRecordInput on the RecordCreate builder.
+func (c *RecordCreate) SetInput(i CreateRecordInput) *RecordCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateRecordInput represents a mutation input for updating records.
+type UpdateRecordInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    *int64
+	Score     *int32
+	ClearRoom bool
+	RoomID    *int64
+}
+
+// Mutate applies the UpdateRecordInput on the RecordMutation builder.
+func (i *UpdateRecordInput) Mutate(m *RecordMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.Score; v != nil {
+		m.SetScore(*v)
+	}
+	if i.ClearRoom {
+		m.ClearRoom()
+	}
+	if v := i.RoomID; v != nil {
+		m.SetRoomID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateRecordInput on the RecordUpdate builder.
+func (c *RecordUpdate) SetInput(i UpdateRecordInput) *RecordUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateRecordInput on the RecordUpdateOne builder.
+func (c *RecordUpdateOne) SetInput(i UpdateRecordInput) *RecordUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateRoomInput represents a mutation input for creating rooms.
 type CreateRoomInput struct {
 	CreatedBy   *int64
@@ -288,7 +563,10 @@ type CreateRoomInput struct {
 	UpdatedAt   *time.Time
 	DeletedAt   *time.Time
 	Name        *string
+	Closed      *bool
 	RoomUserIDs []int64
+	GameIDs     []int64
+	RecordIDs   []int64
 }
 
 // Mutate applies the CreateRoomInput on the RoomMutation builder.
@@ -311,8 +589,17 @@ func (i *CreateRoomInput) Mutate(m *RoomMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.Closed; v != nil {
+		m.SetClosed(*v)
+	}
 	if v := i.RoomUserIDs; len(v) > 0 {
 		m.AddRoomUserIDs(v...)
+	}
+	if v := i.GameIDs; len(v) > 0 {
+		m.AddGameIDs(v...)
+	}
+	if v := i.RecordIDs; len(v) > 0 {
+		m.AddRecordIDs(v...)
 	}
 }
 
@@ -329,8 +616,13 @@ type UpdateRoomInput struct {
 	UpdatedAt         *time.Time
 	DeletedAt         *time.Time
 	Name              *string
+	Closed            *bool
 	AddRoomUserIDs    []int64
 	RemoveRoomUserIDs []int64
+	AddGameIDs        []int64
+	RemoveGameIDs     []int64
+	AddRecordIDs      []int64
+	RemoveRecordIDs   []int64
 }
 
 // Mutate applies the UpdateRoomInput on the RoomMutation builder.
@@ -350,11 +642,26 @@ func (i *UpdateRoomInput) Mutate(m *RoomMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	if v := i.Closed; v != nil {
+		m.SetClosed(*v)
+	}
 	if v := i.AddRoomUserIDs; len(v) > 0 {
 		m.AddRoomUserIDs(v...)
 	}
 	if v := i.RemoveRoomUserIDs; len(v) > 0 {
 		m.RemoveRoomUserIDs(v...)
+	}
+	if v := i.AddGameIDs; len(v) > 0 {
+		m.AddGameIDs(v...)
+	}
+	if v := i.RemoveGameIDs; len(v) > 0 {
+		m.RemoveGameIDs(v...)
+	}
+	if v := i.AddRecordIDs; len(v) > 0 {
+		m.AddRecordIDs(v...)
+	}
+	if v := i.RemoveRecordIDs; len(v) > 0 {
+		m.RemoveRecordIDs(v...)
 	}
 }
 
@@ -452,6 +759,194 @@ func (c *RoomUserUpdate) SetInput(i UpdateRoomUserInput) *RoomUserUpdate {
 
 // SetInput applies the change-set in the UpdateRoomUserInput on the RoomUserUpdateOne builder.
 func (c *RoomUserUpdateOne) SetInput(i UpdateRoomUserInput) *RoomUserUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateSquadInput represents a mutation input for creating squads.
+type CreateSquadInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    int64
+	Rat       *bool
+	MissionID int64
+}
+
+// Mutate applies the CreateSquadInput on the SquadMutation builder.
+func (i *CreateSquadInput) Mutate(m *SquadMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	if v := i.Rat; v != nil {
+		m.SetRat(*v)
+	}
+	m.SetMissionID(i.MissionID)
+}
+
+// SetInput applies the change-set in the CreateSquadInput on the SquadCreate builder.
+func (c *SquadCreate) SetInput(i CreateSquadInput) *SquadCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateSquadInput represents a mutation input for updating squads.
+type UpdateSquadInput struct {
+	CreatedBy    *int64
+	UpdatedBy    *int64
+	UpdatedAt    *time.Time
+	DeletedAt    *time.Time
+	UserID       *int64
+	Rat          *bool
+	ClearMission bool
+	MissionID    *int64
+}
+
+// Mutate applies the UpdateSquadInput on the SquadMutation builder.
+func (i *UpdateSquadInput) Mutate(m *SquadMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.Rat; v != nil {
+		m.SetRat(*v)
+	}
+	if i.ClearMission {
+		m.ClearMission()
+	}
+	if v := i.MissionID; v != nil {
+		m.SetMissionID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateSquadInput on the SquadUpdate builder.
+func (c *SquadUpdate) SetInput(i UpdateSquadInput) *SquadUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateSquadInput on the SquadUpdateOne builder.
+func (c *SquadUpdateOne) SetInput(i UpdateSquadInput) *SquadUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateVoteInput represents a mutation input for creating votes.
+type CreateVoteInput struct {
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	UserID    int64
+	Pass      *bool
+	MissionID int64
+}
+
+// Mutate applies the CreateVoteInput on the VoteMutation builder.
+func (i *CreateVoteInput) Mutate(m *VoteMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	if v := i.Pass; v != nil {
+		m.SetPass(*v)
+	}
+	m.SetMissionID(i.MissionID)
+}
+
+// SetInput applies the change-set in the CreateVoteInput on the VoteCreate builder.
+func (c *VoteCreate) SetInput(i CreateVoteInput) *VoteCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateVoteInput represents a mutation input for updating votes.
+type UpdateVoteInput struct {
+	CreatedBy    *int64
+	UpdatedBy    *int64
+	UpdatedAt    *time.Time
+	DeletedAt    *time.Time
+	UserID       *int64
+	Pass         *bool
+	ClearMission bool
+	MissionID    *int64
+}
+
+// Mutate applies the UpdateVoteInput on the VoteMutation builder.
+func (i *UpdateVoteInput) Mutate(m *VoteMutation) {
+	if v := i.CreatedBy; v != nil {
+		m.SetCreatedBy(*v)
+	}
+	if v := i.UpdatedBy; v != nil {
+		m.SetUpdatedBy(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.DeletedAt; v != nil {
+		m.SetDeletedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.Pass; v != nil {
+		m.SetPass(*v)
+	}
+	if i.ClearMission {
+		m.ClearMission()
+	}
+	if v := i.MissionID; v != nil {
+		m.SetMissionID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateVoteInput on the VoteUpdate builder.
+func (c *VoteUpdate) SetInput(i UpdateVoteInput) *VoteUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateVoteInput on the VoteUpdateOne builder.
+func (c *VoteUpdateOne) SetInput(i UpdateVoteInput) *VoteUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

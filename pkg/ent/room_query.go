@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
@@ -26,9 +28,13 @@ type RoomQuery struct {
 	fields             []string
 	predicates         []predicate.Room
 	withRoomUsers      *RoomUserQuery
+	withGames          *GameQuery
+	withRecords        *RecordQuery
 	modifiers          []func(*sql.Selector)
 	loadTotal          []func(context.Context, []*Room) error
 	withNamedRoomUsers map[string]*RoomUserQuery
+	withNamedGames     map[string]*GameQuery
+	withNamedRecords   map[string]*RecordQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +86,50 @@ func (rq *RoomQuery) QueryRoomUsers() *RoomUserQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(roomuser.Table, roomuser.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, room.RoomUsersTable, room.RoomUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGames chains the current query on the "games" edge.
+func (rq *RoomQuery) QueryGames() *GameQuery {
+	query := &GameQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(game.Table, game.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.GamesTable, room.GamesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRecords chains the current query on the "records" edge.
+func (rq *RoomQuery) QueryRecords() *RecordQuery {
+	query := &RecordQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(record.Table, record.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.RecordsTable, room.RecordsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,6 +319,8 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		order:         append([]OrderFunc{}, rq.order...),
 		predicates:    append([]predicate.Room{}, rq.predicates...),
 		withRoomUsers: rq.withRoomUsers.Clone(),
+		withGames:     rq.withGames.Clone(),
+		withRecords:   rq.withRecords.Clone(),
 		// clone intermediate query.
 		sql:    rq.sql.Clone(),
 		path:   rq.path,
@@ -284,6 +336,28 @@ func (rq *RoomQuery) WithRoomUsers(opts ...func(*RoomUserQuery)) *RoomQuery {
 		opt(query)
 	}
 	rq.withRoomUsers = query
+	return rq
+}
+
+// WithGames tells the query-builder to eager-load the nodes that are connected to
+// the "games" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithGames(opts ...func(*GameQuery)) *RoomQuery {
+	query := &GameQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withGames = query
+	return rq
+}
+
+// WithRecords tells the query-builder to eager-load the nodes that are connected to
+// the "records" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithRecords(opts ...func(*RecordQuery)) *RoomQuery {
+	query := &RecordQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withRecords = query
 	return rq
 }
 
@@ -360,8 +434,10 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	var (
 		nodes       = []*Room{}
 		_spec       = rq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			rq.withRoomUsers != nil,
+			rq.withGames != nil,
+			rq.withRecords != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -392,10 +468,38 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 			return nil, err
 		}
 	}
+	if query := rq.withGames; query != nil {
+		if err := rq.loadGames(ctx, query, nodes,
+			func(n *Room) { n.Edges.Games = []*Game{} },
+			func(n *Room, e *Game) { n.Edges.Games = append(n.Edges.Games, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withRecords; query != nil {
+		if err := rq.loadRecords(ctx, query, nodes,
+			func(n *Room) { n.Edges.Records = []*Record{} },
+			func(n *Room, e *Record) { n.Edges.Records = append(n.Edges.Records, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range rq.withNamedRoomUsers {
 		if err := rq.loadRoomUsers(ctx, query, nodes,
 			func(n *Room) { n.appendNamedRoomUsers(name) },
 			func(n *Room, e *RoomUser) { n.appendNamedRoomUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedGames {
+		if err := rq.loadGames(ctx, query, nodes,
+			func(n *Room) { n.appendNamedGames(name) },
+			func(n *Room, e *Game) { n.appendNamedGames(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range rq.withNamedRecords {
+		if err := rq.loadRecords(ctx, query, nodes,
+			func(n *Room) { n.appendNamedRecords(name) },
+			func(n *Room, e *Record) { n.appendNamedRecords(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -419,6 +523,60 @@ func (rq *RoomQuery) loadRoomUsers(ctx context.Context, query *RoomUserQuery, no
 	}
 	query.Where(predicate.RoomUser(func(s *sql.Selector) {
 		s.Where(sql.InValues(room.RoomUsersColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoomID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoomQuery) loadGames(ctx context.Context, query *GameQuery, nodes []*Room, init func(*Room), assign func(*Room, *Game)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.InValues(room.GamesColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoomID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RoomQuery) loadRecords(ctx context.Context, query *RecordQuery, nodes []*Room, init func(*Room), assign func(*Room, *Record)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Room)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Record(func(s *sql.Selector) {
+		s.Where(sql.InValues(room.RecordsColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -549,6 +707,34 @@ func (rq *RoomQuery) WithNamedRoomUsers(name string, opts ...func(*RoomUserQuery
 		rq.withNamedRoomUsers = make(map[string]*RoomUserQuery)
 	}
 	rq.withNamedRoomUsers[name] = query
+	return rq
+}
+
+// WithNamedGames tells the query-builder to eager-load the nodes that are connected to the "games"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedGames(name string, opts ...func(*GameQuery)) *RoomQuery {
+	query := &GameQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedGames == nil {
+		rq.withNamedGames = make(map[string]*GameQuery)
+	}
+	rq.withNamedGames[name] = query
+	return rq
+}
+
+// WithNamedRecords tells the query-builder to eager-load the nodes that are connected to the "records"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithNamedRecords(name string, opts ...func(*RecordQuery)) *RoomQuery {
+	query := &RecordQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if rq.withNamedRecords == nil {
+		rq.withNamedRecords = make(map[string]*RecordQuery)
+	}
+	rq.withNamedRecords[name] = query
 	return rq
 }
 

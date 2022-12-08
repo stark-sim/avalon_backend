@@ -3,6 +3,9 @@
 package game
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -21,8 +24,18 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldRoomID holds the string denoting the room_id field in the database.
+	FieldRoomID = "room_id"
+	// FieldEndBy holds the string denoting the end_by field in the database.
+	FieldEndBy = "end_by"
+	// FieldCapacity holds the string denoting the capacity field in the database.
+	FieldCapacity = "capacity"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
+	// EdgeMissions holds the string denoting the missions edge name in mutations.
+	EdgeMissions = "missions"
+	// EdgeRoom holds the string denoting the room edge name in mutations.
+	EdgeRoom = "room"
 	// Table holds the table name of the game in the database.
 	Table = "games"
 	// GameUsersTable is the table that holds the game_users relation/edge.
@@ -32,6 +45,20 @@ const (
 	GameUsersInverseTable = "game_users"
 	// GameUsersColumn is the table column denoting the game_users relation/edge.
 	GameUsersColumn = "game_id"
+	// MissionsTable is the table that holds the missions relation/edge.
+	MissionsTable = "missions"
+	// MissionsInverseTable is the table name for the Mission entity.
+	// It exists in this package in order to avoid circular dependency with the "mission" package.
+	MissionsInverseTable = "missions"
+	// MissionsColumn is the table column denoting the missions relation/edge.
+	MissionsColumn = "game_id"
+	// RoomTable is the table that holds the room relation/edge.
+	RoomTable = "games"
+	// RoomInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomInverseTable = "rooms"
+	// RoomColumn is the table column denoting the room relation/edge.
+	RoomColumn = "room_id"
 )
 
 // Columns holds all SQL columns for game fields.
@@ -42,6 +69,9 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
+	FieldRoomID,
+	FieldEndBy,
+	FieldCapacity,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -67,6 +97,54 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultDeletedAt holds the default value on creation for the "deleted_at" field.
 	DefaultDeletedAt time.Time
+	// DefaultCapacity holds the default value on creation for the "capacity" field.
+	DefaultCapacity uint8
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )
+
+// EndBy defines the type for the "end_by" enum field.
+type EndBy string
+
+// EndByNone is the default value of the EndBy enum.
+const DefaultEndBy = EndByNone
+
+// EndBy values.
+const (
+	EndByNone   EndBy = "none"
+	EndByBlue   EndBy = "blue"
+	EndByRed    EndBy = "red"
+	EndBySlayer EndBy = "slayer"
+)
+
+func (eb EndBy) String() string {
+	return string(eb)
+}
+
+// EndByValidator is a validator for the "end_by" field enum values. It is called by the builders before save.
+func EndByValidator(eb EndBy) error {
+	switch eb {
+	case EndByNone, EndByBlue, EndByRed, EndBySlayer:
+		return nil
+	default:
+		return fmt.Errorf("game: invalid enum value for end_by field: %q", eb)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e EndBy) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *EndBy) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = EndBy(str)
+	if err := EndByValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid EndBy", str)
+	}
+	return nil
+}

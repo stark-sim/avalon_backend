@@ -123,6 +123,13 @@ func Name(v string) predicate.Room {
 	})
 }
 
+// Closed applies equality check predicate on the "closed" field. It's identical to ClosedEQ.
+func Closed(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosed), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
@@ -542,6 +549,20 @@ func NameContainsFold(v string) predicate.Room {
 	})
 }
 
+// ClosedEQ applies the EQ predicate on the "closed" field.
+func ClosedEQ(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosed), v))
+	})
+}
+
+// ClosedNEQ applies the NEQ predicate on the "closed" field.
+func ClosedNEQ(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldClosed), v))
+	})
+}
+
 // HasRoomUsers applies the HasEdge predicate on the "room_users" edge.
 func HasRoomUsers() predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
@@ -561,6 +582,62 @@ func HasRoomUsersWith(preds ...predicate.RoomUser) predicate.Room {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RoomUsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, RoomUsersTable, RoomUsersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGames applies the HasEdge predicate on the "games" edge.
+func HasGames() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GamesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GamesTable, GamesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGamesWith applies the HasEdge predicate on the "games" edge with a given conditions (other predicates).
+func HasGamesWith(preds ...predicate.Game) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GamesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GamesTable, GamesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRecords applies the HasEdge predicate on the "records" edge.
+func HasRecords() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecordsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecordsTable, RecordsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRecordsWith applies the HasEdge predicate on the "records" edge with a given conditions (other predicates).
+func HasRecordsWith(preds ...predicate.Record) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RecordsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecordsTable, RecordsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

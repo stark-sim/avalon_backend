@@ -19,13 +19,14 @@ func (Squad) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("mission_id").StructTag(`json:"mission_id"`),
 		field.Int64("user_id").StructTag(`json:"user_id"`).Annotations(entgql.Type("ID")),
+		field.Bool("rat").Default(false).StructTag(`json:"rat"`).Comment("是否破坏任务"),
 	}
 }
 
 // Edges of the Squad.
 func (Squad) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("mission", Mission.Type).Ref("mission_squads").Field("mission_id").Unique().Required(),
+		edge.From("mission", Mission.Type).Ref("squads").Field("mission_id").Unique().Required(),
 	}
 }
 

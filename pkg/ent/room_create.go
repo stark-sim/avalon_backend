@@ -10,6 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
@@ -105,6 +107,20 @@ func (rc *RoomCreate) SetNillableName(s *string) *RoomCreate {
 	return rc
 }
 
+// SetClosed sets the "closed" field.
+func (rc *RoomCreate) SetClosed(b bool) *RoomCreate {
+	rc.mutation.SetClosed(b)
+	return rc
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableClosed(b *bool) *RoomCreate {
+	if b != nil {
+		rc.SetClosed(*b)
+	}
+	return rc
+}
+
 // SetID sets the "id" field.
 func (rc *RoomCreate) SetID(i int64) *RoomCreate {
 	rc.mutation.SetID(i)
@@ -132,6 +148,36 @@ func (rc *RoomCreate) AddRoomUsers(r ...*RoomUser) *RoomCreate {
 		ids[i] = r[i].ID
 	}
 	return rc.AddRoomUserIDs(ids...)
+}
+
+// AddGameIDs adds the "games" edge to the Game entity by IDs.
+func (rc *RoomCreate) AddGameIDs(ids ...int64) *RoomCreate {
+	rc.mutation.AddGameIDs(ids...)
+	return rc
+}
+
+// AddGames adds the "games" edges to the Game entity.
+func (rc *RoomCreate) AddGames(g ...*Game) *RoomCreate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return rc.AddGameIDs(ids...)
+}
+
+// AddRecordIDs adds the "records" edge to the Record entity by IDs.
+func (rc *RoomCreate) AddRecordIDs(ids ...int64) *RoomCreate {
+	rc.mutation.AddRecordIDs(ids...)
+	return rc
+}
+
+// AddRecords adds the "records" edges to the Record entity.
+func (rc *RoomCreate) AddRecords(r ...*Record) *RoomCreate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rc.AddRecordIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -235,6 +281,10 @@ func (rc *RoomCreate) defaults() {
 		v := room.DefaultName
 		rc.mutation.SetName(v)
 	}
+	if _, ok := rc.mutation.Closed(); !ok {
+		v := room.DefaultClosed
+		rc.mutation.SetClosed(v)
+	}
 	if _, ok := rc.mutation.ID(); !ok {
 		v := room.DefaultID()
 		rc.mutation.SetID(v)
@@ -260,6 +310,9 @@ func (rc *RoomCreate) check() error {
 	}
 	if _, ok := rc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Room.name"`)}
+	}
+	if _, ok := rc.mutation.Closed(); !ok {
+		return &ValidationError{Name: "closed", err: errors.New(`ent: missing required field "Room.closed"`)}
 	}
 	return nil
 }
@@ -318,6 +371,10 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := rc.mutation.Closed(); ok {
+		_spec.SetField(room.FieldClosed, field.TypeBool, value)
+		_node.Closed = value
+	}
 	if nodes := rc.mutation.RoomUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -329,6 +386,44 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.GamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.RecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
 				},
 			},
 		}

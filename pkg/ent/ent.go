@@ -13,8 +13,12 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -38,8 +42,12 @@ func columnChecker(table string) func(string) error {
 		card.Table:     card.ValidColumn,
 		game.Table:     game.ValidColumn,
 		gameuser.Table: gameuser.ValidColumn,
+		mission.Table:  mission.ValidColumn,
+		record.Table:   record.ValidColumn,
 		room.Table:     room.ValidColumn,
 		roomuser.Table: roomuser.ValidColumn,
+		squad.Table:    squad.ValidColumn,
+		vote.Table:     vote.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

@@ -15,8 +15,20 @@ type Game func(*sql.Selector)
 // GameUser is the predicate function for gameuser builders.
 type GameUser func(*sql.Selector)
 
+// Mission is the predicate function for mission builders.
+type Mission func(*sql.Selector)
+
+// Record is the predicate function for record builders.
+type Record func(*sql.Selector)
+
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
 
 // RoomUser is the predicate function for roomuser builders.
 type RoomUser func(*sql.Selector)
+
+// Squad is the predicate function for squad builders.
+type Squad func(*sql.Selector)
+
+// Vote is the predicate function for vote builders.
+type Vote func(*sql.Selector)

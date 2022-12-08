@@ -18,8 +18,12 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -123,8 +127,8 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ga.ID,
 		Type:   "Game",
-		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(ga.CreatedBy); err != nil {
@@ -167,6 +171,30 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "deleted_at",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(ga.RoomID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "int64",
+		Name:  "room_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ga.EndBy); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "game.EndBy",
+		Name:  "end_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ga.Capacity); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "uint8",
+		Name:  "capacity",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "GameUser",
 		Name: "game_users",
@@ -174,6 +202,26 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	err = ga.QueryGameUsers().
 		Select(gameuser.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Mission",
+		Name: "missions",
+	}
+	err = ga.QueryMissions().
+		Select(mission.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Room",
+		Name: "room",
+	}
+	err = ga.QueryRoom().
+		Select(room.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -283,12 +331,226 @@ func (gu *GameUser) Node(ctx context.Context) (node *Node, err error) {
 	return node, nil
 }
 
+func (m *Mission) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     m.ID,
+		Type:   "Mission",
+		Fields: make([]*Field, 11),
+		Edges:  make([]*Edge, 3),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(m.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int64",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.UpdatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "int64",
+		Name:  "updated_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Sequence); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "uint8",
+		Name:  "sequence",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "mission.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Failed); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "failed",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.GameID); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "int64",
+		Name:  "game_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Capacity); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "uint8",
+		Name:  "capacity",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Leader); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "int64",
+		Name:  "leader",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Game",
+		Name: "game",
+	}
+	err = m.QueryGame().
+		Select(game.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Squad",
+		Name: "squads",
+	}
+	err = m.QuerySquads().
+		Select(squad.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Vote",
+		Name: "mission_votes",
+	}
+	err = m.QueryMissionVotes().
+		Select(vote.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (r *Record) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     r.ID,
+		Type:   "Record",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(r.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int64",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UpdatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "int64",
+		Name:  "updated_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "int64",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.RoomID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int64",
+		Name:  "room_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.Score); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "int32",
+		Name:  "score",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Room",
+		Name: "room",
+	}
+	err = r.QueryRoom().
+		Select(room.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (r *Room) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     r.ID,
 		Type:   "Room",
-		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 7),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(r.CreatedBy); err != nil {
@@ -339,6 +601,14 @@ func (r *Room) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "name",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(r.Closed); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "bool",
+		Name:  "closed",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "RoomUser",
 		Name: "room_users",
@@ -346,6 +616,26 @@ func (r *Room) Node(ctx context.Context) (node *Node, err error) {
 	err = r.QueryRoomUsers().
 		Select(roomuser.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Game",
+		Name: "games",
+	}
+	err = r.QueryGames().
+		Select(game.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		Type: "Record",
+		Name: "records",
+	}
+	err = r.QueryRecords().
+		Select(record.FieldID).
+		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -422,6 +712,176 @@ func (ru *RoomUser) Node(ctx context.Context) (node *Node, err error) {
 	}
 	err = ru.QueryRoom().
 		Select(room.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (s *Squad) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     s.ID,
+		Type:   "Squad",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(s.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int64",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.UpdatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "int64",
+		Name:  "updated_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.MissionID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "int64",
+		Name:  "mission_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int64",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.Rat); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "rat",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Mission",
+		Name: "mission",
+	}
+	err = s.QueryMission().
+		Select(mission.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
+func (v *Vote) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     v.ID,
+		Type:   "Vote",
+		Fields: make([]*Field, 8),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(v.CreatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "int64",
+		Name:  "created_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.UpdatedBy); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "int64",
+		Name:  "updated_by",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.CreatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "time.Time",
+		Name:  "created_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.UpdatedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "updated_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.DeletedAt); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "deleted_at",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.MissionID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "int64",
+		Name:  "mission_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.UserID); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "int64",
+		Name:  "user_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.Pass); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "pass",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "Mission",
+		Name: "mission",
+	}
+	err = v.QueryMission().
+		Select(mission.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
 	if err != nil {
 		return nil, err
@@ -531,6 +991,30 @@ func (c *Client) noder(ctx context.Context, table string, id int64) (Noder, erro
 			return nil, err
 		}
 		return n, nil
+	case mission.Table:
+		query := c.Mission.Query().
+			Where(mission.ID(id))
+		query, err := query.CollectFields(ctx, "Mission")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case record.Table:
+		query := c.Record.Query().
+			Where(record.ID(id))
+		query, err := query.CollectFields(ctx, "Record")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case room.Table:
 		query := c.Room.Query().
 			Where(room.ID(id))
@@ -547,6 +1031,30 @@ func (c *Client) noder(ctx context.Context, table string, id int64) (Noder, erro
 		query := c.RoomUser.Query().
 			Where(roomuser.ID(id))
 		query, err := query.CollectFields(ctx, "RoomUser")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case squad.Table:
+		query := c.Squad.Query().
+			Where(squad.ID(id))
+		query, err := query.CollectFields(ctx, "Squad")
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case vote.Table:
+		query := c.Vote.Query().
+			Where(vote.ID(id))
+		query, err := query.CollectFields(ctx, "Vote")
 		if err != nil {
 			return nil, err
 		}
@@ -676,6 +1184,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int64) ([]Noder
 				*noder = node
 			}
 		}
+	case mission.Table:
+		query := c.Mission.Query().
+			Where(mission.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Mission")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case record.Table:
+		query := c.Record.Query().
+			Where(record.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Record")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case room.Table:
 		query := c.Room.Query().
 			Where(room.IDIn(ids...))
@@ -696,6 +1236,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int64) ([]Noder
 		query := c.RoomUser.Query().
 			Where(roomuser.IDIn(ids...))
 		query, err := query.CollectFields(ctx, "RoomUser")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case squad.Table:
+		query := c.Squad.Query().
+			Where(squad.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Squad")
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case vote.Table:
+		query := c.Vote.Query().
+			Where(vote.IDIn(ids...))
+		query, err := query.CollectFields(ctx, "Vote")
 		if err != nil {
 			return nil, err
 		}

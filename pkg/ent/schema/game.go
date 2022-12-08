@@ -17,7 +17,7 @@ type Game struct {
 func (Game) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("room_id").StructTag(`json:"room_id"`),
-		field.Bool("closed").Default(false).StructTag(`json:"closed"`),
+		field.Enum("end_by").Values("none", "blue", "red", "slayer").Default("none").StructTag(`json:"end_by"`),
 		field.Uint8("capacity").Default(0).StructTag(`json:"capacity"`).Comment("游戏人数"),
 	}
 }
@@ -26,8 +26,8 @@ func (Game) Fields() []ent.Field {
 func (Game) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("game_users", GameUser.Type),
-		edge.To("game_missions", Mission.Type),
-		edge.From("room", Room.Type).Ref("room_games").Unique().Required(),
+		edge.To("missions", Mission.Type),
+		edge.From("room", Room.Type).Ref("games").Unique().Field("room_id").Required(),
 	}
 }
 

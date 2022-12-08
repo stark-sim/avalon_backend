@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/record"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 )
@@ -105,6 +107,20 @@ func (ru *RoomUpdate) SetNillableName(s *string) *RoomUpdate {
 	return ru
 }
 
+// SetClosed sets the "closed" field.
+func (ru *RoomUpdate) SetClosed(b bool) *RoomUpdate {
+	ru.mutation.SetClosed(b)
+	return ru
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableClosed(b *bool) *RoomUpdate {
+	if b != nil {
+		ru.SetClosed(*b)
+	}
+	return ru
+}
+
 // AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
 func (ru *RoomUpdate) AddRoomUserIDs(ids ...int64) *RoomUpdate {
 	ru.mutation.AddRoomUserIDs(ids...)
@@ -118,6 +134,36 @@ func (ru *RoomUpdate) AddRoomUsers(r ...*RoomUser) *RoomUpdate {
 		ids[i] = r[i].ID
 	}
 	return ru.AddRoomUserIDs(ids...)
+}
+
+// AddGameIDs adds the "games" edge to the Game entity by IDs.
+func (ru *RoomUpdate) AddGameIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.AddGameIDs(ids...)
+	return ru
+}
+
+// AddGames adds the "games" edges to the Game entity.
+func (ru *RoomUpdate) AddGames(g ...*Game) *RoomUpdate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ru.AddGameIDs(ids...)
+}
+
+// AddRecordIDs adds the "records" edge to the Record entity by IDs.
+func (ru *RoomUpdate) AddRecordIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.AddRecordIDs(ids...)
+	return ru
+}
+
+// AddRecords adds the "records" edges to the Record entity.
+func (ru *RoomUpdate) AddRecords(r ...*Record) *RoomUpdate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ru.AddRecordIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -144,6 +190,48 @@ func (ru *RoomUpdate) RemoveRoomUsers(r ...*RoomUser) *RoomUpdate {
 		ids[i] = r[i].ID
 	}
 	return ru.RemoveRoomUserIDs(ids...)
+}
+
+// ClearGames clears all "games" edges to the Game entity.
+func (ru *RoomUpdate) ClearGames() *RoomUpdate {
+	ru.mutation.ClearGames()
+	return ru
+}
+
+// RemoveGameIDs removes the "games" edge to Game entities by IDs.
+func (ru *RoomUpdate) RemoveGameIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.RemoveGameIDs(ids...)
+	return ru
+}
+
+// RemoveGames removes "games" edges to Game entities.
+func (ru *RoomUpdate) RemoveGames(g ...*Game) *RoomUpdate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ru.RemoveGameIDs(ids...)
+}
+
+// ClearRecords clears all "records" edges to the Record entity.
+func (ru *RoomUpdate) ClearRecords() *RoomUpdate {
+	ru.mutation.ClearRecords()
+	return ru
+}
+
+// RemoveRecordIDs removes the "records" edge to Record entities by IDs.
+func (ru *RoomUpdate) RemoveRecordIDs(ids ...int64) *RoomUpdate {
+	ru.mutation.RemoveRecordIDs(ids...)
+	return ru
+}
+
+// RemoveRecords removes "records" edges to Record entities.
+func (ru *RoomUpdate) RemoveRecords(r ...*Record) *RoomUpdate {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ru.RemoveRecordIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -248,6 +336,9 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ru.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
+	if value, ok := ru.mutation.Closed(); ok {
+		_spec.SetField(room.FieldClosed, field.TypeBool, value)
+	}
 	if ru.mutation.RoomUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -294,6 +385,114 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.GamesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedGamesIDs(); len(nodes) > 0 && !ru.mutation.GamesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.GamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.RecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedRecordsIDs(); len(nodes) > 0 && !ru.mutation.RecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
 				},
 			},
 		}
@@ -397,6 +596,20 @@ func (ruo *RoomUpdateOne) SetNillableName(s *string) *RoomUpdateOne {
 	return ruo
 }
 
+// SetClosed sets the "closed" field.
+func (ruo *RoomUpdateOne) SetClosed(b bool) *RoomUpdateOne {
+	ruo.mutation.SetClosed(b)
+	return ruo
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableClosed(b *bool) *RoomUpdateOne {
+	if b != nil {
+		ruo.SetClosed(*b)
+	}
+	return ruo
+}
+
 // AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
 func (ruo *RoomUpdateOne) AddRoomUserIDs(ids ...int64) *RoomUpdateOne {
 	ruo.mutation.AddRoomUserIDs(ids...)
@@ -410,6 +623,36 @@ func (ruo *RoomUpdateOne) AddRoomUsers(r ...*RoomUser) *RoomUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return ruo.AddRoomUserIDs(ids...)
+}
+
+// AddGameIDs adds the "games" edge to the Game entity by IDs.
+func (ruo *RoomUpdateOne) AddGameIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.AddGameIDs(ids...)
+	return ruo
+}
+
+// AddGames adds the "games" edges to the Game entity.
+func (ruo *RoomUpdateOne) AddGames(g ...*Game) *RoomUpdateOne {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ruo.AddGameIDs(ids...)
+}
+
+// AddRecordIDs adds the "records" edge to the Record entity by IDs.
+func (ruo *RoomUpdateOne) AddRecordIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.AddRecordIDs(ids...)
+	return ruo
+}
+
+// AddRecords adds the "records" edges to the Record entity.
+func (ruo *RoomUpdateOne) AddRecords(r ...*Record) *RoomUpdateOne {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ruo.AddRecordIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -436,6 +679,48 @@ func (ruo *RoomUpdateOne) RemoveRoomUsers(r ...*RoomUser) *RoomUpdateOne {
 		ids[i] = r[i].ID
 	}
 	return ruo.RemoveRoomUserIDs(ids...)
+}
+
+// ClearGames clears all "games" edges to the Game entity.
+func (ruo *RoomUpdateOne) ClearGames() *RoomUpdateOne {
+	ruo.mutation.ClearGames()
+	return ruo
+}
+
+// RemoveGameIDs removes the "games" edge to Game entities by IDs.
+func (ruo *RoomUpdateOne) RemoveGameIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.RemoveGameIDs(ids...)
+	return ruo
+}
+
+// RemoveGames removes "games" edges to Game entities.
+func (ruo *RoomUpdateOne) RemoveGames(g ...*Game) *RoomUpdateOne {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return ruo.RemoveGameIDs(ids...)
+}
+
+// ClearRecords clears all "records" edges to the Record entity.
+func (ruo *RoomUpdateOne) ClearRecords() *RoomUpdateOne {
+	ruo.mutation.ClearRecords()
+	return ruo
+}
+
+// RemoveRecordIDs removes the "records" edge to Record entities by IDs.
+func (ruo *RoomUpdateOne) RemoveRecordIDs(ids ...int64) *RoomUpdateOne {
+	ruo.mutation.RemoveRecordIDs(ids...)
+	return ruo
+}
+
+// RemoveRecords removes "records" edges to Record entities.
+func (ruo *RoomUpdateOne) RemoveRecords(r ...*Record) *RoomUpdateOne {
+	ids := make([]int64, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ruo.RemoveRecordIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -570,6 +855,9 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	if value, ok := ruo.mutation.Name(); ok {
 		_spec.SetField(room.FieldName, field.TypeString, value)
 	}
+	if value, ok := ruo.mutation.Closed(); ok {
+		_spec.SetField(room.FieldClosed, field.TypeBool, value)
+	}
 	if ruo.mutation.RoomUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -616,6 +904,114 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt64,
 					Column: roomuser.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.GamesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedGamesIDs(); len(nodes) > 0 && !ruo.mutation.GamesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.GamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.GamesTable,
+			Columns: []string{room.GamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: game.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.RecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedRecordsIDs(); len(nodes) > 0 && !ruo.mutation.RecordsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RecordsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.RecordsTable,
+			Columns: []string{room.RecordsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt64,
+					Column: record.FieldID,
 				},
 			},
 		}

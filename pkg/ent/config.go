@@ -27,8 +27,12 @@ type hooks struct {
 	Card     []ent.Hook
 	Game     []ent.Hook
 	GameUser []ent.Hook
+	Mission  []ent.Hook
+	Record   []ent.Hook
 	Room     []ent.Hook
 	RoomUser []ent.Hook
+	Squad    []ent.Hook
+	Vote     []ent.Hook
 }
 
 // Options applies the options on the config object.

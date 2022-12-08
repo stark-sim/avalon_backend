@@ -17,7 +17,7 @@ type Mission struct {
 func (Mission) Fields() []ent.Field {
 	return []ent.Field{
 		field.Uint8("sequence").Max(5).Min(1).StructTag(`json:"sequence"`),
-		field.Bool("closed").Default(false).StructTag(`json:"closed"`),
+		field.Enum("status").Values("picking", "voting", "acting", "closed", "delayed").Default("picking").StructTag(`json:"status"`),
 		field.Bool("failed").Default(false).StructTag(`json:"failed"`),
 		field.Int64("game_id").StructTag(`json:"game_id"`),
 		field.Uint8("capacity").Default(0).StructTag(`json:"capacity"`).Comment("任务人数"),
@@ -28,8 +28,8 @@ func (Mission) Fields() []ent.Field {
 // Edges of the Mission.
 func (Mission) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("game", Game.Type).Ref("game_missions").Field("game_id").Unique().Required(),
-		edge.To("mission_squads", Squad.Type),
+		edge.From("game", Game.Type).Ref("missions").Field("game_id").Unique().Required(),
+		edge.To("squads", Squad.Type),
 		edge.To("mission_votes", Vote.Type),
 	}
 }

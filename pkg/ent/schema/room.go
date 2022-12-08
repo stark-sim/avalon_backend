@@ -25,7 +25,8 @@ func (Room) Fields() []ent.Field {
 func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("room_users", RoomUser.Type),
-		edge.To("room_games", Game.Type),
+		edge.To("games", Game.Type),
+		edge.To("records", Record.Type),
 	}
 }
 

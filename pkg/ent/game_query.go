@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/predicate"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 )
 
 // GameQuery is the builder for querying Game entities.
@@ -26,9 +28,12 @@ type GameQuery struct {
 	fields             []string
 	predicates         []predicate.Game
 	withGameUsers      *GameUserQuery
+	withMissions       *MissionQuery
+	withRoom           *RoomQuery
 	modifiers          []func(*sql.Selector)
 	loadTotal          []func(context.Context, []*Game) error
 	withNamedGameUsers map[string]*GameUserQuery
+	withNamedMissions  map[string]*MissionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +85,50 @@ func (gq *GameQuery) QueryGameUsers() *GameUserQuery {
 			sqlgraph.From(game.Table, game.FieldID, selector),
 			sqlgraph.To(gameuser.Table, gameuser.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, game.GameUsersTable, game.GameUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMissions chains the current query on the "missions" edge.
+func (gq *GameQuery) QueryMissions() *MissionQuery {
+	query := &MissionQuery{config: gq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(game.Table, game.FieldID, selector),
+			sqlgraph.To(mission.Table, mission.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, game.MissionsTable, game.MissionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoom chains the current query on the "room" edge.
+func (gq *GameQuery) QueryRoom() *RoomQuery {
+	query := &RoomQuery{config: gq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(game.Table, game.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, game.RoomTable, game.RoomColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,6 +318,8 @@ func (gq *GameQuery) Clone() *GameQuery {
 		order:         append([]OrderFunc{}, gq.order...),
 		predicates:    append([]predicate.Game{}, gq.predicates...),
 		withGameUsers: gq.withGameUsers.Clone(),
+		withMissions:  gq.withMissions.Clone(),
+		withRoom:      gq.withRoom.Clone(),
 		// clone intermediate query.
 		sql:    gq.sql.Clone(),
 		path:   gq.path,
@@ -284,6 +335,28 @@ func (gq *GameQuery) WithGameUsers(opts ...func(*GameUserQuery)) *GameQuery {
 		opt(query)
 	}
 	gq.withGameUsers = query
+	return gq
+}
+
+// WithMissions tells the query-builder to eager-load the nodes that are connected to
+// the "missions" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GameQuery) WithMissions(opts ...func(*MissionQuery)) *GameQuery {
+	query := &MissionQuery{config: gq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withMissions = query
+	return gq
+}
+
+// WithRoom tells the query-builder to eager-load the nodes that are connected to
+// the "room" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GameQuery) WithRoom(opts ...func(*RoomQuery)) *GameQuery {
+	query := &RoomQuery{config: gq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withRoom = query
 	return gq
 }
 
@@ -360,8 +433,10 @@ func (gq *GameQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Game, e
 	var (
 		nodes       = []*Game{}
 		_spec       = gq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			gq.withGameUsers != nil,
+			gq.withMissions != nil,
+			gq.withRoom != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -392,10 +467,30 @@ func (gq *GameQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Game, e
 			return nil, err
 		}
 	}
+	if query := gq.withMissions; query != nil {
+		if err := gq.loadMissions(ctx, query, nodes,
+			func(n *Game) { n.Edges.Missions = []*Mission{} },
+			func(n *Game, e *Mission) { n.Edges.Missions = append(n.Edges.Missions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := gq.withRoom; query != nil {
+		if err := gq.loadRoom(ctx, query, nodes, nil,
+			func(n *Game, e *Room) { n.Edges.Room = e }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range gq.withNamedGameUsers {
 		if err := gq.loadGameUsers(ctx, query, nodes,
 			func(n *Game) { n.appendNamedGameUsers(name) },
 			func(n *Game, e *GameUser) { n.appendNamedGameUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range gq.withNamedMissions {
+		if err := gq.loadMissions(ctx, query, nodes,
+			func(n *Game) { n.appendNamedMissions(name) },
+			func(n *Game, e *Mission) { n.appendNamedMissions(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +526,59 @@ func (gq *GameQuery) loadGameUsers(ctx context.Context, query *GameUserQuery, no
 			return fmt.Errorf(`unexpected foreign-key "game_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (gq *GameQuery) loadMissions(ctx context.Context, query *MissionQuery, nodes []*Game, init func(*Game), assign func(*Game, *Mission)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Game)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.Where(predicate.Mission(func(s *sql.Selector) {
+		s.Where(sql.InValues(game.MissionsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GameID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "game_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (gq *GameQuery) loadRoom(ctx context.Context, query *RoomQuery, nodes []*Game, init func(*Game), assign func(*Game, *Room)) error {
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*Game)
+	for i := range nodes {
+		fk := nodes[i].RoomID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	query.Where(room.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "room_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
@@ -549,6 +697,20 @@ func (gq *GameQuery) WithNamedGameUsers(name string, opts ...func(*GameUserQuery
 		gq.withNamedGameUsers = make(map[string]*GameUserQuery)
 	}
 	gq.withNamedGameUsers[name] = query
+	return gq
+}
+
+// WithNamedMissions tells the query-builder to eager-load the nodes that are connected to the "missions"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (gq *GameQuery) WithNamedMissions(name string, opts ...func(*MissionQuery)) *GameQuery {
+	query := &MissionQuery{config: gq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	if gq.withNamedMissions == nil {
+		gq.withNamedMissions = make(map[string]*MissionQuery)
+	}
+	gq.withNamedMissions[name] = query
 	return gq
 }
 

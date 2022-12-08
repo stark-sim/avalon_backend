@@ -23,8 +23,14 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldClosed holds the string denoting the closed field in the database.
+	FieldClosed = "closed"
 	// EdgeRoomUsers holds the string denoting the room_users edge name in mutations.
 	EdgeRoomUsers = "room_users"
+	// EdgeGames holds the string denoting the games edge name in mutations.
+	EdgeGames = "games"
+	// EdgeRecords holds the string denoting the records edge name in mutations.
+	EdgeRecords = "records"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
 	// RoomUsersTable is the table that holds the room_users relation/edge.
@@ -34,6 +40,20 @@ const (
 	RoomUsersInverseTable = "room_users"
 	// RoomUsersColumn is the table column denoting the room_users relation/edge.
 	RoomUsersColumn = "room_id"
+	// GamesTable is the table that holds the games relation/edge.
+	GamesTable = "games"
+	// GamesInverseTable is the table name for the Game entity.
+	// It exists in this package in order to avoid circular dependency with the "game" package.
+	GamesInverseTable = "games"
+	// GamesColumn is the table column denoting the games relation/edge.
+	GamesColumn = "room_id"
+	// RecordsTable is the table that holds the records relation/edge.
+	RecordsTable = "records"
+	// RecordsInverseTable is the table name for the Record entity.
+	// It exists in this package in order to avoid circular dependency with the "record" package.
+	RecordsInverseTable = "records"
+	// RecordsColumn is the table column denoting the records relation/edge.
+	RecordsColumn = "room_id"
 )
 
 // Columns holds all SQL columns for room fields.
@@ -45,6 +65,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldName,
+	FieldClosed,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -72,6 +93,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
+	// DefaultClosed holds the default value on creation for the "closed" field.
+	DefaultClosed bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )
