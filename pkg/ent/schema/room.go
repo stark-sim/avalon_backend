@@ -16,7 +16,8 @@ type Room struct {
 // Fields of the Card.
 func (Room) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").Default("").Annotations(entgql.OrderField("NAME")),
+		field.String("name").Default("").Annotations(entgql.OrderField("NAME")).StructTag(`json:"name"`),
+		field.Bool("closed").Default(false).StructTag(`json:"closed"`),
 	}
 }
 
@@ -24,6 +25,7 @@ func (Room) Fields() []ent.Field {
 func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("room_users", RoomUser.Type),
+		edge.To("room_games", Game.Type),
 	}
 }
 
