@@ -23,16 +23,25 @@ import (
 
 type CardResolver interface {
 	ID(ctx context.Context, obj *ent.Card) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.Card) (string, error)
+	UpdatedBy(ctx context.Context, obj *ent.Card) (string, error)
 }
 type GameResolver interface {
 	ID(ctx context.Context, obj *ent.Game) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.Game) (string, error)
+	UpdatedBy(ctx context.Context, obj *ent.Game) (string, error)
 }
 type GameUserResolver interface {
 	ID(ctx context.Context, obj *ent.GameUser) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.GameUser) (string, error)
+	UpdatedBy(ctx context.Context, obj *ent.GameUser) (string, error)
 
+	UserID(ctx context.Context, obj *ent.GameUser) (string, error)
 	GameID(ctx context.Context, obj *ent.GameUser) (string, error)
 	CardID(ctx context.Context, obj *ent.GameUser) (string, error)
 	Number(ctx context.Context, obj *ent.GameUser) (int, error)
+
+	User(ctx context.Context, obj *ent.GameUser) (*model.User, error)
 }
 type MutationResolver interface {
 	CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error)
@@ -49,9 +58,13 @@ type QueryResolver interface {
 }
 type RoomResolver interface {
 	ID(ctx context.Context, obj *ent.Room) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.Room) (string, error)
+	UpdatedBy(ctx context.Context, obj *ent.Room) (string, error)
 }
 type RoomUserResolver interface {
 	ID(ctx context.Context, obj *ent.RoomUser) (string, error)
+	CreatedBy(ctx context.Context, obj *ent.RoomUser) (string, error)
+	UpdatedBy(ctx context.Context, obj *ent.RoomUser) (string, error)
 
 	UserID(ctx context.Context, obj *ent.RoomUser) (string, error)
 	RoomID(ctx context.Context, obj *ent.RoomUser) (string, error)
@@ -68,22 +81,54 @@ type CardWhereInputResolver interface {
 	IDGte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
 	IDLt(ctx context.Context, obj *ent.CardWhereInput, data *string) error
 	IDLte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedBy(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedByNeq(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedByIn(ctx context.Context, obj *ent.CardWhereInput, data []string) error
+	CreatedByNotIn(ctx context.Context, obj *ent.CardWhereInput, data []string) error
+	CreatedByGt(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedByGte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedByLt(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	CreatedByLte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedByNeq(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedByIn(ctx context.Context, obj *ent.CardWhereInput, data []string) error
+	UpdatedByNotIn(ctx context.Context, obj *ent.CardWhereInput, data []string) error
+	UpdatedByGt(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedByGte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedByLt(ctx context.Context, obj *ent.CardWhereInput, data *string) error
+	UpdatedByLte(ctx context.Context, obj *ent.CardWhereInput, data *string) error
 }
 type CreateCardInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.CreateCardInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CreateCardInput, data *string) error
+
 	GameUserIDs(ctx context.Context, obj *ent.CreateCardInput, data []string) error
 }
 type CreateGameInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.CreateGameInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CreateGameInput, data *string) error
+
 	GameUserIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 }
 type CreateGameUserInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.CreateGameUserInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CreateGameUserInput, data *string) error
+
+	UserID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 	Number(ctx context.Context, obj *ent.CreateGameUserInput, data int) error
 	GameID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 	CardID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 }
 type CreateRoomInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.CreateRoomInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CreateRoomInput, data *string) error
+
 	RoomUserIDs(ctx context.Context, obj *ent.CreateRoomInput, data []string) error
 }
 type CreateRoomUserInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error
+
 	UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 	RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 }
@@ -96,7 +141,31 @@ type GameUserWhereInputResolver interface {
 	IDGte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	IDLt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	IDLte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedBy(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedByNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedByIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	CreatedByNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	CreatedByGt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedByGte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedByLt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	CreatedByLte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedByNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedByIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	UpdatedByNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	UpdatedByGt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedByGte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedByLt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UpdatedByLte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 
+	UserID(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UserIDNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UserIDIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	UserIDNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
+	UserIDGt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UserIDGte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UserIDLt(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
+	UserIDLte(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	GameID(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	GameIDNeq(ctx context.Context, obj *ent.GameUserWhereInput, data *string) error
 	GameIDIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error
@@ -123,6 +192,22 @@ type GameWhereInputResolver interface {
 	IDGte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
 	IDLt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
 	IDLte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedBy(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedByNeq(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedByIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
+	CreatedByNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
+	CreatedByGt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedByGte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedByLt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	CreatedByLte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedByNeq(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedByIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
+	UpdatedByNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
+	UpdatedByGt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedByGte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedByLt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	UpdatedByLte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
 }
 type RoomUserWhereInputResolver interface {
 	ID(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
@@ -133,7 +218,31 @@ type RoomUserWhereInputResolver interface {
 	IDGte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 	IDLt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 	IDLte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedBy(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedByNeq(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedByIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	CreatedByNotIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	CreatedByGt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedByGte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedByLt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	CreatedByLte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedByNeq(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedByIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	UpdatedByNotIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	UpdatedByGt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedByGte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedByLt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UpdatedByLte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 
+	UserID(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UserIDNeq(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UserIDIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	UserIDNotIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
+	UserIDGt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UserIDGte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UserIDLt(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
+	UserIDLte(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 	RoomID(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 	RoomIDNeq(ctx context.Context, obj *ent.RoomUserWhereInput, data *string) error
 	RoomIDIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error
@@ -148,16 +257,42 @@ type RoomWhereInputResolver interface {
 	IDGte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
 	IDLt(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
 	IDLte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedBy(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedByNeq(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedByIn(ctx context.Context, obj *ent.RoomWhereInput, data []string) error
+	CreatedByNotIn(ctx context.Context, obj *ent.RoomWhereInput, data []string) error
+	CreatedByGt(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedByGte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedByLt(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	CreatedByLte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedByNeq(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedByIn(ctx context.Context, obj *ent.RoomWhereInput, data []string) error
+	UpdatedByNotIn(ctx context.Context, obj *ent.RoomWhereInput, data []string) error
+	UpdatedByGt(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedByGte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedByLt(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
+	UpdatedByLte(ctx context.Context, obj *ent.RoomWhereInput, data *string) error
 }
 type UpdateCardInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.UpdateCardInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.UpdateCardInput, data *string) error
+
 	AddGameUserIDs(ctx context.Context, obj *ent.UpdateCardInput, data []string) error
 	RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateCardInput, data []string) error
 }
 type UpdateGameInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.UpdateGameInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.UpdateGameInput, data *string) error
+
 	AddGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 	RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 }
 type UpdateGameUserInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
+
+	UserID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
 	Number(ctx context.Context, obj *ent.UpdateGameUserInput, data *int) error
 
 	GameID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
@@ -165,10 +300,16 @@ type UpdateGameUserInputResolver interface {
 	CardID(ctx context.Context, obj *ent.UpdateGameUserInput, data *string) error
 }
 type UpdateRoomInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.UpdateRoomInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.UpdateRoomInput, data *string) error
+
 	AddRoomUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error
 	RemoveRoomUserIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error
 }
 type UpdateRoomUserInputResolver interface {
+	CreatedBy(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
+	UpdatedBy(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
+
 	UserID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
 
 	RoomID(ctx context.Context, obj *ent.UpdateRoomUserInput, data *string) error
@@ -334,7 +475,7 @@ func (ec *executionContext) _Card_createdBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Card().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -346,19 +487,19 @@ func (ec *executionContext) _Card_createdBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Card_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Card",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -378,7 +519,7 @@ func (ec *executionContext) _Card_updatedBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Card().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -390,19 +531,19 @@ func (ec *executionContext) _Card_updatedBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Card_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Card",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -644,6 +785,8 @@ func (ec *executionContext) fieldContext_Card_gameUsers(ctx context.Context, fie
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
 				return ec.fieldContext_GameUser_card(ctx, field)
+			case "user":
+				return ec.fieldContext_GameUser_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GameUser", field.Name)
 		},
@@ -709,7 +852,7 @@ func (ec *executionContext) _Game_createdBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Game().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -721,19 +864,19 @@ func (ec *executionContext) _Game_createdBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Game_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Game",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -753,7 +896,7 @@ func (ec *executionContext) _Game_updatedBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Game().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -765,19 +908,19 @@ func (ec *executionContext) _Game_updatedBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Game_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Game",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -975,6 +1118,8 @@ func (ec *executionContext) fieldContext_Game_gameUsers(ctx context.Context, fie
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
 				return ec.fieldContext_GameUser_card(ctx, field)
+			case "user":
+				return ec.fieldContext_GameUser_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GameUser", field.Name)
 		},
@@ -1040,7 +1185,7 @@ func (ec *executionContext) _GameUser_createdBy(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.GameUser().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1052,19 +1197,19 @@ func (ec *executionContext) _GameUser_createdBy(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GameUser_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GameUser",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1084,7 +1229,7 @@ func (ec *executionContext) _GameUser_updatedBy(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.GameUser().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1096,19 +1241,19 @@ func (ec *executionContext) _GameUser_updatedBy(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GameUser_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GameUser",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1260,7 +1405,7 @@ func (ec *executionContext) _GameUser_userID(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
+		return ec.resolvers.GameUser().UserID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1272,19 +1417,19 @@ func (ec *executionContext) _GameUser_userID(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_GameUser_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "GameUser",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1539,6 +1684,54 @@ func (ec *executionContext) fieldContext_GameUser_card(ctx context.Context, fiel
 				return ec.fieldContext_Card_gameUsers(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Card", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GameUser_user(ctx context.Context, field graphql.CollectedField, obj *ent.GameUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GameUser_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.GameUser().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GameUser_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GameUser",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -2150,6 +2343,8 @@ func (ec *executionContext) fieldContext_Query_gameUsers(ctx context.Context, fi
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
 				return ec.fieldContext_GameUser_card(ctx, field)
+			case "user":
+				return ec.fieldContext_GameUser_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GameUser", field.Name)
 		},
@@ -2575,7 +2770,7 @@ func (ec *executionContext) _Room_createdBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Room().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2587,19 +2782,19 @@ func (ec *executionContext) _Room_createdBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Room_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2619,7 +2814,7 @@ func (ec *executionContext) _Room_updatedBy(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Room().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2631,19 +2826,19 @@ func (ec *executionContext) _Room_updatedBy(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Room_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2946,7 +3141,7 @@ func (ec *executionContext) _RoomUser_createdBy(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.RoomUser().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2958,19 +3153,19 @@ func (ec *executionContext) _RoomUser_createdBy(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RoomUser_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoomUser",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2990,7 +3185,7 @@ func (ec *executionContext) _RoomUser_updatedBy(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.RoomUser().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3002,19 +3197,19 @@ func (ec *executionContext) _RoomUser_updatedBy(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RoomUser_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoomUser",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3568,128 +3763,176 @@ func (ec *executionContext) unmarshalInputCardWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNEQ"))
-			it.CreatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByIn"))
-			it.CreatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNotIn"))
-			it.CreatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGT"))
-			it.CreatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGTE"))
-			it.CreatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLT"))
-			it.CreatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLTE"))
-			it.CreatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().CreatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNEQ"))
-			it.UpdatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByIn"))
-			it.UpdatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNotIn"))
-			it.UpdatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGT"))
-			it.UpdatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGTE"))
-			it.UpdatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLT"))
-			it.UpdatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLTE"))
-			it.UpdatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CardWhereInput().UpdatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4028,16 +4271,22 @@ func (ec *executionContext) unmarshalInputCreateCardInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateCardInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateCardInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4107,16 +4356,22 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4178,16 +4433,22 @@ func (ec *executionContext) unmarshalInputCreateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameUserInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameUserInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4218,8 +4479,11 @@ func (ec *executionContext) unmarshalInputCreateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNInt2int64(ctx, v)
+			data, err := ec.unmarshalNID2string(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameUserInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "number":
@@ -4279,16 +4543,22 @@ func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4358,16 +4628,22 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomUserInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomUserInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4632,128 +4908,176 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNEQ"))
-			it.CreatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByIn"))
-			it.CreatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNotIn"))
-			it.CreatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGT"))
-			it.CreatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGTE"))
-			it.CreatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLT"))
-			it.CreatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLTE"))
-			it.CreatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().CreatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNEQ"))
-			it.UpdatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByIn"))
-			it.UpdatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNotIn"))
-			it.UpdatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGT"))
-			it.UpdatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGTE"))
-			it.UpdatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLT"))
-			it.UpdatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLTE"))
-			it.UpdatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UpdatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -4952,64 +5276,88 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDNEQ"))
-			it.UserIDNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDIn"))
-			it.UserIDIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDNotIn"))
-			it.UserIDNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDGT"))
-			it.UserIDGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDGTE"))
-			it.UserIDGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDLT"))
-			it.UserIDLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDLTE"))
-			it.UserIDLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameUserWhereInput().UserIDLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "gameID":
@@ -5356,128 +5704,176 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNEQ"))
-			it.CreatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByIn"))
-			it.CreatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNotIn"))
-			it.CreatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGT"))
-			it.CreatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGTE"))
-			it.CreatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLT"))
-			it.CreatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLTE"))
-			it.CreatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().CreatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNEQ"))
-			it.UpdatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByIn"))
-			it.UpdatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNotIn"))
-			it.UpdatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGT"))
-			it.UpdatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGTE"))
-			it.UpdatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLT"))
-			it.UpdatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLTE"))
-			it.UpdatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.GameWhereInput().UpdatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -5904,128 +6300,176 @@ func (ec *executionContext) unmarshalInputRoomUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNEQ"))
-			it.CreatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByIn"))
-			it.CreatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNotIn"))
-			it.CreatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGT"))
-			it.CreatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGTE"))
-			it.CreatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLT"))
-			it.CreatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLTE"))
-			it.CreatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().CreatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNEQ"))
-			it.UpdatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByIn"))
-			it.UpdatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNotIn"))
-			it.UpdatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGT"))
-			it.UpdatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGTE"))
-			it.UpdatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLT"))
-			it.UpdatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLTE"))
-			it.UpdatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UpdatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -6224,64 +6668,88 @@ func (ec *executionContext) unmarshalInputRoomUserWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDNEQ"))
-			it.UserIDNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDIn"))
-			it.UserIDIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDNotIn"))
-			it.UserIDNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDGT"))
-			it.UserIDGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDGTE"))
-			it.UserIDGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDLT"))
-			it.UserIDLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "userIDLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userIDLTE"))
-			it.UserIDLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomUserWhereInput().UserIDLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "roomID":
@@ -6480,128 +6948,176 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNEQ"))
-			it.CreatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByIn"))
-			it.CreatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByNotIn"))
-			it.CreatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGT"))
-			it.CreatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByGTE"))
-			it.CreatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLT"))
-			it.CreatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdByLTE"))
-			it.CreatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().CreatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNEQ"))
-			it.UpdatedByNEQ, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByIn"))
-			it.UpdatedByIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByNotIn"))
-			it.UpdatedByNotIn, err = ec.unmarshalOInt2ᚕint64ᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGT"))
-			it.UpdatedByGT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByGt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByGTE"))
-			it.UpdatedByGTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByGte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLT"))
-			it.UpdatedByLT, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByLt(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedByLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedByLTE"))
-			it.UpdatedByLTE, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.RoomWhereInput().UpdatedByLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "createdAt":
@@ -6940,16 +7456,22 @@ func (ec *executionContext) unmarshalInputUpdateCardInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateCardInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateCardInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedAt":
@@ -7022,16 +7544,22 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedAt":
@@ -7096,16 +7624,22 @@ func (ec *executionContext) unmarshalInputUpdateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameUserInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameUserInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedAt":
@@ -7128,8 +7662,11 @@ func (ec *executionContext) unmarshalInputUpdateGameUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameUserInput().UserID(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "number":
@@ -7205,16 +7742,22 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateRoomInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateRoomInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedAt":
@@ -7287,16 +7830,22 @@ func (ec *executionContext) unmarshalInputUpdateRoomUserInput(ctx context.Contex
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
-			it.CreatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateRoomUserInput().CreatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedBy":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedBy"))
-			it.UpdatedBy, err = ec.unmarshalOInt2ᚖint64(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateRoomUserInput().UpdatedBy(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "updatedAt":
@@ -7424,19 +7973,45 @@ func (ec *executionContext) _Card(ctx context.Context, sel ast.SelectionSet, obj
 
 			})
 		case "createdBy":
+			field := field
 
-			out.Values[i] = ec._Card_createdBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Card_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "updatedBy":
+			field := field
 
-			out.Values[i] = ec._Card_updatedBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Card_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._Card_createdAt(ctx, field, obj)
@@ -7524,19 +8099,45 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 
 			})
 		case "createdBy":
+			field := field
 
-			out.Values[i] = ec._Game_createdBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Game_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "updatedBy":
+			field := field
 
-			out.Values[i] = ec._Game_updatedBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Game_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._Game_createdAt(ctx, field, obj)
@@ -7617,19 +8218,45 @@ func (ec *executionContext) _GameUser(ctx context.Context, sel ast.SelectionSet,
 
 			})
 		case "createdBy":
+			field := field
 
-			out.Values[i] = ec._GameUser_createdBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GameUser_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "updatedBy":
+			field := field
 
-			out.Values[i] = ec._GameUser_updatedBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GameUser_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._GameUser_createdAt(ctx, field, obj)
@@ -7652,12 +8279,25 @@ func (ec *executionContext) _GameUser(ctx context.Context, sel ast.SelectionSet,
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "userID":
+			field := field
 
-			out.Values[i] = ec._GameUser_userID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GameUser_userID(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "gameID":
 			field := field
 
@@ -7748,6 +8388,26 @@ func (ec *executionContext) _GameUser(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._GameUser_card(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GameUser_user(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -8131,19 +8791,45 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 
 			})
 		case "createdBy":
+			field := field
 
-			out.Values[i] = ec._Room_createdBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Room_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "updatedBy":
+			field := field
 
-			out.Values[i] = ec._Room_updatedBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Room_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._Room_createdAt(ctx, field, obj)
@@ -8231,19 +8917,45 @@ func (ec *executionContext) _RoomUser(ctx context.Context, sel ast.SelectionSet,
 
 			})
 		case "createdBy":
+			field := field
 
-			out.Values[i] = ec._RoomUser_createdBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RoomUser_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "updatedBy":
+			field := field
 
-			out.Values[i] = ec._RoomUser_updatedBy(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RoomUser_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._RoomUser_createdAt(ctx, field, obj)

@@ -98,6 +98,7 @@ type ComplexityRoot struct {
 		Number    func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -366,6 +367,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GameUser.UpdatedBy(childComplexity), true
+
+	case "GameUser.user":
+		if e.complexity.GameUser.User == nil {
+			break
+		}
+
+		return e.complexity.GameUser.User(childComplexity), true
 
 	case "GameUser.userID":
 		if e.complexity.GameUser.UserID == nil {

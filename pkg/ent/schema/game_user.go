@@ -16,7 +16,7 @@ type GameUser struct {
 // Fields of the Card.
 func (GameUser) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("user_id").StructTag(`json:"user_id"`),
+		field.Int64("user_id").StructTag(`json:"user_id"`).Annotations(entgql.Type("ID")),
 		field.Int64("game_id").StructTag(`json:"game_id"`),
 		field.Int64("card_id").StructTag(`json:"card_id"`),
 		field.Uint8("number").StructTag(`json:"number"`),

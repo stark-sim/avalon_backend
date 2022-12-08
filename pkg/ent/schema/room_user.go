@@ -16,7 +16,7 @@ type RoomUser struct {
 // Fields of the Card.
 func (RoomUser) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("user_id").StructTag(`json:"user_id"`),
+		field.Int64("user_id").StructTag(`json:"user_id"`).Annotations(entgql.Type("ID")),
 		field.Int64("room_id").StructTag(`json:"room_id"`),
 	}
 }
