@@ -480,7 +480,7 @@ func (r *cardWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.CardW
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *cardWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.CardWhereInput, data []string) error {
 	for _, v := range data {
-		obj.UpdatedByIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -689,32 +689,54 @@ func (r *createMissionInputResolver) GameID(ctx context.Context, obj *ent.Create
 
 // SquadIDs is the resolver for the squadIDs field.
 func (r *createMissionInputResolver) SquadIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: SquadIDs - squadIDs"))
+	for _, v := range data {
+		obj.SquadIDs = append(obj.SquadIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // MissionVoteIDs is the resolver for the missionVoteIDs field.
 func (r *createMissionInputResolver) MissionVoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: MissionVoteIDs - missionVoteIDs"))
+	for _, v := range data {
+		obj.MissionVoteIDs = append(obj.MissionVoteIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *createRecordInputResolver) CreatedBy(ctx context.Context, obj *ent.CreateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *createRecordInputResolver) UpdatedBy(ctx context.Context, obj *ent.CreateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *createRecordInputResolver) UserID(ctx context.Context, obj *ent.CreateRecordInput, data string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	tempID := tools.StringToInt64(data)
+	obj.UserID = tempID
+	return nil
 }
 
 // RoomID is the resolver for the roomID field.
 func (r *createRecordInputResolver) RoomID(ctx context.Context, obj *ent.CreateRecordInput, data string) error {
-	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+	tempID := tools.StringToInt64(data)
+	obj.RoomID = tempID
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -749,12 +771,18 @@ func (r *createRoomInputResolver) RoomUserIDs(ctx context.Context, obj *ent.Crea
 
 // GameIDs is the resolver for the gameIDs field.
 func (r *createRoomInputResolver) GameIDs(ctx context.Context, obj *ent.CreateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: GameIDs - gameIDs"))
+	for _, v := range data {
+		obj.GameIDs = append(obj.GameIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RecordIDs is the resolver for the recordIDs field.
 func (r *createRoomInputResolver) RecordIDs(ctx context.Context, obj *ent.CreateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RecordIDs - recordIDs"))
+	for _, v := range data {
+		obj.RecordIDs = append(obj.RecordIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -795,42 +823,74 @@ func (r *createRoomUserInputResolver) RoomID(ctx context.Context, obj *ent.Creat
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *createSquadInputResolver) CreatedBy(ctx context.Context, obj *ent.CreateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *createSquadInputResolver) UpdatedBy(ctx context.Context, obj *ent.CreateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *createSquadInputResolver) UserID(ctx context.Context, obj *ent.CreateSquadInput, data string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	tempID := tools.StringToInt64(data)
+	obj.UserID = tempID
+	return nil
 }
 
 // MissionID is the resolver for the missionID field.
 func (r *createSquadInputResolver) MissionID(ctx context.Context, obj *ent.CreateSquadInput, data string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	tempID := tools.StringToInt64(data)
+	obj.MissionID = tempID
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *createVoteInputResolver) CreatedBy(ctx context.Context, obj *ent.CreateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *createVoteInputResolver) UpdatedBy(ctx context.Context, obj *ent.CreateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *createVoteInputResolver) UserID(ctx context.Context, obj *ent.CreateVoteInput, data string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	tempID := tools.StringToInt64(data)
+	obj.UserID = tempID
+	return nil
 }
 
 // MissionID is the resolver for the missionID field.
 func (r *createVoteInputResolver) MissionID(ctx context.Context, obj *ent.CreateVoteInput, data string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	tempID := tools.StringToInt64(data)
+	obj.MissionID = tempID
+	return nil
 }
 
 // ID is the resolver for the id field.
@@ -1030,7 +1090,7 @@ func (r *gameUserWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.G
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *gameUserWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.GameUserWhereInput, data []string) error {
 	for _, v := range data {
-		obj.UpdatedByIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -1229,22 +1289,46 @@ func (r *gameUserWhereInputResolver) NumberNotIn(ctx context.Context, obj *ent.G
 
 // NumberGt is the resolver for the numberGT field.
 func (r *gameUserWhereInputResolver) NumberGt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: NumberGt - numberGT"))
+	if data != nil {
+		tempNumber := uint8(*data)
+		obj.NumberGT = &tempNumber
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // NumberGte is the resolver for the numberGTE field.
 func (r *gameUserWhereInputResolver) NumberGte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: NumberGte - numberGTE"))
+	if data != nil {
+		tempNumber := uint8(*data)
+		obj.NumberGTE = &tempNumber
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // NumberLt is the resolver for the numberLT field.
 func (r *gameUserWhereInputResolver) NumberLt(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: NumberLt - numberLT"))
+	if data != nil {
+		tempNumber := uint8(*data)
+		obj.NumberLT = &tempNumber
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // NumberLte is the resolver for the numberLTE field.
 func (r *gameUserWhereInputResolver) NumberLte(ctx context.Context, obj *ent.GameUserWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: NumberLte - numberLTE"))
+	if data != nil {
+		tempNumber := uint8(*data)
+		obj.NumberLTE = &tempNumber
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // ID is the resolver for the id field.
@@ -1396,7 +1480,7 @@ func (r *gameWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.GameW
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *gameWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error {
 	for _, v := range data {
-		obj.UpdatedByIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -1429,82 +1513,160 @@ func (r *gameWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.Game
 
 // RoomID is the resolver for the roomID field.
 func (r *gameWhereInputResolver) RoomID(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // RoomIDNeq is the resolver for the roomIDNEQ field.
 func (r *gameWhereInputResolver) RoomIDNeq(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomIDNeq - roomIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // RoomIDIn is the resolver for the roomIDIn field.
 func (r *gameWhereInputResolver) RoomIDIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RoomIDIn - roomIDIn"))
+	for _, v := range data {
+		obj.RoomIDIn = append(obj.RoomIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RoomIDNotIn is the resolver for the roomIDNotIn field.
 func (r *gameWhereInputResolver) RoomIDNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RoomIDNotIn - roomIDNotIn"))
+	for _, v := range data {
+		obj.RoomIDNotIn = append(obj.RoomIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // Capacity is the resolver for the capacity field.
 func (r *gameWhereInputResolver) Capacity(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.Capacity = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityNeq is the resolver for the capacityNEQ field.
 func (r *gameWhereInputResolver) CapacityNeq(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityNeq - capacityNEQ"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityNEQ = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityIn is the resolver for the capacityIn field.
 func (r *gameWhereInputResolver) CapacityIn(ctx context.Context, obj *ent.GameWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: CapacityIn - capacityIn"))
+	for _, v := range data {
+		obj.CapacityIn = append(obj.CapacityIn, uint8(v))
+	}
+	return nil
 }
 
 // CapacityNotIn is the resolver for the capacityNotIn field.
 func (r *gameWhereInputResolver) CapacityNotIn(ctx context.Context, obj *ent.GameWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: CapacityNotIn - capacityNotIn"))
+	for _, v := range data {
+		obj.CapacityNotIn = append(obj.CapacityNotIn, uint8(v))
+	}
+	return nil
 }
 
 // CapacityGt is the resolver for the capacityGT field.
 func (r *gameWhereInputResolver) CapacityGt(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityGt - capacityGT"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityGT = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityGte is the resolver for the capacityGTE field.
 func (r *gameWhereInputResolver) CapacityGte(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityGte - capacityGTE"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityGTE = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityLt is the resolver for the capacityLT field.
 func (r *gameWhereInputResolver) CapacityLt(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityLt - capacityLT"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityLT = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityLte is the resolver for the capacityLTE field.
 func (r *gameWhereInputResolver) CapacityLte(ctx context.Context, obj *ent.GameWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityLte - capacityLTE"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityLTE = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // ID is the resolver for the id field.
 func (r *missionWhereInputResolver) ID(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.ID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDNeq is the resolver for the idNEQ field.
 func (r *missionWhereInputResolver) IDNeq(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: IDNeq - idNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.IDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDIn is the resolver for the idIn field.
 func (r *missionWhereInputResolver) IDIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDIn - idIn"))
+	for _, v := range data {
+		obj.IDIn = append(obj.IDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDNotIn is the resolver for the idNotIn field.
 func (r *missionWhereInputResolver) IDNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDNotIn - idNotIn"))
+	for _, v := range data {
+		obj.IDNotIn = append(obj.IDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDGt is the resolver for the idGT field.
@@ -1529,22 +1691,40 @@ func (r *missionWhereInputResolver) IDLte(ctx context.Context, obj *ent.MissionW
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *missionWhereInputResolver) CreatedBy(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByNeq is the resolver for the createdByNEQ field.
 func (r *missionWhereInputResolver) CreatedByNeq(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNeq - createdByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByIn is the resolver for the createdByIn field.
 func (r *missionWhereInputResolver) CreatedByIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByIn - createdByIn"))
+	for _, v := range data {
+		obj.CreatedByIn = append(obj.CreatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByNotIn is the resolver for the createdByNotIn field.
 func (r *missionWhereInputResolver) CreatedByNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNotIn - createdByNotIn"))
+	for _, v := range data {
+		obj.CreatedByNotIn = append(obj.CreatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByGt is the resolver for the createdByGT field.
@@ -1569,22 +1749,40 @@ func (r *missionWhereInputResolver) CreatedByLte(ctx context.Context, obj *ent.M
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *missionWhereInputResolver) UpdatedBy(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByNeq is the resolver for the updatedByNEQ field.
 func (r *missionWhereInputResolver) UpdatedByNeq(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNeq - updatedByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByIn is the resolver for the updatedByIn field.
 func (r *missionWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByIn - updatedByIn"))
+	for _, v := range data {
+		obj.UpdatedByIn = append(obj.UpdatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *missionWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNotIn - updatedByNotIn"))
+	for _, v := range data {
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByGt is the resolver for the updatedByGT field.
@@ -1609,122 +1807,242 @@ func (r *missionWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.M
 
 // Sequence is the resolver for the sequence field.
 func (r *missionWhereInputResolver) Sequence(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Sequence - sequence"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.Sequence = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // SequenceNeq is the resolver for the sequenceNEQ field.
 func (r *missionWhereInputResolver) SequenceNeq(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: SequenceNeq - sequenceNEQ"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.SequenceNEQ = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // SequenceIn is the resolver for the sequenceIn field.
 func (r *missionWhereInputResolver) SequenceIn(ctx context.Context, obj *ent.MissionWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: SequenceIn - sequenceIn"))
+	for _, v := range data {
+		obj.SequenceIn = append(obj.SequenceIn, uint8(v))
+	}
+	return nil
 }
 
 // SequenceNotIn is the resolver for the sequenceNotIn field.
 func (r *missionWhereInputResolver) SequenceNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: SequenceNotIn - sequenceNotIn"))
+	for _, v := range data {
+		obj.SequenceIn = append(obj.SequenceIn, uint8(v))
+	}
+	return nil
 }
 
 // SequenceGt is the resolver for the sequenceGT field.
 func (r *missionWhereInputResolver) SequenceGt(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: SequenceGt - sequenceGT"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.SequenceGT = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // SequenceGte is the resolver for the sequenceGTE field.
 func (r *missionWhereInputResolver) SequenceGte(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: SequenceGte - sequenceGTE"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.SequenceGTE = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // SequenceLt is the resolver for the sequenceLT field.
 func (r *missionWhereInputResolver) SequenceLt(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: SequenceLt - sequenceLT"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.SequenceLT = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // SequenceLte is the resolver for the sequenceLTE field.
 func (r *missionWhereInputResolver) SequenceLte(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: SequenceLte - sequenceLTE"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.SequenceLTE = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // GameID is the resolver for the gameID field.
 func (r *missionWhereInputResolver) GameID(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: GameID - gameID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.GameID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // GameIDNeq is the resolver for the gameIDNEQ field.
 func (r *missionWhereInputResolver) GameIDNeq(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: GameIDNeq - gameIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.GameIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // GameIDIn is the resolver for the gameIDIn field.
 func (r *missionWhereInputResolver) GameIDIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: GameIDIn - gameIDIn"))
+	for _, v := range data {
+		obj.GameIDIn = append(obj.GameIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // GameIDNotIn is the resolver for the gameIDNotIn field.
 func (r *missionWhereInputResolver) GameIDNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: GameIDNotIn - gameIDNotIn"))
+	for _, v := range data {
+		obj.GameIDNotIn = append(obj.GameIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // Capacity is the resolver for the capacity field.
 func (r *missionWhereInputResolver) Capacity(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.Capacity = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityNeq is the resolver for the capacityNEQ field.
 func (r *missionWhereInputResolver) CapacityNeq(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityNeq - capacityNEQ"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityNEQ = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityIn is the resolver for the capacityIn field.
 func (r *missionWhereInputResolver) CapacityIn(ctx context.Context, obj *ent.MissionWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: CapacityIn - capacityIn"))
+	for _, v := range data {
+		obj.CapacityIn = append(obj.CapacityIn, uint8(v))
+	}
+	return nil
 }
 
 // CapacityNotIn is the resolver for the capacityNotIn field.
 func (r *missionWhereInputResolver) CapacityNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []int) error {
-	panic(fmt.Errorf("not implemented: CapacityNotIn - capacityNotIn"))
+	for _, v := range data {
+		obj.CapacityNotIn = append(obj.CapacityNotIn, uint8(v))
+	}
+	return nil
 }
 
 // CapacityGt is the resolver for the capacityGT field.
 func (r *missionWhereInputResolver) CapacityGt(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityGt - capacityGT"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityGT = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityGte is the resolver for the capacityGTE field.
 func (r *missionWhereInputResolver) CapacityGte(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityGte - capacityGTE"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityGTE = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityLt is the resolver for the capacityLT field.
 func (r *missionWhereInputResolver) CapacityLt(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityLt - capacityLT"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityLT = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CapacityLte is the resolver for the capacityLTE field.
 func (r *missionWhereInputResolver) CapacityLte(ctx context.Context, obj *ent.MissionWhereInput, data *int) error {
-	panic(fmt.Errorf("not implemented: CapacityLte - capacityLTE"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.CapacityLTE = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // ID is the resolver for the id field.
 func (r *recordWhereInputResolver) ID(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDNeq is the resolver for the idNEQ field.
 func (r *recordWhereInputResolver) IDNeq(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: IDNeq - idNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDIn is the resolver for the idIn field.
 func (r *recordWhereInputResolver) IDIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDIn - idIn"))
+	for _, v := range data {
+		obj.IDIn = append(obj.IDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDNotIn is the resolver for the idNotIn field.
 func (r *recordWhereInputResolver) IDNotIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDNotIn - idNotIn"))
+	for _, v := range data {
+		obj.IDNotIn = append(obj.IDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDGt is the resolver for the idGT field.
@@ -1749,22 +2067,40 @@ func (r *recordWhereInputResolver) IDLte(ctx context.Context, obj *ent.RecordWhe
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *recordWhereInputResolver) CreatedBy(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByNeq is the resolver for the createdByNEQ field.
 func (r *recordWhereInputResolver) CreatedByNeq(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNeq - createdByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByIn is the resolver for the createdByIn field.
 func (r *recordWhereInputResolver) CreatedByIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByIn - createdByIn"))
+	for _, v := range data {
+		obj.CreatedByIn = append(obj.CreatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByNotIn is the resolver for the createdByNotIn field.
 func (r *recordWhereInputResolver) CreatedByNotIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNotIn - createdByNotIn"))
+	for _, v := range data {
+		obj.CreatedByNotIn = append(obj.CreatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByGt is the resolver for the createdByGT field.
@@ -1789,22 +2125,40 @@ func (r *recordWhereInputResolver) CreatedByLte(ctx context.Context, obj *ent.Re
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *recordWhereInputResolver) UpdatedBy(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByNeq is the resolver for the updatedByNEQ field.
 func (r *recordWhereInputResolver) UpdatedByNeq(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNeq - updatedByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByIn is the resolver for the updatedByIn field.
 func (r *recordWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByIn - updatedByIn"))
+	for _, v := range data {
+		obj.UpdatedByIn = append(obj.UpdatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *recordWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNotIn - updatedByNotIn"))
+	for _, v := range data {
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByGt is the resolver for the updatedByGT field.
@@ -1829,22 +2183,40 @@ func (r *recordWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.Re
 
 // UserID is the resolver for the userID field.
 func (r *recordWhereInputResolver) UserID(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDNeq is the resolver for the userIDNEQ field.
 func (r *recordWhereInputResolver) UserIDNeq(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserIDNeq - userIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDIn is the resolver for the userIDIn field.
 func (r *recordWhereInputResolver) UserIDIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDIn - userIDIn"))
+	for _, v := range data {
+		obj.UserIDIn = append(obj.UserIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDNotIn is the resolver for the userIDNotIn field.
 func (r *recordWhereInputResolver) UserIDNotIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDNotIn - userIDNotIn"))
+	for _, v := range data {
+		obj.UserIDNotIn = append(obj.UserIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDGt is the resolver for the userIDGT field.
@@ -1869,22 +2241,40 @@ func (r *recordWhereInputResolver) UserIDLte(ctx context.Context, obj *ent.Recor
 
 // RoomID is the resolver for the roomID field.
 func (r *recordWhereInputResolver) RoomID(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // RoomIDNeq is the resolver for the roomIDNEQ field.
 func (r *recordWhereInputResolver) RoomIDNeq(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomIDNeq - roomIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // RoomIDIn is the resolver for the roomIDIn field.
 func (r *recordWhereInputResolver) RoomIDIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RoomIDIn - roomIDIn"))
+	for _, v := range data {
+		obj.RoomIDIn = append(obj.RoomIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RoomIDNotIn is the resolver for the roomIDNotIn field.
 func (r *recordWhereInputResolver) RoomIDNotIn(ctx context.Context, obj *ent.RecordWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RoomIDNotIn - roomIDNotIn"))
+	for _, v := range data {
+		obj.RoomIDNotIn = append(obj.RoomIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // ID is the resolver for the id field.
@@ -2036,7 +2426,7 @@ func (r *roomUserWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.R
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *roomUserWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.RoomUserWhereInput, data []string) error {
 	for _, v := range data {
-		obj.UpdatedByIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -2306,7 +2696,7 @@ func (r *roomWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.RoomW
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *roomWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.RoomWhereInput, data []string) error {
 	for _, v := range data {
-		obj.UpdatedByIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -2339,22 +2729,40 @@ func (r *roomWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.Room
 
 // ID is the resolver for the id field.
 func (r *squadWhereInputResolver) ID(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.ID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDNeq is the resolver for the idNEQ field.
 func (r *squadWhereInputResolver) IDNeq(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: IDNeq - idNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.IDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDIn is the resolver for the idIn field.
 func (r *squadWhereInputResolver) IDIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDIn - idIn"))
+	for _, v := range data {
+		obj.IDIn = append(obj.IDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDNotIn is the resolver for the idNotIn field.
 func (r *squadWhereInputResolver) IDNotIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDNotIn - idNotIn"))
+	for _, v := range data {
+		obj.IDNotIn = append(obj.IDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDGt is the resolver for the idGT field.
@@ -2379,22 +2787,40 @@ func (r *squadWhereInputResolver) IDLte(ctx context.Context, obj *ent.SquadWhere
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *squadWhereInputResolver) CreatedBy(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByNeq is the resolver for the createdByNEQ field.
 func (r *squadWhereInputResolver) CreatedByNeq(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNeq - createdByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByIn is the resolver for the createdByIn field.
 func (r *squadWhereInputResolver) CreatedByIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByIn - createdByIn"))
+	for _, v := range data {
+		obj.CreatedByIn = append(obj.CreatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByNotIn is the resolver for the createdByNotIn field.
 func (r *squadWhereInputResolver) CreatedByNotIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNotIn - createdByNotIn"))
+	for _, v := range data {
+		obj.CreatedByNotIn = append(obj.CreatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByGt is the resolver for the createdByGT field.
@@ -2419,22 +2845,40 @@ func (r *squadWhereInputResolver) CreatedByLte(ctx context.Context, obj *ent.Squ
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *squadWhereInputResolver) UpdatedBy(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByNeq is the resolver for the updatedByNEQ field.
 func (r *squadWhereInputResolver) UpdatedByNeq(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNeq - updatedByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByIn is the resolver for the updatedByIn field.
 func (r *squadWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByIn - updatedByIn"))
+	for _, v := range data {
+		obj.UpdatedByIn = append(obj.UpdatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *squadWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNotIn - updatedByNotIn"))
+	for _, v := range data {
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByGt is the resolver for the updatedByGT field.
@@ -2459,42 +2903,78 @@ func (r *squadWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.Squ
 
 // MissionID is the resolver for the missionID field.
 func (r *squadWhereInputResolver) MissionID(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionIDNeq is the resolver for the missionIDNEQ field.
 func (r *squadWhereInputResolver) MissionIDNeq(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionIDNeq - missionIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionIDIn is the resolver for the missionIDIn field.
 func (r *squadWhereInputResolver) MissionIDIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: MissionIDIn - missionIDIn"))
+	for _, v := range data {
+		obj.MissionIDIn = append(obj.MissionIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // MissionIDNotIn is the resolver for the missionIDNotIn field.
 func (r *squadWhereInputResolver) MissionIDNotIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: MissionIDNotIn - missionIDNotIn"))
+	for _, v := range data {
+		obj.MissionIDNotIn = append(obj.MissionIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserID is the resolver for the userID field.
 func (r *squadWhereInputResolver) UserID(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDNeq is the resolver for the userIDNEQ field.
 func (r *squadWhereInputResolver) UserIDNeq(ctx context.Context, obj *ent.SquadWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserIDNeq - userIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDIn is the resolver for the userIDIn field.
 func (r *squadWhereInputResolver) UserIDIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDIn - userIDIn"))
+	for _, v := range data {
+		obj.UserIDIn = append(obj.UserIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDNotIn is the resolver for the userIDNotIn field.
 func (r *squadWhereInputResolver) UserIDNotIn(ctx context.Context, obj *ent.SquadWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDNotIn - userIDNotIn"))
+	for _, v := range data {
+		obj.UserIDNotIn = append(obj.UserIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDGt is the resolver for the userIDGT field.
@@ -2579,7 +3059,13 @@ func (r *updateGameInputResolver) UpdatedBy(ctx context.Context, obj *ent.Update
 
 // Capacity is the resolver for the capacity field.
 func (r *updateGameInputResolver) Capacity(ctx context.Context, obj *ent.UpdateGameInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.Capacity = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // AddGameUserIDs is the resolver for the addGameUserIDs field.
@@ -2600,17 +3086,29 @@ func (r *updateGameInputResolver) RemoveGameUserIDs(ctx context.Context, obj *en
 
 // AddMissionIDs is the resolver for the addMissionIDs field.
 func (r *updateGameInputResolver) AddMissionIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error {
-	panic(fmt.Errorf("not implemented: AddMissionIDs - addMissionIDs"))
+	for _, v := range data {
+		obj.AddMissionIDs = append(obj.AddMissionIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RemoveMissionIDs is the resolver for the removeMissionIDs field.
 func (r *updateGameInputResolver) RemoveMissionIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RemoveMissionIDs - removeMissionIDs"))
+	for _, v := range data {
+		obj.RemoveMissionIDs = append(obj.RemoveMissionIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RoomID is the resolver for the roomID field.
 func (r *updateGameInputResolver) RoomID(ctx context.Context, obj *ent.UpdateGameInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -2681,67 +3179,133 @@ func (r *updateGameUserInputResolver) CardID(ctx context.Context, obj *ent.Updat
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *updateMissionInputResolver) CreatedBy(ctx context.Context, obj *ent.UpdateMissionInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *updateMissionInputResolver) UpdatedBy(ctx context.Context, obj *ent.UpdateMissionInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // Sequence is the resolver for the sequence field.
 func (r *updateMissionInputResolver) Sequence(ctx context.Context, obj *ent.UpdateMissionInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Sequence - sequence"))
+	if data != nil {
+		tempSequence := uint8(*data)
+		obj.Sequence = &tempSequence
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // Capacity is the resolver for the capacity field.
 func (r *updateMissionInputResolver) Capacity(ctx context.Context, obj *ent.UpdateMissionInput, data *int) error {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	if data != nil {
+		tempCapacity := uint8(*data)
+		obj.Capacity = &tempCapacity
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // GameID is the resolver for the gameID field.
 func (r *updateMissionInputResolver) GameID(ctx context.Context, obj *ent.UpdateMissionInput, data *string) error {
-	panic(fmt.Errorf("not implemented: GameID - gameID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.GameID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // AddSquadIDs is the resolver for the addSquadIDs field.
 func (r *updateMissionInputResolver) AddSquadIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: AddSquadIDs - addSquadIDs"))
+	for _, v := range data {
+		obj.AddSquadIDs = append(obj.AddSquadIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RemoveSquadIDs is the resolver for the removeSquadIDs field.
 func (r *updateMissionInputResolver) RemoveSquadIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RemoveSquadIDs - removeSquadIDs"))
+	for _, v := range data {
+		obj.RemoveSquadIDs = append(obj.RemoveSquadIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // AddMissionVoteIDs is the resolver for the addMissionVoteIDs field.
 func (r *updateMissionInputResolver) AddMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: AddMissionVoteIDs - addMissionVoteIDs"))
+	for _, v := range data {
+		obj.AddMissionVoteIDs = append(obj.AddMissionVoteIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RemoveMissionVoteIDs is the resolver for the removeMissionVoteIDs field.
 func (r *updateMissionInputResolver) RemoveMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RemoveMissionVoteIDs - removeMissionVoteIDs"))
+	for _, v := range data {
+		obj.RemoveMissionVoteIDs = append(obj.RemoveMissionVoteIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *updateRecordInputResolver) CreatedBy(ctx context.Context, obj *ent.UpdateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *updateRecordInputResolver) UpdatedBy(ctx context.Context, obj *ent.UpdateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *updateRecordInputResolver) UserID(ctx context.Context, obj *ent.UpdateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // RoomID is the resolver for the roomID field.
 func (r *updateRecordInputResolver) RoomID(ctx context.Context, obj *ent.UpdateRecordInput, data *string) error {
-	panic(fmt.Errorf("not implemented: RoomID - roomID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.RoomID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -2784,22 +3348,34 @@ func (r *updateRoomInputResolver) RemoveRoomUserIDs(ctx context.Context, obj *en
 
 // AddGameIDs is the resolver for the addGameIDs field.
 func (r *updateRoomInputResolver) AddGameIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: AddGameIDs - addGameIDs"))
+	for _, v := range data {
+		obj.AddGameIDs = append(obj.AddGameIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RemoveGameIDs is the resolver for the removeGameIDs field.
 func (r *updateRoomInputResolver) RemoveGameIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RemoveGameIDs - removeGameIDs"))
+	for _, v := range data {
+		obj.RemoveGameIDs = append(obj.RemoveGameIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // AddRecordIDs is the resolver for the addRecordIDs field.
 func (r *updateRoomInputResolver) AddRecordIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: AddRecordIDs - addRecordIDs"))
+	for _, v := range data {
+		obj.AddRecordIDs = append(obj.AddRecordIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // RemoveRecordIDs is the resolver for the removeRecordIDs field.
 func (r *updateRoomInputResolver) RemoveRecordIDs(ctx context.Context, obj *ent.UpdateRoomInput, data []string) error {
-	panic(fmt.Errorf("not implemented: RemoveRecordIDs - removeRecordIDs"))
+	for _, v := range data {
+		obj.RemoveRecordIDs = append(obj.RemoveRecordIDs, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -2848,62 +3424,128 @@ func (r *updateRoomUserInputResolver) RoomID(ctx context.Context, obj *ent.Updat
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *updateSquadInputResolver) CreatedBy(ctx context.Context, obj *ent.UpdateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *updateSquadInputResolver) UpdatedBy(ctx context.Context, obj *ent.UpdateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *updateSquadInputResolver) UserID(ctx context.Context, obj *ent.UpdateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionID is the resolver for the missionID field.
 func (r *updateSquadInputResolver) MissionID(ctx context.Context, obj *ent.UpdateSquadInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *updateVoteInputResolver) CreatedBy(ctx context.Context, obj *ent.UpdateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *updateVoteInputResolver) UpdatedBy(ctx context.Context, obj *ent.UpdateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserID is the resolver for the userID field.
 func (r *updateVoteInputResolver) UserID(ctx context.Context, obj *ent.UpdateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionID is the resolver for the missionID field.
 func (r *updateVoteInputResolver) MissionID(ctx context.Context, obj *ent.UpdateVoteInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // ID is the resolver for the id field.
 func (r *voteWhereInputResolver) ID(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.ID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDNeq is the resolver for the idNEQ field.
 func (r *voteWhereInputResolver) IDNeq(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: IDNeq - idNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.IDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // IDIn is the resolver for the idIn field.
 func (r *voteWhereInputResolver) IDIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDIn - idIn"))
+	for _, v := range data {
+		obj.IDIn = append(obj.IDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDNotIn is the resolver for the idNotIn field.
 func (r *voteWhereInputResolver) IDNotIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: IDNotIn - idNotIn"))
+	for _, v := range data {
+		obj.IDNotIn = append(obj.IDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // IDGt is the resolver for the idGT field.
@@ -2928,22 +3570,40 @@ func (r *voteWhereInputResolver) IDLte(ctx context.Context, obj *ent.VoteWhereIn
 
 // CreatedBy is the resolver for the createdBy field.
 func (r *voteWhereInputResolver) CreatedBy(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedBy - createdBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByNeq is the resolver for the createdByNEQ field.
 func (r *voteWhereInputResolver) CreatedByNeq(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNeq - createdByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.CreatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // CreatedByIn is the resolver for the createdByIn field.
 func (r *voteWhereInputResolver) CreatedByIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByIn - createdByIn"))
+	for _, v := range data {
+		obj.CreatedByIn = append(obj.CreatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByNotIn is the resolver for the createdByNotIn field.
 func (r *voteWhereInputResolver) CreatedByNotIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: CreatedByNotIn - createdByNotIn"))
+	for _, v := range data {
+		obj.CreatedByNotIn = append(obj.CreatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // CreatedByGt is the resolver for the createdByGT field.
@@ -2968,22 +3628,40 @@ func (r *voteWhereInputResolver) CreatedByLte(ctx context.Context, obj *ent.Vote
 
 // UpdatedBy is the resolver for the updatedBy field.
 func (r *voteWhereInputResolver) UpdatedBy(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedBy - updatedBy"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedBy = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByNeq is the resolver for the updatedByNEQ field.
 func (r *voteWhereInputResolver) UpdatedByNeq(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNeq - updatedByNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UpdatedByNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UpdatedByIn is the resolver for the updatedByIn field.
 func (r *voteWhereInputResolver) UpdatedByIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByIn - updatedByIn"))
+	for _, v := range data {
+		obj.UpdatedByIn = append(obj.UpdatedByIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByNotIn is the resolver for the updatedByNotIn field.
 func (r *voteWhereInputResolver) UpdatedByNotIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UpdatedByNotIn - updatedByNotIn"))
+	for _, v := range data {
+		obj.UpdatedByNotIn = append(obj.UpdatedByNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UpdatedByGt is the resolver for the updatedByGT field.
@@ -3008,42 +3686,78 @@ func (r *voteWhereInputResolver) UpdatedByLte(ctx context.Context, obj *ent.Vote
 
 // MissionID is the resolver for the missionID field.
 func (r *voteWhereInputResolver) MissionID(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionID - missionID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionIDNeq is the resolver for the missionIDNEQ field.
 func (r *voteWhereInputResolver) MissionIDNeq(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: MissionIDNeq - missionIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.MissionIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // MissionIDIn is the resolver for the missionIDIn field.
 func (r *voteWhereInputResolver) MissionIDIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: MissionIDIn - missionIDIn"))
+	for _, v := range data {
+		obj.MissionIDIn = append(obj.MissionIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // MissionIDNotIn is the resolver for the missionIDNotIn field.
 func (r *voteWhereInputResolver) MissionIDNotIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: MissionIDNotIn - missionIDNotIn"))
+	for _, v := range data {
+		obj.MissionIDNotIn = append(obj.MissionIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserID is the resolver for the userID field.
 func (r *voteWhereInputResolver) UserID(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserID - userID"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserID = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDNeq is the resolver for the userIDNEQ field.
 func (r *voteWhereInputResolver) UserIDNeq(ctx context.Context, obj *ent.VoteWhereInput, data *string) error {
-	panic(fmt.Errorf("not implemented: UserIDNeq - userIDNEQ"))
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.UserIDNEQ = &tempID
+		return nil
+	} else {
+		return errors.New("null")
+	}
 }
 
 // UserIDIn is the resolver for the userIDIn field.
 func (r *voteWhereInputResolver) UserIDIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDIn - userIDIn"))
+	for _, v := range data {
+		obj.UserIDIn = append(obj.UserIDIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDNotIn is the resolver for the userIDNotIn field.
 func (r *voteWhereInputResolver) UserIDNotIn(ctx context.Context, obj *ent.VoteWhereInput, data []string) error {
-	panic(fmt.Errorf("not implemented: UserIDNotIn - userIDNotIn"))
+	for _, v := range data {
+		obj.UserIDNotIn = append(obj.UserIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
 }
 
 // UserIDGt is the resolver for the userIDGT field.
