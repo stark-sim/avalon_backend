@@ -83,6 +83,8 @@ type RecordResolver interface {
 
 	UserID(ctx context.Context, obj *ent.Record) (string, error)
 	RoomID(ctx context.Context, obj *ent.Record) (string, error)
+
+	User(ctx context.Context, obj *ent.Record) (*model.User, error)
 }
 type RoomResolver interface {
 	ID(ctx context.Context, obj *ent.Room) (string, error)
@@ -106,6 +108,8 @@ type SquadResolver interface {
 
 	MissionID(ctx context.Context, obj *ent.Squad) (string, error)
 	UserID(ctx context.Context, obj *ent.Squad) (string, error)
+
+	User(ctx context.Context, obj *ent.Squad) (*model.User, error)
 }
 type VoteResolver interface {
 	ID(ctx context.Context, obj *ent.Vote) (string, error)
@@ -114,6 +118,8 @@ type VoteResolver interface {
 
 	MissionID(ctx context.Context, obj *ent.Vote) (string, error)
 	UserID(ctx context.Context, obj *ent.Vote) (string, error)
+
+	User(ctx context.Context, obj *ent.Vote) (*model.User, error)
 }
 
 type CardWhereInputResolver interface {
@@ -2985,6 +2991,8 @@ func (ec *executionContext) fieldContext_Mission_squads(ctx context.Context, fie
 				return ec.fieldContext_Squad_rat(ctx, field)
 			case "mission":
 				return ec.fieldContext_Squad_mission(ctx, field)
+			case "user":
+				return ec.fieldContext_Squad_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Squad", field.Name)
 		},
@@ -3048,6 +3056,8 @@ func (ec *executionContext) fieldContext_Mission_missionVotes(ctx context.Contex
 				return ec.fieldContext_Vote_pass(ctx, field)
 			case "mission":
 				return ec.fieldContext_Vote_mission(ctx, field)
+			case "user":
+				return ec.fieldContext_Vote_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
 		},
@@ -3821,6 +3831,8 @@ func (ec *executionContext) fieldContext_Query_records(ctx context.Context, fiel
 				return ec.fieldContext_Record_score(ctx, field)
 			case "room":
 				return ec.fieldContext_Record_room(ctx, field)
+			case "user":
+				return ec.fieldContext_Record_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Record", field.Name)
 		},
@@ -4021,6 +4033,8 @@ func (ec *executionContext) fieldContext_Query_squads(ctx context.Context, field
 				return ec.fieldContext_Squad_rat(ctx, field)
 			case "mission":
 				return ec.fieldContext_Squad_mission(ctx, field)
+			case "user":
+				return ec.fieldContext_Squad_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Squad", field.Name)
 		},
@@ -4087,6 +4101,8 @@ func (ec *executionContext) fieldContext_Query_votes(ctx context.Context, field 
 				return ec.fieldContext_Vote_pass(ctx, field)
 			case "mission":
 				return ec.fieldContext_Vote_mission(ctx, field)
+			case "user":
+				return ec.fieldContext_Vote_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
 		},
@@ -4790,6 +4806,54 @@ func (ec *executionContext) fieldContext_Record_room(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Record_user(ctx context.Context, field graphql.CollectedField, obj *ent.Record) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Record_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Record().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Record_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Record",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Room_id(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Room_id(ctx, field)
 	if err != nil {
@@ -5328,6 +5392,8 @@ func (ec *executionContext) fieldContext_Room_records(ctx context.Context, field
 				return ec.fieldContext_Record_score(ctx, field)
 			case "room":
 				return ec.fieldContext_Record_room(ctx, field)
+			case "user":
+				return ec.fieldContext_Record_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Record", field.Name)
 		},
@@ -6275,6 +6341,54 @@ func (ec *executionContext) fieldContext_Squad_mission(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Squad_user(ctx context.Context, field graphql.CollectedField, obj *ent.Squad) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Squad_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Squad().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Squad_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Squad",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_id(ctx, field)
 	if err != nil {
@@ -6786,6 +6900,54 @@ func (ec *executionContext) fieldContext_Vote_mission(ctx context.Context, field
 				return ec.fieldContext_Mission_missionVotes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Mission", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Vote_user(ctx context.Context, field graphql.CollectedField, obj *ent.Vote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vote_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Vote().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vote_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vote",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -16948,6 +17110,26 @@ func (ec *executionContext) _Record(ctx context.Context, sel ast.SelectionSet, o
 				return innerFunc(ctx)
 
 			})
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Record_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17466,6 +17648,26 @@ func (ec *executionContext) _Squad(ctx context.Context, sel ast.SelectionSet, ob
 				return innerFunc(ctx)
 
 			})
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Squad_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17653,6 +17855,26 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Vote_mission(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "user":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Vote_user(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -709,6 +709,7 @@ type Record implements Node {
   roomID: ID!
   score: Int!
   room: Room!
+  user: User!
 }
 """Ordering options for Record connections"""
 input RecordOrder {
@@ -1045,6 +1046,7 @@ type Squad implements Node {
   """是否破坏任务"""
   rat: Boolean!
   mission: Mission!
+  user: User!
 }
 """Ordering options for Squad connections"""
 input SquadOrder {
@@ -1299,6 +1301,7 @@ type Vote implements Node {
   userID: ID!
   pass: Boolean!
   mission: Mission!
+  user: User!
 }
 """Ordering options for Vote connections"""
 input VoteOrder {

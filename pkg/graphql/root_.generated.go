@@ -179,6 +179,7 @@ type ComplexityRoot struct {
 		Score     func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -219,6 +220,7 @@ type ComplexityRoot struct {
 		Rat       func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -236,6 +238,7 @@ type ComplexityRoot struct {
 		Pass      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -828,6 +831,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Record.UpdatedBy(childComplexity), true
 
+	case "Record.user":
+		if e.complexity.Record.User == nil {
+			break
+		}
+
+		return e.complexity.Record.User(childComplexity), true
+
 	case "Record.userID":
 		if e.complexity.Record.UserID == nil {
 			break
@@ -1045,6 +1055,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Squad.UpdatedBy(childComplexity), true
 
+	case "Squad.user":
+		if e.complexity.Squad.User == nil {
+			break
+		}
+
+		return e.complexity.Squad.User(childComplexity), true
+
 	case "Squad.userID":
 		if e.complexity.Squad.UserID == nil {
 			break
@@ -1121,6 +1138,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Vote.UpdatedBy(childComplexity), true
+
+	case "Vote.user":
+		if e.complexity.Vote.User == nil {
+			break
+		}
+
+		return e.complexity.Vote.User(childComplexity), true
 
 	case "Vote.userID":
 		if e.complexity.Vote.UserID == nil {

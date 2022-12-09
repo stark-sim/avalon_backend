@@ -236,6 +236,13 @@ func (r *recordResolver) RoomID(ctx context.Context, obj *ent.Record) (string, e
 	return strconv.FormatInt(obj.RoomID, 10), nil
 }
 
+// User is the resolver for the user field.
+func (r *recordResolver) User(ctx context.Context, obj *ent.Record) (*model.User, error) {
+	return &model.User{
+		ID: strconv.FormatInt(obj.UserID, 10),
+	}, nil
+}
+
 // ID is the resolver for the id field.
 func (r *roomResolver) ID(ctx context.Context, obj *ent.Room) (string, error) {
 	return strconv.FormatInt(obj.ID, 10), nil
@@ -306,6 +313,13 @@ func (r *squadResolver) UserID(ctx context.Context, obj *ent.Squad) (string, err
 	return strconv.FormatInt(obj.UserID, 10), nil
 }
 
+// User is the resolver for the user field.
+func (r *squadResolver) User(ctx context.Context, obj *ent.Squad) (*model.User, error) {
+	return &model.User{
+		ID: strconv.FormatInt(obj.UserID, 10),
+	}, nil
+}
+
 // ID is the resolver for the id field.
 func (r *voteResolver) ID(ctx context.Context, obj *ent.Vote) (string, error) {
 	return strconv.FormatInt(obj.ID, 10), nil
@@ -329,6 +343,13 @@ func (r *voteResolver) MissionID(ctx context.Context, obj *ent.Vote) (string, er
 // UserID is the resolver for the userID field.
 func (r *voteResolver) UserID(ctx context.Context, obj *ent.Vote) (string, error) {
 	return strconv.FormatInt(obj.UserID, 10), nil
+}
+
+// User is the resolver for the user field.
+func (r *voteResolver) User(ctx context.Context, obj *ent.Vote) (*model.User, error) {
+	return &model.User{
+		ID: strconv.FormatInt(obj.UserID, 10),
+	}, nil
 }
 
 // ID is the resolver for the id field.
