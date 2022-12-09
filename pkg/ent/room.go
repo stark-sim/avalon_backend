@@ -224,6 +224,9 @@ func (r *Room) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (r Room) IsEntity() {}
+
 // NamedRoomUsers returns the RoomUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (r *Room) NamedRoomUsers(name string) ([]*RoomUser, error) {

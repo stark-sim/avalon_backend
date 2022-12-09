@@ -189,6 +189,9 @@ func (ru *RoomUser) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (ru RoomUser) IsEntity() {}
+
 // RoomUsers is a parsable slice of RoomUser.
 type RoomUsers []*RoomUser
 

@@ -272,6 +272,9 @@ func (m *Mission) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (m Mission) IsEntity() {}
+
 // NamedSquads returns the Squads named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (m *Mission) NamedSquads(name string) ([]*Squad, error) {

@@ -237,6 +237,9 @@ func (ga *Game) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (ga Game) IsEntity() {}
+
 // NamedGameUsers returns the GameUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (ga *Game) NamedGameUsers(name string) ([]*GameUser, error) {

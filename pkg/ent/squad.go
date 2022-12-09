@@ -202,6 +202,9 @@ func (s *Squad) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (s Squad) IsEntity() {}
+
 // Squads is a parsable slice of Squad.
 type Squads []*Squad
 

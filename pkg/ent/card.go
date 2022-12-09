@@ -177,6 +177,9 @@ func (c *Card) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (c Card) IsEntity() {}
+
 // NamedGameUsers returns the GameUsers named value or an error if the edge was not
 // loaded in eager-loading with this name.
 func (c *Card) NamedGameUsers(name string) ([]*GameUser, error) {

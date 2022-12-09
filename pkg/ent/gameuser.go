@@ -232,6 +232,9 @@ func (gu *GameUser) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (gu GameUser) IsEntity() {}
+
 // GameUsers is a parsable slice of GameUser.
 type GameUsers []*GameUser
 

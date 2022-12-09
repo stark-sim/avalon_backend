@@ -202,6 +202,9 @@ func (v *Vote) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (v Vote) IsEntity() {}
+
 // Votes is a parsable slice of Vote.
 type Votes []*Vote
 

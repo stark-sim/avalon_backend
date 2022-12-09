@@ -24,7 +24,7 @@ func main() {
 	// 整合 versioned migrations 和 GraphQL schema
 	if err := entc.Generate("./schema", &gen.Config{
 		Features: []gen.Feature{gen.FeatureVersionedMigration},
-	}, entc.Extensions(ex)); err != nil {
+	}, entc.Extensions(ex), entc.TemplateDir("./template")); err != nil {
 		log.Fatalf("running ent codegen: %v", err)
 	}
 }

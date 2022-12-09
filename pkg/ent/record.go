@@ -200,6 +200,9 @@ func (r *Record) String() string {
 	return builder.String()
 }
 
+// IsEntity implement fedruntime.Entity
+func (r Record) IsEntity() {}
+
 // Records is a parsable slice of Record.
 type Records []*Record
 
