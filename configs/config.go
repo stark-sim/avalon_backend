@@ -24,8 +24,10 @@ type Code struct {
 }
 
 type APIConfig struct {
-	HttpPort int `mapstructure:"http_port"`
-	GrpcPort int `mapstructure:"grpc_port"`
+	HttpPort    int    `mapstructure:"http_port"`
+	GrpcPort    int    `mapstructure:"grpc_port"`
+	CasHost     string `mapstructure:"cas_host"`
+	CasGrpcPort int    `mapstructure:"cas_grpc_port"`
 }
 
 type DBConfig struct {
