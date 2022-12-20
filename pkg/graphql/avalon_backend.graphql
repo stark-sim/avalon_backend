@@ -1407,4 +1407,6 @@ type Mutation {
 
 type User @key(fields: "id", resolvable: false) {
   id: ID!
+  name: String!
+  phone: String!
 }

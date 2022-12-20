@@ -3,7 +3,9 @@
 package model
 
 type User struct {
-	ID string `json:"id"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
 }
 
 func (User) IsEntity() {}

@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/sirupsen/logrus"
 	"strconv"
 
 	"github.com/stark-sim/avalon_backend/pkg/ent"
@@ -94,6 +96,8 @@ func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int, 
 
 // User is the resolver for the user field.
 func (r *gameUserResolver) User(ctx context.Context, obj *ent.GameUser) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
 	return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
 }
 
@@ -238,6 +242,8 @@ func (r *recordResolver) RoomID(ctx context.Context, obj *ent.Record) (string, e
 
 // User is the resolver for the user field.
 func (r *recordResolver) User(ctx context.Context, obj *ent.Record) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
 	return &model.User{
 		ID: strconv.FormatInt(obj.UserID, 10),
 	}, nil
@@ -285,6 +291,8 @@ func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (strin
 
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
 	return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
 }
 
@@ -315,6 +323,8 @@ func (r *squadResolver) UserID(ctx context.Context, obj *ent.Squad) (string, err
 
 // User is the resolver for the user field.
 func (r *squadResolver) User(ctx context.Context, obj *ent.Squad) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
 	return &model.User{
 		ID: strconv.FormatInt(obj.UserID, 10),
 	}, nil
@@ -347,6 +357,8 @@ func (r *voteResolver) UserID(ctx context.Context, obj *ent.Vote) (string, error
 
 // User is the resolver for the user field.
 func (r *voteResolver) User(ctx context.Context, obj *ent.Vote) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
 	return &model.User{
 		ID: strconv.FormatInt(obj.UserID, 10),
 	}, nil
