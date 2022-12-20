@@ -43,6 +43,7 @@ type ResolverRoot interface {
 	Room() RoomResolver
 	RoomUser() RoomUserResolver
 	Squad() SquadResolver
+	Subscription() SubscriptionResolver
 	Vote() VoteResolver
 	CardWhereInput() CardWhereInputResolver
 	CreateCardInput() CreateCardInputResolver
@@ -222,6 +223,10 @@ type ComplexityRoot struct {
 		UpdatedBy func(childComplexity int) int
 		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
+	}
+
+	Subscription struct {
+		GetRoomUser func(childComplexity int) int
 	}
 
 	User struct {
@@ -1071,6 +1076,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Squad.UserID(childComplexity), true
 
+	case "Subscription.GetRoomUser":
+		if e.complexity.Subscription.GetRoomUser == nil {
+			break
+		}
+
+		return e.complexity.Subscription.GetRoomUser(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -1254,6 +1266,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				Data: buf.Bytes(),
 			}
 		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next(ctx)
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -1279,7 +1308,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
 }
 
-//go:embed "avalon_backend.graphql"
+//go:embed "avalon_backend.graphql" "subscription.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1292,6 +1321,7 @@ func sourceData(filename string) string {
 
 var sources = []*ast.Source{
 	{Name: "avalon_backend.graphql", Input: sourceData("avalon_backend.graphql"), BuiltIn: false},
+	{Name: "subscription.graphql", Input: sourceData("subscription.graphql"), BuiltIn: false},
 	{Name: "federation/directives.graphql", Input: `
 	scalar _Any
 	scalar _FieldSet

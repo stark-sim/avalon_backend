@@ -7,22 +7,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/99designs/gqlgen/graphql"
-	"github.com/go-redis/redis/v9"
-	"github.com/sirupsen/logrus"
-	"github.com/stark-sim/avalon_backend/pkg/grpc"
-	"github.com/stark-sim/avalon_backend/tools/cache"
-	"github.com/stark-sim/cas/pkg/grpc/proto/entpb"
-	"github.com/vektah/gqlparser/v2/ast"
-	grpc2 "google.golang.org/grpc"
 	"strconv"
 
+	"github.com/99designs/gqlgen/graphql"
+	redis "github.com/go-redis/redis/v9"
+	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
+	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
+	"github.com/stark-sim/avalon_backend/tools/cache"
+	"github.com/stark-sim/cas/pkg/grpc/proto/entpb"
+	"github.com/vektah/gqlparser/v2/ast"
+	grpc2 "google.golang.org/grpc"
 )
 
 // ID is the resolver for the id field.
@@ -298,7 +298,6 @@ func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (strin
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
 	oc := graphql.GetOperationContext(ctx)
-	logrus.Infof("%s\n", oc.Operation.Operation)
 	if oc.Operation.Operation != ast.Subscription {
 		// 如果不是特殊操作，利用 Apollo SuperGraph 获取 User 的剩余数据
 		return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil

@@ -1,6 +1,7 @@
 # schema tells gqlgen when the GraphQL schema is located.
 schema:
   - ./avalon_backend.graphql
+  - ./subscription.graphql
 
 # Where should the generated server code go?
 exec:

@@ -42,7 +42,7 @@ func (rc *RedisClient) SetUser(ctx context.Context, user *model.User) error {
 		logrus.Errorf("error at json dump User to bytes: %v", err)
 		return err
 	}
-	err = rc.rdb.Set(ctx, fmt.Sprintf(RedisUserKey, user.ID), val, time.Second*10).Err()
+	err = rc.rdb.Set(ctx, fmt.Sprintf(RedisUserKey, user.ID), val, time.Minute*10).Err()
 	if err != nil {
 		logrus.Errorf("error at redis set User bytes: %v", err)
 		return err

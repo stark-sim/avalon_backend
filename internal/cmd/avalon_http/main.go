@@ -7,6 +7,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/stark-sim/avalon_backend/configs"
@@ -30,6 +31,7 @@ func main() {
 	r := gin.Default()
 	r.Use(middlewares.WriterMiddleware())
 	r.POST("/graphql", graphqlHandler())
+	r.GET("/graphql", graphqlHandler())
 	r.GET("/", playgroundHandler())
 	err = r.Run(fmt.Sprintf(":%v", configs.Conf.APIConfig.HttpPort))
 	if err != nil {
@@ -42,6 +44,8 @@ func graphqlHandler() gin.HandlerFunc {
 	client := db.NewDBClient()
 	// 初始化 graphql server
 	srv := handler.NewDefaultServer(graphql.NewSchema(client))
+	// 加上 ws 服务
+	srv.AddTransport(&transport.Websocket{})
 	// 自定义事务隔离等级
 	srv.Use(entgql.Transactioner{
 		TxOpener: entgql.TxOpenerFunc(func(ctx context.Context) (context.Context, driver.Tx, error) {
