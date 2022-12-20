@@ -10,8 +10,11 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools/cache"
+	"github.com/stark-sim/cas/pkg/grpc/proto/entpb"
 	"github.com/vektah/gqlparser/v2/ast"
+	grpc2 "google.golang.org/grpc"
 	"strconv"
 
 	"github.com/stark-sim/avalon_backend/pkg/ent"
@@ -310,7 +313,34 @@ func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.
 		user, err := cacheClient.GetUser(ctx, userID)
 		if err == redis.Nil {
 			// 缓存里没有就调用 gRPC 获取，然后塞回缓存
-			return nil, err
+			// 建立 grpc 连接
+			conn, err := grpc.NewCASGrpcConn()
+			if err != nil {
+				return nil, err
+			}
+			defer func(conn *grpc2.ClientConn) {
+				err := conn.Close()
+				if err != nil {
+					logrus.Errorf("error at closing grpc conn: %v", err)
+				}
+			}(conn)
+			grpcClient := grpc.NewCASClient(conn)
+			res, err := grpcClient.Get(ctx, &entpb.GetUserRequest{
+				Id: obj.UserID,
+			})
+			if err != nil {
+				logrus.Errorf("error at get user using grpc: %v", err)
+				return nil, err
+			}
+			user = &model.User{
+				ID:    userID,
+				Name:  res.Name,
+				Phone: res.Phone,
+			}
+			if err = cacheClient.SetUser(ctx, user); err != nil {
+				return nil, err
+			}
+			return user, nil
 		} else if err != nil {
 			return nil, err
 		} else {
