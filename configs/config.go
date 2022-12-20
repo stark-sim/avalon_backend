@@ -15,6 +15,8 @@ type Config struct {
 	Code `mapstructure:"code"`
 
 	APIConfig `mapstructure:"api"`
+
+	RedisConfig `mapstructure:"redis"`
 }
 
 type Code struct {
@@ -33,6 +35,13 @@ type DBConfig struct {
 	Username string
 	Password string
 	Database string
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Password string
+	DB       int
 }
 
 func InitConfig() (err error) {

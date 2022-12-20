@@ -8,7 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/tools/cache"
+	"github.com/vektah/gqlparser/v2/ast"
 	"strconv"
 
 	"github.com/stark-sim/avalon_backend/pkg/ent"
@@ -291,9 +294,29 @@ func (r *roomUserResolver) RoomID(ctx context.Context, obj *ent.RoomUser) (strin
 
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
-	fc := graphql.GetFieldContext(ctx)
-	logrus.Infof("%s\n", fc.Object)
-	return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
+	oc := graphql.GetOperationContext(ctx)
+	logrus.Infof("%s\n", oc.Operation.Operation)
+	if oc.Operation.Operation != ast.Subscription {
+		// 如果不是特殊操作，利用 Apollo SuperGraph 获取 User 的剩余数据
+		return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
+	} else {
+		// 如果是无法使用 Apollo 的特殊操作如 Subscription，用 gRPC 获取 User，需要加缓存
+		userID := strconv.FormatInt(obj.UserID, 10)
+		// 获取上下文中的 CacheClient
+		cacheClient, ok := ctx.Value(cache.DefaultClient).(cache.Client)
+		if !ok {
+			return nil, errors.New("no redis client")
+		}
+		user, err := cacheClient.GetUser(ctx, userID)
+		if err == redis.Nil {
+			// 缓存里没有就调用 gRPC 获取，然后塞回缓存
+			return nil, err
+		} else if err != nil {
+			return nil, err
+		} else {
+			return user, nil
+		}
+	}
 }
 
 // ID is the resolver for the id field.
