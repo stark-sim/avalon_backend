@@ -7,7 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"strconv"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	redis "github.com/go-redis/redis/v9"
@@ -16,7 +18,6 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
-	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
@@ -145,12 +146,36 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInp
 
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
-	return r.client.RoomUser.Create().SetInput(req).Save(ctx)
+	// 中间表调整软删除字段来代替创建和删除
+	roomUser, err := r.client.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.RoomID)).First(ctx)
+	if ent.IsNotFound(err) {
+		newRoomUser, err := r.client.RoomUser.
+			Create().
+			SetUserID(req.UserID).
+			SetRoomID(req.RoomID).
+			Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return newRoomUser, nil
+	} else {
+		err = r.client.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return roomUser, nil
+	}
 }
 
 // LeaveRoom is the resolver for the leaveRoom field.
-func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (int, error) {
-	return r.client.RoomUser.Delete().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).Exec(ctx)
+func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
+	if err := r.client.RoomUser.
+		Update().
+		Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime)).
+		SetDeletedAt(time.Now()).Exec(ctx); err != nil {
+		return nil, err
+	}
+	return &ent.RoomUser{UserID: req.UserID, RoomID: req.RoomID}, nil
 }
 
 // Node is the resolver for the node field.

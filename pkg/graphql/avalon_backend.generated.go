@@ -62,7 +62,7 @@ type MissionResolver interface {
 type MutationResolver interface {
 	CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error)
 	JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
-	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (int, error)
+	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -3256,14 +3256,11 @@ func (ec *executionContext) _Mutation_leaveRoom(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*ent.RoomUser)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalORoomUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoomUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_leaveRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3273,7 +3270,29 @@ func (ec *executionContext) fieldContext_Mutation_leaveRoom(ctx context.Context,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoomUser_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_RoomUser_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_RoomUser_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoomUser_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoomUser_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_RoomUser_deletedAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_RoomUser_userID(ctx, field)
+			case "roomID":
+				return ec.fieldContext_RoomUser_roomID(ctx, field)
+			case "room":
+				return ec.fieldContext_RoomUser_room(ctx, field)
+			case "user":
+				return ec.fieldContext_RoomUser_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomUser", field.Name)
 		},
 	}
 	defer func() {
@@ -16745,9 +16764,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_leaveRoom(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -1403,7 +1403,7 @@ input VoteWhereInput {
 type Mutation {
   createRoom(req: CreateRoomInput!): Room
   joinRoom(req: CreateRoomUserInput!): RoomUser
-  leaveRoom(req: CreateRoomUserInput!): Int!
+  leaveRoom(req: CreateRoomUserInput!): RoomUser
 }
 
 type User @key(fields: "id", resolvable: false) {

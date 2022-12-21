@@ -5,12 +5,12 @@ package graphql
 
 import (
 	"context"
-	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
-	"github.com/stark-sim/avalon_backend/tools"
 	"time"
 
 	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
+	"github.com/stark-sim/avalon_backend/tools"
 )
 
 // GetRoomUser is the resolver for the GetRoomUser field.
@@ -50,9 +50,7 @@ func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.Room
 			}
 			select {
 			case ch <- roomUsers:
-				time.Sleep(2 * time.Second)
-			default:
-				return
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
