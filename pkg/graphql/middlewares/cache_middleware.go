@@ -22,6 +22,7 @@ func (s SubscriptionCacheClientLoader) InterceptOperation(ctx context.Context, n
 	oc := graphql.GetOperationContext(ctx)
 	logrus.Infof("called !!!")
 	if oc.Operation.Operation == ast.Subscription {
+		// TODO 在请求结束后的中间件调用 Close
 		cacheClient := cache.NewRedisClient()
 		ctx = context.WithValue(ctx, cache.DefaultClient, cacheClient)
 	}

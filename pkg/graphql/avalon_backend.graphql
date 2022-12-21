@@ -1404,10 +1404,19 @@ type Mutation {
   createRoom(req: CreateRoomInput!): Room
   joinRoom(req: CreateRoomUserInput!): RoomUser
   leaveRoom(req: CreateRoomUserInput!): RoomUser
+  closeRoom(req: RoomRequest!): Room
 }
 
 type User @key(fields: "id", resolvable: false) {
   id: ID!
   name: String!
   phone: String!
+}
+
+extend type Room {
+  shortCode: String
+}
+
+extend input CreateRoomUserInput {
+  shortCode: String
 }

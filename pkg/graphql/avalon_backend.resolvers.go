@@ -5,9 +5,9 @@ package graphql
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
 	"errors"
 	"fmt"
-	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"strconv"
 	"time"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
@@ -141,15 +142,43 @@ func (r *missionResolver) Capacity(ctx context.Context, obj *ent.Mission) (int, 
 
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error) {
-	return r.client.Room.Create().SetInput(req).Save(ctx)
+	_room, err := r.client.Room.Create().SetInput(req).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 在 redis 中设置 房间快捷码
+	redisClient := cache.NewRedisClient()
+	_, err = redisClient.SetRoomIDByShortCode(ctx, _room.ID)
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
+	return _room, nil
 }
 
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
-	// 中间表调整软删除字段来代替创建和删除
-	roomUser, err := r.client.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).First(ctx)
+	// 加入前检查 房间 是否关闭
+	tx, err := r.client.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.Room.Query().Where(room.ID(req.RoomID), room.DeletedAt(tools.ZeroTime), room.Closed(true)).First(ctx)
 	if ent.IsNotFound(err) {
-		newRoomUser, err := r.client.RoomUser.
+		return nil, errors.New("room no exist")
+	} else if err != nil {
+		return nil, err
+	}
+	// 中间表调整软删除字段来代替创建和删除
+	roomUser, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).First(ctx)
+	if ent.IsNotFound(err) {
+		// 要插入 RoomUser 的话需要 Room 信号量
+		redisClient := cache.NewRedisClient()
+		err = redisClient.WaitRoomMutex(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+		newRoomUser, err := tx.RoomUser.
 			Create().
 			SetUserID(req.UserID).
 			SetRoomID(req.RoomID).
@@ -157,9 +186,22 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 		if err != nil {
 			return nil, err
 		}
+		err = redisClient.ReleaseRoomMutex(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+		err = tx.Commit()
+		if err != nil {
+			return nil, err
+		}
+		redisClient.Close()
 		return newRoomUser, nil
 	} else {
 		err = r.client.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = tx.Commit()
 		if err != nil {
 			return nil, err
 		}
@@ -169,13 +211,66 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 
 // LeaveRoom is the resolver for the leaveRoom field.
 func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
-	if err := r.client.RoomUser.
+	redisClient := cache.NewRedisClient()
+	tx, err := r.client.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	// 离开前查看房间剩余人数，要抢信号量锁住 RoomUser 表新增
+	err = redisClient.WaitRoomMutex(ctx, req.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	count, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.DeletedAt(tools.ZeroTime)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 查找后就可以释放信号量，因为加入房间时检查 Room.Closed 依赖 ReadCommitted 就足够，不需要信号量
+	err = redisClient.ReleaseRoomMutex(ctx, req.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	// 自己退出
+	if err = tx.RoomUser.
 		Update().
 		Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime)).
 		SetDeletedAt(time.Now()).Exec(ctx); err != nil {
 		return nil, err
 	}
+	if count == 1 {
+		// 如果只剩自己一个人，还需要关闭房间，并清除 shortCode
+		_, err = tx.Room.UpdateOneID(req.RoomID).SetClosed(true).Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = redisClient.DeleteRoomIDWithShortCode(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
 	return &ent.RoomUser{UserID: req.UserID, RoomID: req.RoomID}, nil
+}
+
+// CloseRoom is the resolver for the closeRoom field.
+func (r *mutationResolver) CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error) {
+	roomID := tools.StringToInt64(req.ID)
+	_room, err := r.client.Room.UpdateOneID(roomID).SetClosed(true).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 将 redis 中的 房间快捷码 清除
+	redisClient := cache.NewRedisClient()
+	err = redisClient.DeleteRoomIDWithShortCode(ctx, _room.ID)
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
+	return _room, nil
 }
 
 // Node is the resolver for the node field.
@@ -935,6 +1030,11 @@ func (r *createRoomUserInputResolver) RoomID(ctx context.Context, obj *ent.Creat
 	tempID := tools.StringToInt64(data)
 	obj.RoomID = tempID
 	return nil
+}
+
+// ShortCode is the resolver for the shortCode field.
+func (r *createRoomUserInputResolver) ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error {
+	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -4070,3 +4170,13 @@ type updateRoomUserInputResolver struct{ *Resolver }
 type updateSquadInputResolver struct{ *Resolver }
 type updateVoteInputResolver struct{ *Resolver }
 type voteWhereInputResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *roomResolver) ShortCode(ctx context.Context, obj *ent.Room) (*string, error) {
+	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
+}

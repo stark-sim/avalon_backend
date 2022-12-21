@@ -63,6 +63,7 @@ type MutationResolver interface {
 	CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error)
 	JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
 	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
+	CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -207,6 +208,7 @@ type CreateRoomUserInputResolver interface {
 
 	UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 	RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
+	ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error
 }
 type CreateSquadInputResolver interface {
 	CreatedBy(ctx context.Context, obj *ent.CreateSquadInput, data *string) error
@@ -636,6 +638,21 @@ type VoteWhereInputResolver interface {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_closeRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RoomRequest
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -3303,6 +3320,82 @@ func (ec *executionContext) fieldContext_Mutation_leaveRoom(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_leaveRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_closeRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_closeRoom(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CloseRoom(rctx, fc.Args["req"].(model.RoomRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Room)
+	fc.Result = res
+	return ec.marshalORoom2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoom(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_closeRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Room_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Room_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Room_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Room_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Room_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Room_deletedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Room_name(ctx, field)
+			case "closed":
+				return ec.fieldContext_Room_closed(ctx, field)
+			case "roomUsers":
+				return ec.fieldContext_Room_roomUsers(ctx, field)
+			case "games":
+				return ec.fieldContext_Room_games(ctx, field)
+			case "records":
+				return ec.fieldContext_Room_records(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_closeRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -8491,7 +8584,7 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "roomID", "shortCode"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8564,6 +8657,17 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.CreateRoomUserInput().RoomID(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "shortCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shortCode"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateRoomUserInput().ShortCode(ctx, &it, data); err != nil {
 				return it, err
 			}
 		}
@@ -16762,6 +16866,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_leaveRoom(ctx, field)
+			})
+
+		case "closeRoom":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_closeRoom(ctx, field)
 			})
 
 		default:

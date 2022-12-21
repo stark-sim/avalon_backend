@@ -144,6 +144,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CloseRoom  func(childComplexity int, req model.RoomRequest) int
 		CreateRoom func(childComplexity int, req ent.CreateRoomInput) int
 		JoinRoom   func(childComplexity int, req ent.CreateRoomUserInput) int
 		LeaveRoom  func(childComplexity int, req ent.CreateRoomUserInput) int
@@ -619,6 +620,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mission.UpdatedBy(childComplexity), true
+
+	case "Mutation.closeRoom":
+		if e.complexity.Mutation.CloseRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_closeRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CloseRoom(childComplexity, args["req"].(model.RoomRequest)), true
 
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {

@@ -279,6 +279,11 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx context.Context, v interface{}) (model.RoomRequest, error) {
+	res, err := ec.unmarshalInputRoomRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalORoomRequest2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx context.Context, v interface{}) (*model.RoomRequest, error) {
 	if v == nil {
 		return nil, nil

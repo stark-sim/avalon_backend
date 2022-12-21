@@ -8,10 +8,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/configs"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
+	"strconv"
 	"time"
 )
 
 const RedisUserKey = "avalon:graphql:user:%s:json"
+const RedisRoomIDShortCodeKey = "avalon:short_code:room:%s:int64"
+const RedisRoomIDMutex = "avalon:mutex:room:%s:int64"
 
 type RedisClient struct {
 	rdb *redis.Client
@@ -48,6 +51,71 @@ func (rc *RedisClient) SetUser(ctx context.Context, user *model.User) error {
 		return err
 	}
 	return nil
+}
+
+func (rc *RedisClient) GetRoomIDByShortCode(ctx context.Context, shortCode string) (int64, error) {
+	val, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisRoomIDShortCodeKey, shortCode)).Int64()
+	if err == redis.Nil {
+		return 0, err
+	} else if err != nil {
+		return 0, err
+	} else {
+		return val, nil
+	}
+}
+
+func (rc *RedisClient) SetRoomIDByShortCode(ctx context.Context, roomID int64) (string, error) {
+	val := strconv.FormatInt(roomID, 10)
+	val = val[len(val)-6:]
+	err := rc.rdb.Set(ctx, fmt.Sprintf(RedisRoomIDShortCodeKey, val), roomID, 0).Err()
+	if err != nil {
+		logrus.Errorf("error at redis set RoomID: %v", err)
+		return "", err
+	}
+	return val, nil
+}
+
+func (rc *RedisClient) DeleteRoomIDWithShortCode(ctx context.Context, roomID int64) error {
+	val := strconv.FormatInt(roomID, 10)
+	val = val[len(val)-6:]
+	err := rc.rdb.Del(ctx, fmt.Sprintf(RedisRoomIDShortCodeKey, val)).Err()
+	if err != nil {
+		logrus.Errorf("error at redis delete RoomShortCode: %v", err)
+		return err
+	}
+	return nil
+}
+
+// WaitRoomMutex 抢某个房间的信号量，用于解决 RoomUser 新增时的幻读问题
+func (rc *RedisClient) WaitRoomMutex(ctx context.Context, roomID int64) error {
+	for {
+		done, err := rc.rdb.SetNX(ctx, fmt.Sprintf(RedisRoomIDMutex, strconv.FormatInt(roomID, 10)), roomID, 2*time.Second).Result()
+		if err != nil {
+			return err
+		}
+		if !done {
+			continue
+		} else {
+			return nil
+		}
+	}
+}
+
+func (rc *RedisClient) ReleaseRoomMutex(ctx context.Context, roomID int64) error {
+	_, err := rc.rdb.Del(ctx, fmt.Sprintf(RedisRoomIDMutex, strconv.FormatInt(roomID, 10))).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClient) Close() {
+	err := rc.rdb.Close()
+	if err != nil {
+		logrus.Errorf("error at close redis client: %v", err)
+		return
+	}
+	return
 }
 
 func NewRedisClient() *RedisClient {
