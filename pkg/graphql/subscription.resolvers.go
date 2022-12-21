@@ -43,7 +43,7 @@ func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.Room
 			roomUsers, err := r.client.RoomUser.
 				Query().
 				Where(roomuser.RoomID(roomID), roomuser.DeletedAt(tools.ZeroTime)).
-				Order(ent.Asc(roomuser.FieldCreatedAt)).
+				Order(ent.Asc(roomuser.FieldUpdatedAt)).
 				All(ctx)
 			if err != nil {
 				return

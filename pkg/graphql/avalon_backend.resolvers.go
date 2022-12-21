@@ -147,7 +147,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInp
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
 	// 中间表调整软删除字段来代替创建和删除
-	roomUser, err := r.client.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.RoomID)).First(ctx)
+	roomUser, err := r.client.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).First(ctx)
 	if ent.IsNotFound(err) {
 		newRoomUser, err := r.client.RoomUser.
 			Create().
