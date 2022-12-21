@@ -20,7 +20,7 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
 	"github.com/stark-sim/avalon_backend/tools/cache"
-	"github.com/stark-sim/cas/pkg/grpc/proto/entpb"
+	pb "github.com/stark-sim/cas/pkg/grpc/pb"
 	"github.com/vektah/gqlparser/v2/ast"
 	grpc2 "google.golang.org/grpc"
 )
@@ -324,7 +324,7 @@ func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.
 				}
 			}(conn)
 			grpcClient := grpc.NewCASClient(conn)
-			res, err := grpcClient.Get(ctx, &entpb.GetUserRequest{
+			res, err := grpcClient.Get(ctx, &pb.UserGetRequest{
 				Id: obj.UserID,
 			})
 			if err != nil {
