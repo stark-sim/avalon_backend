@@ -2,6 +2,10 @@
 
 package model
 
+type RoomRequest struct {
+	ID string `json:"id"`
+}
+
 type User struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

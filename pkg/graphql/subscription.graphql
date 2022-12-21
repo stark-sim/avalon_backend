@@ -1,3 +1,8 @@
 type Subscription {
     GetRoomUser: RoomUser
+    getRoomUsers(req: RoomRequest): [RoomUser]
+}
+
+input RoomRequest {
+    id: String!
 }

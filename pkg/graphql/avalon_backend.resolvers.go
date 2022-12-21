@@ -16,11 +16,12 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
 	"github.com/stark-sim/avalon_backend/tools/cache"
-	pb "github.com/stark-sim/cas/pkg/grpc/pb"
+	cas "github.com/stark-sim/cas/pkg/grpc/pb"
 	"github.com/vektah/gqlparser/v2/ast"
 	grpc2 "google.golang.org/grpc"
 )
@@ -145,6 +146,11 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInp
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
 	return r.client.RoomUser.Create().SetInput(req).Save(ctx)
+}
+
+// LeaveRoom is the resolver for the leaveRoom field.
+func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (int, error) {
+	return r.client.RoomUser.Delete().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).Exec(ctx)
 }
 
 // Node is the resolver for the node field.
@@ -324,7 +330,7 @@ func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.
 				}
 			}(conn)
 			grpcClient := grpc.NewCASClient(conn)
-			res, err := grpcClient.Get(ctx, &pb.UserGetRequest{
+			res, err := grpcClient.Get(ctx, &cas.UserGetRequest{
 				Id: obj.UserID,
 			})
 			if err != nil {

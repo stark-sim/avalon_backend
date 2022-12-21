@@ -12,6 +12,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -145,6 +146,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateRoom func(childComplexity int, req ent.CreateRoomInput) int
 		JoinRoom   func(childComplexity int, req ent.CreateRoomUserInput) int
+		LeaveRoom  func(childComplexity int, req ent.CreateRoomUserInput) int
 	}
 
 	PageInfo struct {
@@ -226,7 +228,8 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		GetRoomUser func(childComplexity int) int
+		GetRoomUser  func(childComplexity int) int
+		GetRoomUsers func(childComplexity int, req *model.RoomRequest) int
 	}
 
 	User struct {
@@ -640,6 +643,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.JoinRoom(childComplexity, args["req"].(ent.CreateRoomUserInput)), true
+
+	case "Mutation.leaveRoom":
+		if e.complexity.Mutation.LeaveRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_leaveRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LeaveRoom(childComplexity, args["req"].(ent.CreateRoomUserInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -1083,6 +1098,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.GetRoomUser(childComplexity), true
 
+	case "Subscription.getRoomUsers":
+		if e.complexity.Subscription.GetRoomUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_getRoomUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.GetRoomUsers(childComplexity, args["req"].(*model.RoomRequest)), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -1216,6 +1243,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRecordOrder,
 		ec.unmarshalInputRecordWhereInput,
 		ec.unmarshalInputRoomOrder,
+		ec.unmarshalInputRoomRequest,
 		ec.unmarshalInputRoomUserOrder,
 		ec.unmarshalInputRoomUserWhereInput,
 		ec.unmarshalInputRoomWhereInput,

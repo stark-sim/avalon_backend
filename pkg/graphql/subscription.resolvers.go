@@ -5,8 +5,12 @@ package graphql
 
 import (
 	"context"
-	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/tools"
 	"time"
+
+	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 )
 
 // GetRoomUser is the resolver for the GetRoomUser field.
@@ -25,6 +29,31 @@ func (r *subscriptionResolver) GetRoomUser(ctx context.Context) (<-chan *ent.Roo
 				return
 			}
 			time.Sleep(2 * time.Second)
+		}
+	}()
+	return ch, nil
+}
+
+// GetRoomUsers is the resolver for the getRoomUsers field.
+func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.RoomRequest) (<-chan []*ent.RoomUser, error) {
+	roomID := tools.StringToInt64(req.ID)
+	ch := make(chan []*ent.RoomUser)
+	go func() {
+		for {
+			roomUsers, err := r.client.RoomUser.
+				Query().
+				Where(roomuser.RoomID(roomID), roomuser.DeletedAt(tools.ZeroTime)).
+				Order(ent.Asc(roomuser.FieldCreatedAt)).
+				All(ctx)
+			if err != nil {
+				return
+			}
+			select {
+			case ch <- roomUsers:
+				time.Sleep(2 * time.Second)
+			default:
+				return
+			}
 		}
 	}()
 	return ch, nil
