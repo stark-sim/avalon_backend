@@ -32,11 +32,11 @@ func Shuffle(list interface{}) []interface{} {
 		// 不是切片就是来捣乱的
 		return nil
 	}
-
-	realList := list.([]interface{})
-	//for i := 0; i < rv.Len(); i++ {
-	//	realList = append(realList, rv.Index(i).Interface())
-	//}
+	// interface{} 转 []interface{}
+	realList := make([]interface{}, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		realList[i] = rv.Index(i).Interface()
+	}
 	rand.Seed(time.Now().Unix())
 	rand.Shuffle(len(realList), func(i, j int) {
 		realList[i], realList[j] = realList[j], realList[i]

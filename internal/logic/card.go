@@ -26,9 +26,9 @@ func GetShuffledCardsByNum(ctx context.Context, num uint8, selection []*ent.Card
 		}
 		nameList = make([]card.Name, num)
 		roleList = make([]card.Role, num)
-		for _, v := range selection {
-			nameList = append(nameList, v.Name)
-			roleList = append(roleList, v.Role)
+		for i, v := range selection {
+			nameList[i] = v.Name
+			roleList[i] = v.Role
 		}
 	} else {
 		// 不传 selection，则根据人数给出对应卡牌

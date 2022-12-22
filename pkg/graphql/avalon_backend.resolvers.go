@@ -308,27 +308,34 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 	}
 	// 随机排序房间内用户和洗牌，然后创建 GameUser
 	userIDs := make([]int64, len(roomUsers))
-	for _, roomUser := range roomUsers {
-		userIDs = append(userIDs, roomUser.UserID)
+	for i, roomUser := range roomUsers {
+		userIDs[i] = roomUser.UserID
 	}
 	for i, v := range tools.Shuffle(userIDs) {
 		userIDs[i] = v.(int64)
 	}
 	// 按人数拿牌，拿的时候已经洗好了
 	cards, err := logic.GetShuffledCardsByNum(ctx, uint8(len(roomUsers)), nil)
+	if err != nil {
+		return nil, err
+	}
 	// 创建 GameUser，分牌分号
 	gameUserCreates := make([]*ent.GameUserCreate, len(roomUsers))
 	for i := 0; i < len(roomUsers); i++ {
-		gameUserCreates = append(gameUserCreates, tx.GameUser.
+		gameUserCreates[i] = tx.GameUser.
 			Create().
 			SetGameID(_game.ID).
 			SetUserID(userIDs[i]).
 			SetCardID(cards[i].ID).
-			SetNumber(uint8(i+1)))
+			SetNumber(uint8(i + 1))
 	}
 	tx.GameUser.CreateBulk(gameUserCreates...)
 	// 创建完毕，现在准备返回
 	_game, err = tx.Game.Query().Where(game.ID(_game.ID)).WithRoom().WithGameUsers().First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
