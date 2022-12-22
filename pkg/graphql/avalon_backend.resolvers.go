@@ -344,6 +344,11 @@ func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInp
 	return r.client.Card.Create().SetName(*req.Name).SetRole(req.Role).SetTale(tale).Save(ctx)
 }
 
+// JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
+func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error) {
+	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 	tempID := tools.StringToInt64(id)

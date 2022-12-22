@@ -146,12 +146,13 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CloseRoom  func(childComplexity int, req model.RoomRequest) int
-		CreateCard func(childComplexity int, req ent.CreateCardInput) int
-		CreateGame func(childComplexity int, req model.RoomRequest) int
-		CreateRoom func(childComplexity int, req ent.CreateRoomInput) int
-		JoinRoom   func(childComplexity int, req ent.CreateRoomUserInput) int
-		LeaveRoom  func(childComplexity int, req ent.CreateRoomUserInput) int
+		CloseRoom           func(childComplexity int, req model.RoomRequest) int
+		CreateCard          func(childComplexity int, req ent.CreateCardInput) int
+		CreateGame          func(childComplexity int, req model.RoomRequest) int
+		CreateRoom          func(childComplexity int, req ent.CreateRoomInput) int
+		JoinRoom            func(childComplexity int, req ent.CreateRoomUserInput) int
+		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
+		LeaveRoom           func(childComplexity int, req ent.CreateRoomUserInput) int
 	}
 
 	PageInfo struct {
@@ -698,6 +699,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.JoinRoom(childComplexity, args["req"].(ent.CreateRoomUserInput)), true
+
+	case "Mutation.joinRoomByShortCode":
+		if e.complexity.Mutation.JoinRoomByShortCode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinRoomByShortCode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.JoinRoomByShortCode(childComplexity, args["req"].(model.JoinRoomInput)), true
 
 	case "Mutation.leaveRoom":
 		if e.complexity.Mutation.LeaveRoom == nil {
@@ -1293,6 +1306,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGameUserOrder,
 		ec.unmarshalInputGameUserWhereInput,
 		ec.unmarshalInputGameWhereInput,
+		ec.unmarshalInputJoinRoomInput,
 		ec.unmarshalInputMissionOrder,
 		ec.unmarshalInputMissionWhereInput,
 		ec.unmarshalInputRecordOrder,

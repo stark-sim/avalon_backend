@@ -2,6 +2,11 @@
 
 package model
 
+type JoinRoomInput struct {
+	ShortCode string `json:"shortCode"`
+	UserID    string `json:"userID"`
+}
+
 type RoomRequest struct {
 	ID string `json:"id"`
 }

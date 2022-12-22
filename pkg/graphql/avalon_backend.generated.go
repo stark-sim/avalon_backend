@@ -67,6 +67,7 @@ type MutationResolver interface {
 	CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error)
 	CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error)
 	CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error)
+	JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -693,6 +694,21 @@ func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, 
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
 		arg0, err = ec.unmarshalNCreateRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateRoomInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinRoomByShortCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.JoinRoomInput
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNJoinRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐJoinRoomInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3672,6 +3688,80 @@ func (ec *executionContext) fieldContext_Mutation_createCard(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_joinRoomByShortCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_joinRoomByShortCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().JoinRoomByShortCode(rctx, fc.Args["req"].(model.JoinRoomInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.RoomUser)
+	fc.Result = res
+	return ec.marshalORoomUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoomUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_joinRoomByShortCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoomUser_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_RoomUser_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_RoomUser_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoomUser_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoomUser_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_RoomUser_deletedAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_RoomUser_userID(ctx, field)
+			case "roomID":
+				return ec.fieldContext_RoomUser_roomID(ctx, field)
+			case "room":
+				return ec.fieldContext_RoomUser_room(ctx, field)
+			case "user":
+				return ec.fieldContext_RoomUser_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoomUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_joinRoomByShortCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -10805,6 +10895,42 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputJoinRoomInput(ctx context.Context, obj interface{}) (model.JoinRoomInput, error) {
+	var it model.JoinRoomInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"shortCode", "userID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "shortCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shortCode"))
+			it.ShortCode, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputMissionOrder(ctx context.Context, obj interface{}) (ent.MissionOrder, error) {
 	var it ent.MissionOrder
 	asMap := map[string]interface{}{}
@@ -17265,6 +17391,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createCard(ctx, field)
 			})
 
+		case "joinRoomByShortCode":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_joinRoomByShortCode(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18887,6 +19019,11 @@ func (ec *executionContext) unmarshalNGameUserWhereInput2ᚖgithubᚗcomᚋstark
 func (ec *executionContext) unmarshalNGameWhereInput2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameWhereInput(ctx context.Context, v interface{}) (*ent.GameWhereInput, error) {
 	res, err := ec.unmarshalInputGameWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNJoinRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐJoinRoomInput(ctx context.Context, v interface{}) (model.JoinRoomInput, error) {
+	res, err := ec.unmarshalInputJoinRoomInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNMission2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐMissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Mission) graphql.Marshaler {

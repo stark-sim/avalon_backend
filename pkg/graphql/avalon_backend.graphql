@@ -1450,6 +1450,13 @@ type Mutation {
   closeRoom(req: RoomRequest!): Room
   createGame(req: RoomRequest!): Game
   createCard(req: CreateCardInput!): Card
+
+  joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+}
+
+input JoinRoomInput {
+  shortCode: String!
+  userID: ID!
 }
 
 type User @key(fields: "id", resolvable: false) {
