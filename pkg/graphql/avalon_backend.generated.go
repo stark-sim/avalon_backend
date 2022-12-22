@@ -208,7 +208,6 @@ type CreateRoomUserInputResolver interface {
 
 	UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 	RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
-	ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error
 }
 type CreateSquadInputResolver interface {
 	CreatedBy(ctx context.Context, obj *ent.CreateSquadInput, data *string) error
@@ -8584,7 +8583,7 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "roomID", "shortCode"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8657,17 +8656,6 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.CreateRoomUserInput().RoomID(ctx, &it, data); err != nil {
-				return it, err
-			}
-		case "shortCode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shortCode"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			if err = ec.resolvers.CreateRoomUserInput().ShortCode(ctx, &it, data); err != nil {
 				return it, err
 			}
 		}

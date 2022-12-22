@@ -5,12 +5,12 @@ package graphql
 
 import (
 	"context"
-	"entgo.io/ent/dialect/sql"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	redis "github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
@@ -1030,11 +1030,6 @@ func (r *createRoomUserInputResolver) RoomID(ctx context.Context, obj *ent.Creat
 	tempID := tools.StringToInt64(data)
 	obj.RoomID = tempID
 	return nil
-}
-
-// ShortCode is the resolver for the shortCode field.
-func (r *createRoomUserInputResolver) ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
 }
 
 // CreatedBy is the resolver for the createdBy field.
@@ -4177,6 +4172,9 @@ type voteWhereInputResolver struct{ *Resolver }
 //   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //     it when you're done.
 //   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *createRoomUserInputResolver) ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error {
+	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
+}
 func (r *roomResolver) ShortCode(ctx context.Context, obj *ent.Room) (*string, error) {
 	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
 }

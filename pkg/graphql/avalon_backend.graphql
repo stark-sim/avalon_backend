@@ -1412,11 +1412,3 @@ type User @key(fields: "id", resolvable: false) {
   name: String!
   phone: String!
 }
-
-extend type Room {
-  shortCode: String
-}
-
-extend input CreateRoomUserInput {
-  shortCode: String
-}
