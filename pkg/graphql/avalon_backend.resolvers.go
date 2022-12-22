@@ -282,6 +282,41 @@ func (r *mutationResolver) CloseRoom(ctx context.Context, req model.RoomRequest)
 	return _room, nil
 }
 
+// CreateGame is the resolver for the createGame field.
+func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error) {
+	// 将房间中现有的人加入到一局新游戏里
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roomID := tools.StringToInt64(req.ID)
+	// 不锁了，开了后进来的不管，用户离开房间前查一下有没有在游戏里就好，离开和这里的查人会制衡
+	roomUsers, err := tx.RoomUser.Query().Where(roomuser.RoomID(roomID), roomuser.DeletedAt(tools.ZeroTime)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 创建游戏
+	_game, err := tx.Game.
+		Create().
+		SetRoomID(roomID).
+		SetEndBy(game.EndByNone).
+		SetCapacity(uint8(len(roomUsers))).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 随机排序房间内用户和洗牌，然后创建 GameUser
+	userIDs := make([]int64, len(roomUsers))
+	for _, roomUser := range roomUsers {
+		userIDs = append(userIDs, roomUser.UserID)
+	}
+	for i, v := range tools.Shuffle(userIDs) {
+		userIDs[i] = v.(int64)
+	}
+	// 按人数拿牌，拿的时候已经洗好了
+	return _game, nil
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (ent.Noder, error) {
 	tempID := tools.StringToInt64(id)
@@ -4174,16 +4209,3 @@ type updateRoomUserInputResolver struct{ *Resolver }
 type updateSquadInputResolver struct{ *Resolver }
 type updateVoteInputResolver struct{ *Resolver }
 type voteWhereInputResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *createRoomUserInputResolver) ShortCode(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error {
-	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
-}
-func (r *roomResolver) ShortCode(ctx context.Context, obj *ent.Room) (*string, error) {
-	panic(fmt.Errorf("not implemented: ShortCode - shortCode"))
-}

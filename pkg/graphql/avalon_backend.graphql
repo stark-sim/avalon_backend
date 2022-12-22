@@ -1405,6 +1405,7 @@ type Mutation {
   joinRoom(req: CreateRoomUserInput!): RoomUser
   leaveRoom(req: CreateRoomUserInput!): RoomUser
   closeRoom(req: RoomRequest!): Room
+  createGame(req: RoomRequest!): Game
 }
 
 type User @key(fields: "id", resolvable: false) {
