@@ -16,7 +16,7 @@ type Card struct {
 // Fields of the Card.
 func (Card) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("name").Values("Merlin", "Percival", "Galahad", "Bores", "Bedivere", "Gawain", "Mordred", "Morgana", "Oberon", "Assassin", "Lancelot").Default("Merlin").StructTag(`json:"name"`).Annotations(entgql.OrderField("NAME")),
+		field.Enum("name").Values("Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Mordred", "Morgana", "Oberon", "Assassin", "Lancelot").Default("Merlin").StructTag(`json:"name"`).Annotations(entgql.OrderField("NAME")),
 		field.Enum("role").Values("Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Vassal", "Ace", "Sinner").StructTag(`json:"role"`),
 		field.String("tale").Default("").StructTag(`json:"tale"`),
 	}

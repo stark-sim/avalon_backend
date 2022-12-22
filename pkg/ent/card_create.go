@@ -92,15 +92,35 @@ func (cc *CardCreate) SetNillableDeletedAt(t *time.Time) *CardCreate {
 }
 
 // SetName sets the "name" field.
-func (cc *CardCreate) SetName(s string) *CardCreate {
-	cc.mutation.SetName(s)
+func (cc *CardCreate) SetName(c card.Name) *CardCreate {
+	cc.mutation.SetName(c)
 	return cc
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (cc *CardCreate) SetNillableName(s *string) *CardCreate {
+func (cc *CardCreate) SetNillableName(c *card.Name) *CardCreate {
+	if c != nil {
+		cc.SetName(*c)
+	}
+	return cc
+}
+
+// SetRole sets the "role" field.
+func (cc *CardCreate) SetRole(c card.Role) *CardCreate {
+	cc.mutation.SetRole(c)
+	return cc
+}
+
+// SetTale sets the "tale" field.
+func (cc *CardCreate) SetTale(s string) *CardCreate {
+	cc.mutation.SetTale(s)
+	return cc
+}
+
+// SetNillableTale sets the "tale" field if the given value is not nil.
+func (cc *CardCreate) SetNillableTale(s *string) *CardCreate {
 	if s != nil {
-		cc.SetName(*s)
+		cc.SetTale(*s)
 	}
 	return cc
 }
@@ -235,6 +255,10 @@ func (cc *CardCreate) defaults() {
 		v := card.DefaultName
 		cc.mutation.SetName(v)
 	}
+	if _, ok := cc.mutation.Tale(); !ok {
+		v := card.DefaultTale
+		cc.mutation.SetTale(v)
+	}
 	if _, ok := cc.mutation.ID(); !ok {
 		v := card.DefaultID()
 		cc.mutation.SetID(v)
@@ -260,6 +284,22 @@ func (cc *CardCreate) check() error {
 	}
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Card.name"`)}
+	}
+	if v, ok := cc.mutation.Name(); ok {
+		if err := card.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Card.name": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.Role(); !ok {
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "Card.role"`)}
+	}
+	if v, ok := cc.mutation.Role(); ok {
+		if err := card.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "Card.role": %w`, err)}
+		}
+	}
+	if _, ok := cc.mutation.Tale(); !ok {
+		return &ValidationError{Name: "tale", err: errors.New(`ent: missing required field "Card.tale"`)}
 	}
 	return nil
 }
@@ -315,8 +355,16 @@ func (cc *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 		_node.DeletedAt = value
 	}
 	if value, ok := cc.mutation.Name(); ok {
-		_spec.SetField(card.FieldName, field.TypeString, value)
+		_spec.SetField(card.FieldName, field.TypeEnum, value)
 		_node.Name = value
+	}
+	if value, ok := cc.mutation.Role(); ok {
+		_spec.SetField(card.FieldRole, field.TypeEnum, value)
+		_node.Role = value
+	}
+	if value, ok := cc.mutation.Tale(); ok {
+		_spec.SetField(card.FieldTale, field.TypeString, value)
+		_node.Tale = value
 	}
 	if nodes := cc.mutation.GameUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

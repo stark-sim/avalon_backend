@@ -116,10 +116,10 @@ func DeletedAt(v time.Time) predicate.Card {
 	})
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Card {
+// Tale applies equality check predicate on the "tale" field. It's identical to TaleEQ.
+func Tale(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
+		s.Where(sql.EQ(s.C(FieldTale), v))
 	})
 }
 
@@ -444,21 +444,21 @@ func DeletedAtLTE(v time.Time) predicate.Card {
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Card {
+func NameEQ(v Name) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldName), v))
 	})
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Card {
+func NameNEQ(v Name) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldName), v))
 	})
 }
 
 // NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Card {
+func NameIn(vs ...Name) predicate.Card {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -469,7 +469,7 @@ func NameIn(vs ...string) predicate.Card {
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Card {
+func NameNotIn(vs ...Name) predicate.Card {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -479,66 +479,138 @@ func NameNotIn(vs ...string) predicate.Card {
 	})
 }
 
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Card {
+// RoleEQ applies the EQ predicate on the "role" field.
+func RoleEQ(v Role) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldName), v))
+		s.Where(sql.EQ(s.C(FieldRole), v))
 	})
 }
 
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Card {
+// RoleNEQ applies the NEQ predicate on the "role" field.
+func RoleNEQ(v Role) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldName), v))
+		s.Where(sql.NEQ(s.C(FieldRole), v))
 	})
 }
 
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Card {
+// RoleIn applies the In predicate on the "role" field.
+func RoleIn(vs ...Role) predicate.Card {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldName), v))
+		s.Where(sql.In(s.C(FieldRole), v...))
 	})
 }
 
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Card {
+// RoleNotIn applies the NotIn predicate on the "role" field.
+func RoleNotIn(vs ...Role) predicate.Card {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldName), v))
+		s.Where(sql.NotIn(s.C(FieldRole), v...))
 	})
 }
 
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Card {
+// TaleEQ applies the EQ predicate on the "tale" field.
+func TaleEQ(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldName), v))
+		s.Where(sql.EQ(s.C(FieldTale), v))
 	})
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Card {
+// TaleNEQ applies the NEQ predicate on the "tale" field.
+func TaleNEQ(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldName), v))
+		s.Where(sql.NEQ(s.C(FieldTale), v))
 	})
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Card {
+// TaleIn applies the In predicate on the "tale" field.
+func TaleIn(vs ...string) predicate.Card {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldName), v))
+		s.Where(sql.In(s.C(FieldTale), v...))
 	})
 }
 
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Card {
+// TaleNotIn applies the NotIn predicate on the "tale" field.
+func TaleNotIn(vs ...string) predicate.Card {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldName), v))
+		s.Where(sql.NotIn(s.C(FieldTale), v...))
 	})
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Card {
+// TaleGT applies the GT predicate on the "tale" field.
+func TaleGT(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldName), v))
+		s.Where(sql.GT(s.C(FieldTale), v))
+	})
+}
+
+// TaleGTE applies the GTE predicate on the "tale" field.
+func TaleGTE(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTale), v))
+	})
+}
+
+// TaleLT applies the LT predicate on the "tale" field.
+func TaleLT(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTale), v))
+	})
+}
+
+// TaleLTE applies the LTE predicate on the "tale" field.
+func TaleLTE(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTale), v))
+	})
+}
+
+// TaleContains applies the Contains predicate on the "tale" field.
+func TaleContains(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldTale), v))
+	})
+}
+
+// TaleHasPrefix applies the HasPrefix predicate on the "tale" field.
+func TaleHasPrefix(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldTale), v))
+	})
+}
+
+// TaleHasSuffix applies the HasSuffix predicate on the "tale" field.
+func TaleHasSuffix(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldTale), v))
+	})
+}
+
+// TaleEqualFold applies the EqualFold predicate on the "tale" field.
+func TaleEqualFold(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldTale), v))
+	})
+}
+
+// TaleContainsFold applies the ContainsFold predicate on the "tale" field.
+func TaleContainsFold(v string) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldTale), v))
 	})
 }
 

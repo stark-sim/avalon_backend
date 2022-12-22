@@ -27,7 +27,11 @@ type Card struct {
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	Name card.Name `json:"name"`
+	// Role holds the value of the "role" field.
+	Role card.Role `json:"role"`
+	// Tale holds the value of the "tale" field.
+	Tale string `json:"tale"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CardQuery when eager-loading is set.
 	Edges CardEdges `json:"edges"`
@@ -62,7 +66,7 @@ func (*Card) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case card.FieldID, card.FieldCreatedBy, card.FieldUpdatedBy:
 			values[i] = new(sql.NullInt64)
-		case card.FieldName:
+		case card.FieldName, card.FieldRole, card.FieldTale:
 			values[i] = new(sql.NullString)
 		case card.FieldCreatedAt, card.FieldUpdatedAt, card.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -121,7 +125,19 @@ func (c *Card) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				c.Name = value.String
+				c.Name = card.Name(value.String)
+			}
+		case card.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				c.Role = card.Role(value.String)
+			}
+		case card.FieldTale:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field tale", values[i])
+			} else if value.Valid {
+				c.Tale = value.String
 			}
 		}
 	}
@@ -172,7 +188,13 @@ func (c *Card) String() string {
 	builder.WriteString(c.DeletedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(c.Name)
+	builder.WriteString(fmt.Sprintf("%v", c.Name))
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", c.Role))
+	builder.WriteString(", ")
+	builder.WriteString("tale=")
+	builder.WriteString(c.Tale)
 	builder.WriteByte(')')
 	return builder.String()
 }

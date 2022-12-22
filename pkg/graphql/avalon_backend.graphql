@@ -7,8 +7,24 @@ type Card implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
-  name: String!
+  name: CardName!
+  role: CardRole!
+  tale: String!
   gameUsers: [GameUser!]
+}
+"""CardName is enum for the field name"""
+enum CardName @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/card.Name") {
+  Merlin
+  Percival
+  Galahad
+  Bors
+  Bedivere
+  Gawain
+  Mordred
+  Morgana
+  Oberon
+  Assassin
+  Lancelot
 }
 """Ordering options for Card connections"""
 input CardOrder {
@@ -23,6 +39,19 @@ enum CardOrderField {
   UPDATED_AT
   DELETED_AT
   NAME
+}
+"""CardRole is enum for the field role"""
+enum CardRole @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/card.Role") {
+  Prophet
+  Knight
+  Loyal
+  Usurper
+  Enchantress
+  Assassin
+  Erlking
+  Vassal
+  Ace
+  Sinner
 }
 """
 CardWhereInput is used for filtering Card objects.
@@ -87,19 +116,29 @@ input CardWhereInput {
   deletedAtLT: Time
   deletedAtLTE: Time
   """name field predicates"""
-  name: String
-  nameNEQ: String
-  nameIn: [String!]
-  nameNotIn: [String!]
-  nameGT: String
-  nameGTE: String
-  nameLT: String
-  nameLTE: String
-  nameContains: String
-  nameHasPrefix: String
-  nameHasSuffix: String
-  nameEqualFold: String
-  nameContainsFold: String
+  name: CardName
+  nameNEQ: CardName
+  nameIn: [CardName!]
+  nameNotIn: [CardName!]
+  """role field predicates"""
+  role: CardRole
+  roleNEQ: CardRole
+  roleIn: [CardRole!]
+  roleNotIn: [CardRole!]
+  """tale field predicates"""
+  tale: String
+  taleNEQ: String
+  taleIn: [String!]
+  taleNotIn: [String!]
+  taleGT: String
+  taleGTE: String
+  taleLT: String
+  taleLTE: String
+  taleContains: String
+  taleHasPrefix: String
+  taleHasSuffix: String
+  taleEqualFold: String
+  taleContainsFold: String
   """game_users edge predicates"""
   hasGameUsers: Boolean
   hasGameUsersWith: [GameUserWhereInput!]
@@ -114,7 +153,9 @@ input CreateCardInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
-  name: String
+  name: CardName
+  role: CardRole!
+  tale: String
   gameUserIDs: [ID!]
 }
 """
@@ -1155,7 +1196,9 @@ input UpdateCardInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
-  name: String
+  name: CardName
+  role: CardRole
+  tale: String
   addGameUserIDs: [ID!]
   removeGameUserIDs: [ID!]
 }

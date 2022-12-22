@@ -86,6 +86,8 @@ type ComplexityRoot struct {
 		GameUsers func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
+		Role      func(childComplexity int) int
+		Tale      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
 	}
@@ -315,6 +317,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Card.Name(childComplexity), true
+
+	case "Card.role":
+		if e.complexity.Card.Role == nil {
+			break
+		}
+
+		return e.complexity.Card.Role(childComplexity), true
+
+	case "Card.tale":
+		if e.complexity.Card.Tale == nil {
+			break
+		}
+
+		return e.complexity.Card.Tale(childComplexity), true
 
 	case "Card.updatedAt":
 		if e.complexity.Card.UpdatedAt == nil {

@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 )
@@ -16,7 +17,9 @@ type CreateCardInput struct {
 	CreatedAt   *time.Time
 	UpdatedAt   *time.Time
 	DeletedAt   *time.Time
-	Name        *string
+	Name        *card.Name
+	Role        card.Role
+	Tale        *string
 	GameUserIDs []int64
 }
 
@@ -40,6 +43,10 @@ func (i *CreateCardInput) Mutate(m *CardMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
 	}
+	m.SetRole(i.Role)
+	if v := i.Tale; v != nil {
+		m.SetTale(*v)
+	}
 	if v := i.GameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
 	}
@@ -57,7 +64,9 @@ type UpdateCardInput struct {
 	UpdatedBy         *int64
 	UpdatedAt         *time.Time
 	DeletedAt         *time.Time
-	Name              *string
+	Name              *card.Name
+	Role              *card.Role
+	Tale              *string
 	AddGameUserIDs    []int64
 	RemoveGameUserIDs []int64
 }
@@ -78,6 +87,12 @@ func (i *UpdateCardInput) Mutate(m *CardMutation) {
 	}
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if v := i.Role; v != nil {
+		m.SetRole(*v)
+	}
+	if v := i.Tale; v != nil {
+		m.SetTale(*v)
 	}
 	if v := i.AddGameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)

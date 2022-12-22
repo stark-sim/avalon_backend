@@ -58,7 +58,7 @@ func (c *Card) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Card",
-		Fields: make([]*Field, 6),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -106,8 +106,24 @@ func (c *Card) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
-		Type:  "string",
+		Type:  "card.Name",
 		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Role); err != nil {
+		return nil, err
+	}
+	node.Fields[6] = &Field{
+		Type:  "card.Role",
+		Name:  "role",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.Tale); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "tale",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

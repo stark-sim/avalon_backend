@@ -16,7 +16,9 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeEnum, Enums: []string{"Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Mordred", "Morgana", "Oberon", "Assassin", "Lancelot"}, Default: "Merlin"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Vassal", "Ace", "Sinner"}},
+		{Name: "tale", Type: field.TypeString, Default: ""},
 	}
 	// CardsTable holds the schema information for the "cards" table.
 	CardsTable = &schema.Table{

@@ -3,6 +3,9 @@
 package card
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -23,6 +26,10 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
+	// FieldTale holds the string denoting the tale field in the database.
+	FieldTale = "tale"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
 	// Table holds the table name of the card in the database.
@@ -45,6 +52,8 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldName,
+	FieldRole,
+	FieldTale,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -70,8 +79,110 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultDeletedAt holds the default value on creation for the "deleted_at" field.
 	DefaultDeletedAt time.Time
-	// DefaultName holds the default value on creation for the "name" field.
-	DefaultName string
+	// DefaultTale holds the default value on creation for the "tale" field.
+	DefaultTale string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )
+
+// Name defines the type for the "name" enum field.
+type Name string
+
+// NameMerlin is the default value of the Name enum.
+const DefaultName = NameMerlin
+
+// Name values.
+const (
+	NameMerlin   Name = "Merlin"
+	NamePercival Name = "Percival"
+	NameGalahad  Name = "Galahad"
+	NameBors     Name = "Bors"
+	NameBedivere Name = "Bedivere"
+	NameGawain   Name = "Gawain"
+	NameMordred  Name = "Mordred"
+	NameMorgana  Name = "Morgana"
+	NameOberon   Name = "Oberon"
+	NameAssassin Name = "Assassin"
+	NameLancelot Name = "Lancelot"
+)
+
+func (n Name) String() string {
+	return string(n)
+}
+
+// NameValidator is a validator for the "name" field enum values. It is called by the builders before save.
+func NameValidator(n Name) error {
+	switch n {
+	case NameMerlin, NamePercival, NameGalahad, NameBors, NameBedivere, NameGawain, NameMordred, NameMorgana, NameOberon, NameAssassin, NameLancelot:
+		return nil
+	default:
+		return fmt.Errorf("card: invalid enum value for name field: %q", n)
+	}
+}
+
+// Role defines the type for the "role" enum field.
+type Role string
+
+// Role values.
+const (
+	RoleProphet     Role = "Prophet"
+	RoleKnight      Role = "Knight"
+	RoleLoyal       Role = "Loyal"
+	RoleUsurper     Role = "Usurper"
+	RoleEnchantress Role = "Enchantress"
+	RoleAssassin    Role = "Assassin"
+	RoleErlking     Role = "Erlking"
+	RoleVassal      Role = "Vassal"
+	RoleAce         Role = "Ace"
+	RoleSinner      Role = "Sinner"
+)
+
+func (r Role) String() string {
+	return string(r)
+}
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r Role) error {
+	switch r {
+	case RoleProphet, RoleKnight, RoleLoyal, RoleUsurper, RoleEnchantress, RoleAssassin, RoleErlking, RoleVassal, RoleAce, RoleSinner:
+		return nil
+	default:
+		return fmt.Errorf("card: invalid enum value for role field: %q", r)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Name) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Name) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Name(str)
+	if err := NameValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Name", str)
+	}
+	return nil
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Role) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(e.String()))
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Role) UnmarshalGQL(val interface{}) error {
+	str, ok := val.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", val)
+	}
+	*e = Role(str)
+	if err := RoleValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
+}

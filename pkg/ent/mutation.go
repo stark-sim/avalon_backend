@@ -56,7 +56,9 @@ type CardMutation struct {
 	created_at        *time.Time
 	updated_at        *time.Time
 	deleted_at        *time.Time
-	name              *string
+	name              *card.Name
+	role              *card.Role
+	tale              *string
 	clearedFields     map[string]struct{}
 	game_users        map[int64]struct{}
 	removedgame_users map[int64]struct{}
@@ -391,12 +393,12 @@ func (m *CardMutation) ResetDeletedAt() {
 }
 
 // SetName sets the "name" field.
-func (m *CardMutation) SetName(s string) {
-	m.name = &s
+func (m *CardMutation) SetName(c card.Name) {
+	m.name = &c
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *CardMutation) Name() (r string, exists bool) {
+func (m *CardMutation) Name() (r card.Name, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -407,7 +409,7 @@ func (m *CardMutation) Name() (r string, exists bool) {
 // OldName returns the old "name" field's value of the Card entity.
 // If the Card object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CardMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *CardMutation) OldName(ctx context.Context) (v card.Name, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
@@ -424,6 +426,78 @@ func (m *CardMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *CardMutation) ResetName() {
 	m.name = nil
+}
+
+// SetRole sets the "role" field.
+func (m *CardMutation) SetRole(c card.Role) {
+	m.role = &c
+}
+
+// Role returns the value of the "role" field in the mutation.
+func (m *CardMutation) Role() (r card.Role, exists bool) {
+	v := m.role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRole returns the old "role" field's value of the Card entity.
+// If the Card object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CardMutation) OldRole(ctx context.Context) (v card.Role, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRole is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRole requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRole: %w", err)
+	}
+	return oldValue.Role, nil
+}
+
+// ResetRole resets all changes to the "role" field.
+func (m *CardMutation) ResetRole() {
+	m.role = nil
+}
+
+// SetTale sets the "tale" field.
+func (m *CardMutation) SetTale(s string) {
+	m.tale = &s
+}
+
+// Tale returns the value of the "tale" field in the mutation.
+func (m *CardMutation) Tale() (r string, exists bool) {
+	v := m.tale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTale returns the old "tale" field's value of the Card entity.
+// If the Card object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CardMutation) OldTale(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTale is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTale requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTale: %w", err)
+	}
+	return oldValue.Tale, nil
+}
+
+// ResetTale resets all changes to the "tale" field.
+func (m *CardMutation) ResetTale() {
+	m.tale = nil
 }
 
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by ids.
@@ -499,7 +573,7 @@ func (m *CardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CardMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.created_by != nil {
 		fields = append(fields, card.FieldCreatedBy)
 	}
@@ -517,6 +591,12 @@ func (m *CardMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, card.FieldName)
+	}
+	if m.role != nil {
+		fields = append(fields, card.FieldRole)
+	}
+	if m.tale != nil {
+		fields = append(fields, card.FieldTale)
 	}
 	return fields
 }
@@ -538,6 +618,10 @@ func (m *CardMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case card.FieldName:
 		return m.Name()
+	case card.FieldRole:
+		return m.Role()
+	case card.FieldTale:
+		return m.Tale()
 	}
 	return nil, false
 }
@@ -559,6 +643,10 @@ func (m *CardMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedAt(ctx)
 	case card.FieldName:
 		return m.OldName(ctx)
+	case card.FieldRole:
+		return m.OldRole(ctx)
+	case card.FieldTale:
+		return m.OldTale(ctx)
 	}
 	return nil, fmt.Errorf("unknown Card field %s", name)
 }
@@ -604,11 +692,25 @@ func (m *CardMutation) SetField(name string, value ent.Value) error {
 		m.SetDeletedAt(v)
 		return nil
 	case card.FieldName:
-		v, ok := value.(string)
+		v, ok := value.(card.Name)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case card.FieldRole:
+		v, ok := value.(card.Role)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRole(v)
+		return nil
+	case card.FieldTale:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTale(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Card field %s", name)
@@ -703,6 +805,12 @@ func (m *CardMutation) ResetField(name string) error {
 		return nil
 	case card.FieldName:
 		m.ResetName()
+		return nil
+	case card.FieldRole:
+		m.ResetRole()
+		return nil
+	case card.FieldTale:
+		m.ResetTale()
 		return nil
 	}
 	return fmt.Errorf("unknown Card field %s", name)

@@ -92,15 +92,35 @@ func (cu *CardUpdate) SetNillableDeletedAt(t *time.Time) *CardUpdate {
 }
 
 // SetName sets the "name" field.
-func (cu *CardUpdate) SetName(s string) *CardUpdate {
-	cu.mutation.SetName(s)
+func (cu *CardUpdate) SetName(c card.Name) *CardUpdate {
+	cu.mutation.SetName(c)
 	return cu
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (cu *CardUpdate) SetNillableName(s *string) *CardUpdate {
+func (cu *CardUpdate) SetNillableName(c *card.Name) *CardUpdate {
+	if c != nil {
+		cu.SetName(*c)
+	}
+	return cu
+}
+
+// SetRole sets the "role" field.
+func (cu *CardUpdate) SetRole(c card.Role) *CardUpdate {
+	cu.mutation.SetRole(c)
+	return cu
+}
+
+// SetTale sets the "tale" field.
+func (cu *CardUpdate) SetTale(s string) *CardUpdate {
+	cu.mutation.SetTale(s)
+	return cu
+}
+
+// SetNillableTale sets the "tale" field if the given value is not nil.
+func (cu *CardUpdate) SetNillableTale(s *string) *CardUpdate {
 	if s != nil {
-		cu.SetName(*s)
+		cu.SetTale(*s)
 	}
 	return cu
 }
@@ -154,12 +174,18 @@ func (cu *CardUpdate) Save(ctx context.Context) (int, error) {
 	)
 	cu.defaults()
 	if len(cu.hooks) == 0 {
+		if err = cu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = cu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cu.check(); err != nil {
+				return 0, err
 			}
 			cu.mutation = mutation
 			affected, err = cu.sqlSave(ctx)
@@ -209,6 +235,21 @@ func (cu *CardUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (cu *CardUpdate) check() error {
+	if v, ok := cu.mutation.Name(); ok {
+		if err := card.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Card.name": %w`, err)}
+		}
+	}
+	if v, ok := cu.mutation.Role(); ok {
+		if err := card.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "Card.role": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (cu *CardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -246,7 +287,13 @@ func (cu *CardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(card.FieldDeletedAt, field.TypeTime, value)
 	}
 	if value, ok := cu.mutation.Name(); ok {
-		_spec.SetField(card.FieldName, field.TypeString, value)
+		_spec.SetField(card.FieldName, field.TypeEnum, value)
+	}
+	if value, ok := cu.mutation.Role(); ok {
+		_spec.SetField(card.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := cu.mutation.Tale(); ok {
+		_spec.SetField(card.FieldTale, field.TypeString, value)
 	}
 	if cu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -384,15 +431,35 @@ func (cuo *CardUpdateOne) SetNillableDeletedAt(t *time.Time) *CardUpdateOne {
 }
 
 // SetName sets the "name" field.
-func (cuo *CardUpdateOne) SetName(s string) *CardUpdateOne {
-	cuo.mutation.SetName(s)
+func (cuo *CardUpdateOne) SetName(c card.Name) *CardUpdateOne {
+	cuo.mutation.SetName(c)
 	return cuo
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (cuo *CardUpdateOne) SetNillableName(s *string) *CardUpdateOne {
+func (cuo *CardUpdateOne) SetNillableName(c *card.Name) *CardUpdateOne {
+	if c != nil {
+		cuo.SetName(*c)
+	}
+	return cuo
+}
+
+// SetRole sets the "role" field.
+func (cuo *CardUpdateOne) SetRole(c card.Role) *CardUpdateOne {
+	cuo.mutation.SetRole(c)
+	return cuo
+}
+
+// SetTale sets the "tale" field.
+func (cuo *CardUpdateOne) SetTale(s string) *CardUpdateOne {
+	cuo.mutation.SetTale(s)
+	return cuo
+}
+
+// SetNillableTale sets the "tale" field if the given value is not nil.
+func (cuo *CardUpdateOne) SetNillableTale(s *string) *CardUpdateOne {
 	if s != nil {
-		cuo.SetName(*s)
+		cuo.SetTale(*s)
 	}
 	return cuo
 }
@@ -453,12 +520,18 @@ func (cuo *CardUpdateOne) Save(ctx context.Context) (*Card, error) {
 	)
 	cuo.defaults()
 	if len(cuo.hooks) == 0 {
+		if err = cuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = cuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cuo.check(); err != nil {
+				return nil, err
 			}
 			cuo.mutation = mutation
 			node, err = cuo.sqlSave(ctx)
@@ -512,6 +585,21 @@ func (cuo *CardUpdateOne) defaults() {
 		v := card.UpdateDefaultUpdatedAt()
 		cuo.mutation.SetUpdatedAt(v)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cuo *CardUpdateOne) check() error {
+	if v, ok := cuo.mutation.Name(); ok {
+		if err := card.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Card.name": %w`, err)}
+		}
+	}
+	if v, ok := cuo.mutation.Role(); ok {
+		if err := card.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "Card.role": %w`, err)}
+		}
+	}
+	return nil
 }
 
 func (cuo *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) {
@@ -568,7 +656,13 @@ func (cuo *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) 
 		_spec.SetField(card.FieldDeletedAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.Name(); ok {
-		_spec.SetField(card.FieldName, field.TypeString, value)
+		_spec.SetField(card.FieldName, field.TypeEnum, value)
+	}
+	if value, ok := cuo.mutation.Role(); ok {
+		_spec.SetField(card.FieldRole, field.TypeEnum, value)
+	}
+	if value, ok := cuo.mutation.Tale(); ok {
+		_spec.SetField(card.FieldTale, field.TypeString, value)
 	}
 	if cuo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -87,19 +87,31 @@ type CardWhereInput struct {
 	DeletedAtLTE   *time.Time  `json:"deletedAtLTE,omitempty"`
 
 	// "name" field predicates.
-	Name             *string  `json:"name,omitempty"`
-	NameNEQ          *string  `json:"nameNEQ,omitempty"`
-	NameIn           []string `json:"nameIn,omitempty"`
-	NameNotIn        []string `json:"nameNotIn,omitempty"`
-	NameGT           *string  `json:"nameGT,omitempty"`
-	NameGTE          *string  `json:"nameGTE,omitempty"`
-	NameLT           *string  `json:"nameLT,omitempty"`
-	NameLTE          *string  `json:"nameLTE,omitempty"`
-	NameContains     *string  `json:"nameContains,omitempty"`
-	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
-	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
-	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
-	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
+	Name      *card.Name  `json:"name,omitempty"`
+	NameNEQ   *card.Name  `json:"nameNEQ,omitempty"`
+	NameIn    []card.Name `json:"nameIn,omitempty"`
+	NameNotIn []card.Name `json:"nameNotIn,omitempty"`
+
+	// "role" field predicates.
+	Role      *card.Role  `json:"role,omitempty"`
+	RoleNEQ   *card.Role  `json:"roleNEQ,omitempty"`
+	RoleIn    []card.Role `json:"roleIn,omitempty"`
+	RoleNotIn []card.Role `json:"roleNotIn,omitempty"`
+
+	// "tale" field predicates.
+	Tale             *string  `json:"tale,omitempty"`
+	TaleNEQ          *string  `json:"taleNEQ,omitempty"`
+	TaleIn           []string `json:"taleIn,omitempty"`
+	TaleNotIn        []string `json:"taleNotIn,omitempty"`
+	TaleGT           *string  `json:"taleGT,omitempty"`
+	TaleGTE          *string  `json:"taleGTE,omitempty"`
+	TaleLT           *string  `json:"taleLT,omitempty"`
+	TaleLTE          *string  `json:"taleLTE,omitempty"`
+	TaleContains     *string  `json:"taleContains,omitempty"`
+	TaleHasPrefix    *string  `json:"taleHasPrefix,omitempty"`
+	TaleHasSuffix    *string  `json:"taleHasSuffix,omitempty"`
+	TaleEqualFold    *string  `json:"taleEqualFold,omitempty"`
+	TaleContainsFold *string  `json:"taleContainsFold,omitempty"`
 
 	// "game_users" edge predicates.
 	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
@@ -333,32 +345,56 @@ func (i *CardWhereInput) P() (predicate.Card, error) {
 	if len(i.NameNotIn) > 0 {
 		predicates = append(predicates, card.NameNotIn(i.NameNotIn...))
 	}
-	if i.NameGT != nil {
-		predicates = append(predicates, card.NameGT(*i.NameGT))
+	if i.Role != nil {
+		predicates = append(predicates, card.RoleEQ(*i.Role))
 	}
-	if i.NameGTE != nil {
-		predicates = append(predicates, card.NameGTE(*i.NameGTE))
+	if i.RoleNEQ != nil {
+		predicates = append(predicates, card.RoleNEQ(*i.RoleNEQ))
 	}
-	if i.NameLT != nil {
-		predicates = append(predicates, card.NameLT(*i.NameLT))
+	if len(i.RoleIn) > 0 {
+		predicates = append(predicates, card.RoleIn(i.RoleIn...))
 	}
-	if i.NameLTE != nil {
-		predicates = append(predicates, card.NameLTE(*i.NameLTE))
+	if len(i.RoleNotIn) > 0 {
+		predicates = append(predicates, card.RoleNotIn(i.RoleNotIn...))
 	}
-	if i.NameContains != nil {
-		predicates = append(predicates, card.NameContains(*i.NameContains))
+	if i.Tale != nil {
+		predicates = append(predicates, card.TaleEQ(*i.Tale))
 	}
-	if i.NameHasPrefix != nil {
-		predicates = append(predicates, card.NameHasPrefix(*i.NameHasPrefix))
+	if i.TaleNEQ != nil {
+		predicates = append(predicates, card.TaleNEQ(*i.TaleNEQ))
 	}
-	if i.NameHasSuffix != nil {
-		predicates = append(predicates, card.NameHasSuffix(*i.NameHasSuffix))
+	if len(i.TaleIn) > 0 {
+		predicates = append(predicates, card.TaleIn(i.TaleIn...))
 	}
-	if i.NameEqualFold != nil {
-		predicates = append(predicates, card.NameEqualFold(*i.NameEqualFold))
+	if len(i.TaleNotIn) > 0 {
+		predicates = append(predicates, card.TaleNotIn(i.TaleNotIn...))
 	}
-	if i.NameContainsFold != nil {
-		predicates = append(predicates, card.NameContainsFold(*i.NameContainsFold))
+	if i.TaleGT != nil {
+		predicates = append(predicates, card.TaleGT(*i.TaleGT))
+	}
+	if i.TaleGTE != nil {
+		predicates = append(predicates, card.TaleGTE(*i.TaleGTE))
+	}
+	if i.TaleLT != nil {
+		predicates = append(predicates, card.TaleLT(*i.TaleLT))
+	}
+	if i.TaleLTE != nil {
+		predicates = append(predicates, card.TaleLTE(*i.TaleLTE))
+	}
+	if i.TaleContains != nil {
+		predicates = append(predicates, card.TaleContains(*i.TaleContains))
+	}
+	if i.TaleHasPrefix != nil {
+		predicates = append(predicates, card.TaleHasPrefix(*i.TaleHasPrefix))
+	}
+	if i.TaleHasSuffix != nil {
+		predicates = append(predicates, card.TaleHasSuffix(*i.TaleHasSuffix))
+	}
+	if i.TaleEqualFold != nil {
+		predicates = append(predicates, card.TaleEqualFold(*i.TaleEqualFold))
+	}
+	if i.TaleContainsFold != nil {
+		predicates = append(predicates, card.TaleContainsFold(*i.TaleContainsFold))
 	}
 
 	if i.HasGameUsers != nil {

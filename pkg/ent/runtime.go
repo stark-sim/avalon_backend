@@ -48,10 +48,10 @@ func init() {
 	cardDescDeletedAt := cardMixinFields0[5].Descriptor()
 	// card.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	card.DefaultDeletedAt = cardDescDeletedAt.Default.(time.Time)
-	// cardDescName is the schema descriptor for name field.
-	cardDescName := cardFields[0].Descriptor()
-	// card.DefaultName holds the default value on creation for the name field.
-	card.DefaultName = cardDescName.Default.(string)
+	// cardDescTale is the schema descriptor for tale field.
+	cardDescTale := cardFields[2].Descriptor()
+	// card.DefaultTale holds the default value on creation for the tale field.
+	card.DefaultTale = cardDescTale.Default.(string)
 	// cardDescID is the schema descriptor for id field.
 	cardDescID := cardMixinFields0[0].Descriptor()
 	// card.DefaultID holds the default value on creation for the id field.
