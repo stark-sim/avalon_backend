@@ -329,9 +329,18 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 			SetCardID(cards[i].ID).
 			SetNumber(uint8(i + 1))
 	}
-	tx.GameUser.CreateBulk(gameUserCreates...)
-	// 创建完毕，现在准备返回
-	_game, err = tx.Game.Query().Where(game.ID(_game.ID)).WithRoom().WithGameUsers().First(ctx)
+	_, err = tx.GameUser.CreateBulk(gameUserCreates...).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 创建完毕，现在准备返回，把有可能需要的 EagerLoad 上
+	_game, err = tx.Game.
+		Query().
+		Where(game.ID(_game.ID)).
+		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
+			query.WithCard()
+		}).
+		First(ctx)
 	if err != nil {
 		return nil, err
 	}
