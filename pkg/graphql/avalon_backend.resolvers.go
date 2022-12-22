@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	redis "github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
@@ -184,6 +183,7 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 			SetUserID(req.UserID).
 			SetRoomID(req.RoomID).
 			Save(ctx)
+		newRoomUser, err = tx.RoomUser.Query().Where(roomuser.ID(newRoomUser.ID)).WithRoom().First(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +213,7 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 // LeaveRoom is the resolver for the leaveRoom field.
 func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
 	redisClient := cache.NewRedisClient()
-	tx, err := r.client.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -231,11 +231,19 @@ func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUser
 	if err != nil {
 		return nil, err
 	}
-	// 自己退出
-	if err = tx.RoomUser.
-		Update().
+	// 自己退出，由于需要返回，先查询出来
+	roomUser, err := tx.RoomUser.
+		Query().
 		Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime)).
-		SetDeletedAt(time.Now()).Exec(ctx); err != nil {
+		WithRoom().
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = tx.RoomUser.
+		UpdateOne(roomUser).
+		SetDeletedAt(time.Now()).
+		Exec(ctx); err != nil {
 		return nil, err
 	}
 	if count == 1 {
@@ -254,7 +262,7 @@ func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUser
 		return nil, err
 	}
 	redisClient.Close()
-	return &ent.RoomUser{UserID: req.UserID, RoomID: req.RoomID}, nil
+	return roomUser, nil
 }
 
 // CloseRoom is the resolver for the closeRoom field.
