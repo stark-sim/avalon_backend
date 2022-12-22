@@ -159,18 +159,19 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInp
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
 	// 加入前检查 房间 是否关闭
-	tx, err := r.client.BeginTx(ctx, &sql.TxOptions{})
+	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
-	_, err = tx.Room.Query().Where(room.ID(req.RoomID), room.DeletedAt(tools.ZeroTime), room.Closed(true)).First(ctx)
+	_, err = tx.Room.Query().Where(room.ID(req.RoomID), room.DeletedAt(tools.ZeroTime), room.Closed(false)).First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, errors.New("room no exist")
 	} else if err != nil {
 		return nil, err
 	}
 	// 中间表调整软删除字段来代替创建和删除
-	roomUser, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).First(ctx)
+	// 需要在 tx Commit 之前把之后有可能会拿的 Room 先拿出来
+	roomUser, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).WithRoom().First(ctx)
 	if ent.IsNotFound(err) {
 		// 要插入 RoomUser 的话需要 Room 信号量
 		redisClient := cache.NewRedisClient()
@@ -197,7 +198,7 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 		redisClient.Close()
 		return newRoomUser, nil
 	} else {
-		err = r.client.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Exec(ctx)
+		err = tx.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Exec(ctx)
 		if err != nil {
 			return nil, err
 		}
