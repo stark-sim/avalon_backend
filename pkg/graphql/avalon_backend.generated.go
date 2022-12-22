@@ -66,6 +66,7 @@ type MutationResolver interface {
 	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
 	CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error)
 	CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error)
+	CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -647,6 +648,21 @@ func (ec *executionContext) field_Mutation_closeRoom_args(ctx context.Context, r
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
 		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateCardInput
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNCreateCardInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateCardInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3582,6 +3598,80 @@ func (ec *executionContext) fieldContext_Mutation_createGame(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCard(rctx, fc.Args["req"].(ent.CreateCardInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Card)
+	fc.Result = res
+	return ec.marshalOCard2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCard(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Card_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Card_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Card_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Card_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Card_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Card_deletedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Card_name(ctx, field)
+			case "role":
+				return ec.fieldContext_Card_role(ctx, field)
+			case "tale":
+				return ec.fieldContext_Card_tale(ctx, field)
+			case "gameUsers":
+				return ec.fieldContext_Card_gameUsers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Card", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -17169,6 +17259,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createGame(ctx, field)
 			})
 
+		case "createCard":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createCard(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18618,6 +18714,11 @@ func (ec *executionContext) unmarshalNCardWhereInput2ᚖgithubᚗcomᚋstarkᚑs
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateCardInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateCardInput(ctx context.Context, v interface{}) (ent.CreateCardInput, error) {
+	res, err := ec.unmarshalInputCreateCardInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateRoomInput(ctx context.Context, v interface{}) (ent.CreateRoomInput, error) {
 	res, err := ec.unmarshalInputCreateRoomInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19323,6 +19424,13 @@ func (ec *executionContext) marshalNVoteOrderField2ᚖgithubᚗcomᚋstarkᚑsim
 func (ec *executionContext) unmarshalNVoteWhereInput2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteWhereInput(ctx context.Context, v interface{}) (*ent.VoteWhereInput, error) {
 	res, err := ec.unmarshalInputVoteWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCard2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCard(ctx context.Context, sel ast.SelectionSet, v *ent.Card) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Card(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCardName2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋcardᚐNameᚄ(ctx context.Context, v interface{}) ([]card.Name, error) {

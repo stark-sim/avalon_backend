@@ -7,13 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stark-sim/avalon_backend/internal/logic"
 	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	redis "github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/internal/logic"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
@@ -333,6 +333,15 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 		return nil, err
 	}
 	return _game, nil
+}
+
+// CreateCard is the resolver for the createCard field.
+func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error) {
+	var tale string
+	if req.Tale != nil {
+		tale = *req.Tale
+	}
+	return r.client.Card.Create().SetName(*req.Name).SetRole(req.Role).SetTale(tale).Save(ctx)
 }
 
 // Node is the resolver for the node field.
