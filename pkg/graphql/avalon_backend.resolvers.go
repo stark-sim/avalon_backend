@@ -296,18 +296,19 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 	if err != nil {
 		return nil, err
 	}
+	playerNum := uint8(len(roomUsers))
 	// 创建游戏
 	_game, err := tx.Game.
 		Create().
 		SetRoomID(roomID).
 		SetEndBy(game.EndByNone).
-		SetCapacity(uint8(len(roomUsers))).
+		SetCapacity(playerNum).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
 	// 随机排序房间内用户和洗牌，然后创建 GameUser
-	userIDs := make([]int64, len(roomUsers))
+	userIDs := make([]int64, playerNum)
 	for i, roomUser := range roomUsers {
 		userIDs[i] = roomUser.UserID
 	}
@@ -315,12 +316,12 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 		userIDs[i] = v.(int64)
 	}
 	// 按人数拿牌，拿的时候已经洗好了
-	cards, err := logic.GetShuffledCardsByNum(ctx, uint8(len(roomUsers)), nil)
+	cards, err := logic.GetShuffledCardsByNum(ctx, playerNum, nil)
 	if err != nil {
 		return nil, err
 	}
 	// 创建 GameUser，分牌分号
-	gameUserCreates := make([]*ent.GameUserCreate, len(roomUsers))
+	gameUserCreates := make([]*ent.GameUserCreate, playerNum)
 	for i := 0; i < len(roomUsers); i++ {
 		gameUserCreates[i] = tx.GameUser.
 			Create().
@@ -333,10 +334,22 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 	if err != nil {
 		return nil, err
 	}
+	// 创建 5 个 Mission，初始队长为 1-5 号玩家
+	missionCreates := make([]*ent.MissionCreate, 5)
+	for i := 0; i < 5; i++ {
+		missionCreates[i] = tx.Mission.
+			Create().
+			SetGameID(_game.ID).
+			SetLeader(userIDs[i]).
+			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i)).
+			SetSequence(uint8(i))
+	}
+	_, err = tx.Mission.CreateBulk(missionCreates...).Save(ctx)
 	// 创建完毕，现在准备返回，把有可能需要的 EagerLoad 上
 	_game, err = tx.Game.
 		Query().
 		Where(game.ID(_game.ID)).
+		WithNamedMissions("missions").
 		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
 			query.WithCard()
 		}).
