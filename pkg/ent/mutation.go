@@ -5044,6 +5044,7 @@ type RoomMutation struct {
 	deleted_at        *time.Time
 	name              *string
 	closed            *bool
+	game_on           *bool
 	clearedFields     map[string]struct{}
 	room_users        map[int64]struct{}
 	removedroom_users map[int64]struct{}
@@ -5455,6 +5456,42 @@ func (m *RoomMutation) ResetClosed() {
 	m.closed = nil
 }
 
+// SetGameOn sets the "game_on" field.
+func (m *RoomMutation) SetGameOn(b bool) {
+	m.game_on = &b
+}
+
+// GameOn returns the value of the "game_on" field in the mutation.
+func (m *RoomMutation) GameOn() (r bool, exists bool) {
+	v := m.game_on
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGameOn returns the old "game_on" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldGameOn(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGameOn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGameOn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGameOn: %w", err)
+	}
+	return oldValue.GameOn, nil
+}
+
+// ResetGameOn resets all changes to the "game_on" field.
+func (m *RoomMutation) ResetGameOn() {
+	m.game_on = nil
+}
+
 // AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by ids.
 func (m *RoomMutation) AddRoomUserIDs(ids ...int64) {
 	if m.room_users == nil {
@@ -5636,7 +5673,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created_by != nil {
 		fields = append(fields, room.FieldCreatedBy)
 	}
@@ -5657,6 +5694,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.closed != nil {
 		fields = append(fields, room.FieldClosed)
+	}
+	if m.game_on != nil {
+		fields = append(fields, room.FieldGameOn)
 	}
 	return fields
 }
@@ -5680,6 +5720,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case room.FieldClosed:
 		return m.Closed()
+	case room.FieldGameOn:
+		return m.GameOn()
 	}
 	return nil, false
 }
@@ -5703,6 +5745,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case room.FieldClosed:
 		return m.OldClosed(ctx)
+	case room.FieldGameOn:
+		return m.OldGameOn(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -5760,6 +5804,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetClosed(v)
+		return nil
+	case room.FieldGameOn:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGameOn(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
@@ -5857,6 +5908,9 @@ func (m *RoomMutation) ResetField(name string) error {
 		return nil
 	case room.FieldClosed:
 		m.ResetClosed()
+		return nil
+	case room.FieldGameOn:
+		m.ResetGameOn()
 		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)

@@ -249,6 +249,10 @@ func init() {
 	roomDescClosed := roomFields[1].Descriptor()
 	// room.DefaultClosed holds the default value on creation for the closed field.
 	room.DefaultClosed = roomDescClosed.Default.(bool)
+	// roomDescGameOn is the schema descriptor for game_on field.
+	roomDescGameOn := roomFields[2].Descriptor()
+	// room.DefaultGameOn holds the default value on creation for the game_on field.
+	room.DefaultGameOn = roomDescGameOn.Default.(bool)
 	// roomDescID is the schema descriptor for id field.
 	roomDescID := roomMixinFields0[0].Descriptor()
 	// room.DefaultID holds the default value on creation for the id field.

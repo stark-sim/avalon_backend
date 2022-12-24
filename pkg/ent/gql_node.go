@@ -565,7 +565,7 @@ func (r *Room) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     r.ID,
 		Type:   "Room",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -623,6 +623,14 @@ func (r *Room) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[6] = &Field{
 		Type:  "bool",
 		Name:  "closed",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(r.GameOn); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "game_on",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

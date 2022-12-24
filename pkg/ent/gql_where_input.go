@@ -2293,6 +2293,10 @@ type RoomWhereInput struct {
 	Closed    *bool `json:"closed,omitempty"`
 	ClosedNEQ *bool `json:"closedNEQ,omitempty"`
 
+	// "game_on" field predicates.
+	GameOn    *bool `json:"gameOn,omitempty"`
+	GameOnNEQ *bool `json:"gameOnNEQ,omitempty"`
+
 	// "room_users" edge predicates.
 	HasRoomUsers     *bool                 `json:"hasRoomUsers,omitempty"`
 	HasRoomUsersWith []*RoomUserWhereInput `json:"hasRoomUsersWith,omitempty"`
@@ -2565,6 +2569,12 @@ func (i *RoomWhereInput) P() (predicate.Room, error) {
 	}
 	if i.ClosedNEQ != nil {
 		predicates = append(predicates, room.ClosedNEQ(*i.ClosedNEQ))
+	}
+	if i.GameOn != nil {
+		predicates = append(predicates, room.GameOnEQ(*i.GameOn))
+	}
+	if i.GameOnNEQ != nil {
+		predicates = append(predicates, room.GameOnNEQ(*i.GameOnNEQ))
 	}
 
 	if i.HasRoomUsers != nil {

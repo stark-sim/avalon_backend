@@ -291,6 +291,20 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 		return nil, err
 	}
 	roomID := tools.StringToInt64(req.ID)
+	// 先检查房间没有在进行游戏
+	_room, err := r.client.Room.
+		Query().
+		Where(room.ID(roomID), room.DeletedAt(tools.ZeroTime), room.GameOn(false)).
+		First(ctx)
+	if err != nil {
+		logrus.Errorf("room %s not exist or gameOn, can't create game", req.ID)
+		return nil, err
+	}
+	err = tx.Room.UpdateOne(_room).SetGameOn(true).Exec(ctx)
+	if err != nil {
+		logrus.Errorf("error at room update: %v", err)
+		return nil, err
+	}
 	// 不锁了，开了后进来的不管，用户离开房间前查一下有没有在游戏里就好，离开和这里的查人会制衡
 	roomUsers, err := tx.RoomUser.Query().Where(roomuser.RoomID(roomID), roomuser.DeletedAt(tools.ZeroTime)).All(ctx)
 	if err != nil {

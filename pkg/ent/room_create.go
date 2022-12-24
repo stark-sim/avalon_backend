@@ -121,6 +121,20 @@ func (rc *RoomCreate) SetNillableClosed(b *bool) *RoomCreate {
 	return rc
 }
 
+// SetGameOn sets the "game_on" field.
+func (rc *RoomCreate) SetGameOn(b bool) *RoomCreate {
+	rc.mutation.SetGameOn(b)
+	return rc
+}
+
+// SetNillableGameOn sets the "game_on" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableGameOn(b *bool) *RoomCreate {
+	if b != nil {
+		rc.SetGameOn(*b)
+	}
+	return rc
+}
+
 // SetID sets the "id" field.
 func (rc *RoomCreate) SetID(i int64) *RoomCreate {
 	rc.mutation.SetID(i)
@@ -285,6 +299,10 @@ func (rc *RoomCreate) defaults() {
 		v := room.DefaultClosed
 		rc.mutation.SetClosed(v)
 	}
+	if _, ok := rc.mutation.GameOn(); !ok {
+		v := room.DefaultGameOn
+		rc.mutation.SetGameOn(v)
+	}
 	if _, ok := rc.mutation.ID(); !ok {
 		v := room.DefaultID()
 		rc.mutation.SetID(v)
@@ -313,6 +331,9 @@ func (rc *RoomCreate) check() error {
 	}
 	if _, ok := rc.mutation.Closed(); !ok {
 		return &ValidationError{Name: "closed", err: errors.New(`ent: missing required field "Room.closed"`)}
+	}
+	if _, ok := rc.mutation.GameOn(); !ok {
+		return &ValidationError{Name: "game_on", err: errors.New(`ent: missing required field "Room.game_on"`)}
 	}
 	return nil
 }
@@ -374,6 +395,10 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 	if value, ok := rc.mutation.Closed(); ok {
 		_spec.SetField(room.FieldClosed, field.TypeBool, value)
 		_node.Closed = value
+	}
+	if value, ok := rc.mutation.GameOn(); ok {
+		_spec.SetField(room.FieldGameOn, field.TypeBool, value)
+		_node.GameOn = value
 	}
 	if nodes := rc.mutation.RoomUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

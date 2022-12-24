@@ -1873,6 +1873,8 @@ func (ec *executionContext) fieldContext_Game_room(ctx context.Context, field gr
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -3294,6 +3296,8 @@ func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -3518,6 +3522,8 @@ func (ec *executionContext) fieldContext_Mutation_closeRoom(ctx context.Context,
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -4452,6 +4458,8 @@ func (ec *executionContext) fieldContext_Query_rooms(ctx context.Context, field 
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -5350,6 +5358,8 @@ func (ec *executionContext) fieldContext_Record_room(ctx context.Context, field 
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -5755,6 +5765,50 @@ func (ec *executionContext) _Room_closed(ctx context.Context, field graphql.Coll
 }
 
 func (ec *executionContext) fieldContext_Room_closed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Room",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Room_gameOn(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Room_gameOn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GameOn, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Room_gameOn(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
@@ -6369,6 +6423,8 @@ func (ec *executionContext) fieldContext_RoomUser_room(ctx context.Context, fiel
 				return ec.fieldContext_Room_name(ctx, field)
 			case "closed":
 				return ec.fieldContext_Room_closed(ctx, field)
+			case "gameOn":
+				return ec.fieldContext_Room_gameOn(ctx, field)
 			case "roomUsers":
 				return ec.fieldContext_Room_roomUsers(ctx, field)
 			case "games":
@@ -8919,7 +8975,7 @@ func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "name", "closed", "roomUserIDs", "gameIDs", "recordIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "name", "closed", "gameOn", "roomUserIDs", "gameIDs", "recordIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8985,6 +9041,14 @@ func (ec *executionContext) unmarshalInputCreateRoomInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closed"))
 			it.Closed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gameOn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameOn"))
+			it.GameOn, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13338,7 +13402,7 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "closed", "closedNEQ", "hasRoomUsers", "hasRoomUsersWith", "hasGames", "hasGamesWith", "hasRecords", "hasRecordsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameEqualFold", "nameContainsFold", "closed", "closedNEQ", "gameOn", "gameOnNEQ", "hasRoomUsers", "hasRoomUsersWith", "hasGames", "hasGamesWith", "hasRecords", "hasRecordsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13942,6 +14006,22 @@ func (ec *executionContext) unmarshalInputRoomWhereInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closedNEQ"))
 			it.ClosedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gameOn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameOn"))
+			it.GameOn, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gameOnNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameOnNEQ"))
+			it.GameOnNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15335,7 +15415,7 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "name", "closed", "addRoomUserIDs", "removeRoomUserIDs", "addGameIDs", "removeGameIDs", "addRecordIDs", "removeRecordIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "name", "closed", "gameOn", "addRoomUserIDs", "removeRoomUserIDs", "addGameIDs", "removeGameIDs", "addRecordIDs", "removeRecordIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15393,6 +15473,14 @@ func (ec *executionContext) unmarshalInputUpdateRoomInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closed"))
 			it.Closed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gameOn":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameOn"))
+			it.GameOn, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18079,6 +18167,13 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 		case "closed":
 
 			out.Values[i] = ec._Room_closed(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "gameOn":
+
+			out.Values[i] = ec._Room_gameOn(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

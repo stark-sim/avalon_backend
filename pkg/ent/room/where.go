@@ -130,6 +130,13 @@ func Closed(v bool) predicate.Room {
 	})
 }
 
+// GameOn applies equality check predicate on the "game_on" field. It's identical to GameOnEQ.
+func GameOn(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGameOn), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
@@ -560,6 +567,20 @@ func ClosedEQ(v bool) predicate.Room {
 func ClosedNEQ(v bool) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldClosed), v))
+	})
+}
+
+// GameOnEQ applies the EQ predicate on the "game_on" field.
+func GameOnEQ(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGameOn), v))
+	})
+}
+
+// GameOnNEQ applies the NEQ predicate on the "game_on" field.
+func GameOnNEQ(v bool) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldGameOn), v))
 	})
 }
 

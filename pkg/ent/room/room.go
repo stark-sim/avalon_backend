@@ -25,6 +25,8 @@ const (
 	FieldName = "name"
 	// FieldClosed holds the string denoting the closed field in the database.
 	FieldClosed = "closed"
+	// FieldGameOn holds the string denoting the game_on field in the database.
+	FieldGameOn = "game_on"
 	// EdgeRoomUsers holds the string denoting the room_users edge name in mutations.
 	EdgeRoomUsers = "room_users"
 	// EdgeGames holds the string denoting the games edge name in mutations.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldName,
 	FieldClosed,
+	FieldGameOn,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -95,6 +98,8 @@ var (
 	DefaultName string
 	// DefaultClosed holds the default value on creation for the "closed" field.
 	DefaultClosed bool
+	// DefaultGameOn holds the default value on creation for the "game_on" field.
+	DefaultGameOn bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

@@ -121,6 +121,20 @@ func (ru *RoomUpdate) SetNillableClosed(b *bool) *RoomUpdate {
 	return ru
 }
 
+// SetGameOn sets the "game_on" field.
+func (ru *RoomUpdate) SetGameOn(b bool) *RoomUpdate {
+	ru.mutation.SetGameOn(b)
+	return ru
+}
+
+// SetNillableGameOn sets the "game_on" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableGameOn(b *bool) *RoomUpdate {
+	if b != nil {
+		ru.SetGameOn(*b)
+	}
+	return ru
+}
+
 // AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
 func (ru *RoomUpdate) AddRoomUserIDs(ids ...int64) *RoomUpdate {
 	ru.mutation.AddRoomUserIDs(ids...)
@@ -338,6 +352,9 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.Closed(); ok {
 		_spec.SetField(room.FieldClosed, field.TypeBool, value)
+	}
+	if value, ok := ru.mutation.GameOn(); ok {
+		_spec.SetField(room.FieldGameOn, field.TypeBool, value)
 	}
 	if ru.mutation.RoomUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -610,6 +627,20 @@ func (ruo *RoomUpdateOne) SetNillableClosed(b *bool) *RoomUpdateOne {
 	return ruo
 }
 
+// SetGameOn sets the "game_on" field.
+func (ruo *RoomUpdateOne) SetGameOn(b bool) *RoomUpdateOne {
+	ruo.mutation.SetGameOn(b)
+	return ruo
+}
+
+// SetNillableGameOn sets the "game_on" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableGameOn(b *bool) *RoomUpdateOne {
+	if b != nil {
+		ruo.SetGameOn(*b)
+	}
+	return ruo
+}
+
 // AddRoomUserIDs adds the "room_users" edge to the RoomUser entity by IDs.
 func (ruo *RoomUpdateOne) AddRoomUserIDs(ids ...int64) *RoomUpdateOne {
 	ruo.mutation.AddRoomUserIDs(ids...)
@@ -857,6 +888,9 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 	}
 	if value, ok := ruo.mutation.Closed(); ok {
 		_spec.SetField(room.FieldClosed, field.TypeBool, value)
+	}
+	if value, ok := ruo.mutation.GameOn(); ok {
+		_spec.SetField(room.FieldGameOn, field.TypeBool, value)
 	}
 	if ruo.mutation.RoomUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

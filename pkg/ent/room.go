@@ -30,6 +30,8 @@ type Room struct {
 	Name string `json:"name"`
 	// Closed holds the value of the "closed" field.
 	Closed bool `json:"closed"`
+	// GameOn holds the value of the "game_on" field.
+	GameOn bool `json:"game_on"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.
 	Edges RoomEdges `json:"edges"`
@@ -86,7 +88,7 @@ func (*Room) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case room.FieldClosed:
+		case room.FieldClosed, room.FieldGameOn:
 			values[i] = new(sql.NullBool)
 		case room.FieldID, room.FieldCreatedBy, room.FieldUpdatedBy:
 			values[i] = new(sql.NullInt64)
@@ -157,6 +159,12 @@ func (r *Room) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				r.Closed = value.Bool
 			}
+		case room.FieldGameOn:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field game_on", values[i])
+			} else if value.Valid {
+				r.GameOn = value.Bool
+			}
 		}
 	}
 	return nil
@@ -220,6 +228,9 @@ func (r *Room) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("closed=")
 	builder.WriteString(fmt.Sprintf("%v", r.Closed))
+	builder.WriteString(", ")
+	builder.WriteString("game_on=")
+	builder.WriteString(fmt.Sprintf("%v", r.GameOn))
 	builder.WriteByte(')')
 	return builder.String()
 }

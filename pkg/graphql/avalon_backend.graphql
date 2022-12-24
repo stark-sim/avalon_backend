@@ -236,6 +236,7 @@ input CreateRoomInput {
   deletedAt: Time
   name: String
   closed: Boolean
+  gameOn: Boolean
   roomUserIDs: [ID!]
   gameIDs: [ID!]
   recordIDs: [ID!]
@@ -863,6 +864,7 @@ type Room implements Node {
   deletedAt: Time!
   name: String!
   closed: Boolean!
+  gameOn: Boolean!
   roomUsers: [RoomUser!]
   games: [Game!]
   records: [Record!]
@@ -1065,6 +1067,9 @@ input RoomWhereInput {
   """closed field predicates"""
   closed: Boolean
   closedNEQ: Boolean
+  """game_on field predicates"""
+  gameOn: Boolean
+  gameOnNEQ: Boolean
   """room_users edge predicates"""
   hasRoomUsers: Boolean
   hasRoomUsersWith: [RoomUserWhereInput!]
@@ -1284,6 +1289,7 @@ input UpdateRoomInput {
   deletedAt: Time
   name: String
   closed: Boolean
+  gameOn: Boolean
   addRoomUserIDs: [ID!]
   removeRoomUserIDs: [ID!]
   addGameIDs: [ID!]

@@ -579,6 +579,7 @@ type CreateRoomInput struct {
 	DeletedAt   *time.Time
 	Name        *string
 	Closed      *bool
+	GameOn      *bool
 	RoomUserIDs []int64
 	GameIDs     []int64
 	RecordIDs   []int64
@@ -607,6 +608,9 @@ func (i *CreateRoomInput) Mutate(m *RoomMutation) {
 	if v := i.Closed; v != nil {
 		m.SetClosed(*v)
 	}
+	if v := i.GameOn; v != nil {
+		m.SetGameOn(*v)
+	}
 	if v := i.RoomUserIDs; len(v) > 0 {
 		m.AddRoomUserIDs(v...)
 	}
@@ -632,6 +636,7 @@ type UpdateRoomInput struct {
 	DeletedAt         *time.Time
 	Name              *string
 	Closed            *bool
+	GameOn            *bool
 	AddRoomUserIDs    []int64
 	RemoveRoomUserIDs []int64
 	AddGameIDs        []int64
@@ -659,6 +664,9 @@ func (i *UpdateRoomInput) Mutate(m *RoomMutation) {
 	}
 	if v := i.Closed; v != nil {
 		m.SetClosed(*v)
+	}
+	if v := i.GameOn; v != nil {
+		m.SetGameOn(*v)
 	}
 	if v := i.AddRoomUserIDs; len(v) > 0 {
 		m.AddRoomUserIDs(v...)

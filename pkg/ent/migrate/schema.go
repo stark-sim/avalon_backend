@@ -150,6 +150,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Default: ""},
 		{Name: "closed", Type: field.TypeBool, Default: false},
+		{Name: "game_on", Type: field.TypeBool, Default: false},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{

@@ -197,6 +197,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		GameOn    func(childComplexity int) int
 		Games     func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
@@ -963,6 +964,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Room.DeletedAt(childComplexity), true
+
+	case "Room.gameOn":
+		if e.complexity.Room.GameOn == nil {
+			break
+		}
+
+		return e.complexity.Room.GameOn(childComplexity), true
 
 	case "Room.games":
 		if e.complexity.Room.Games == nil {
