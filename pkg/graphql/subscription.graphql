@@ -1,7 +1,7 @@
 type Subscription {
     GetRoomUser: RoomUser
     getRoomUsers(req: RoomRequest): [RoomUser]
-    getRoomOngoingGame(req: RoomRequest): Game
+    getRoomOngoingGame(req: RoomRequest!): Game
 }
 
 input RoomRequest {

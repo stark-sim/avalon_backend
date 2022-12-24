@@ -234,7 +234,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		GetRoomOngoingGame func(childComplexity int, req *model.RoomRequest) int
+		GetRoomOngoingGame func(childComplexity int, req model.RoomRequest) int
 		GetRoomUser        func(childComplexity int) int
 		GetRoomUsers       func(childComplexity int, req *model.RoomRequest) int
 	}
@@ -1170,7 +1170,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.GetRoomOngoingGame(childComplexity, args["req"].(*model.RoomRequest)), true
+		return e.complexity.Subscription.GetRoomOngoingGame(childComplexity, args["req"].(model.RoomRequest)), true
 
 	case "Subscription.GetRoomUser":
 		if e.complexity.Subscription.GetRoomUser == nil {

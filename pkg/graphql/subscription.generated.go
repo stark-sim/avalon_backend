@@ -19,7 +19,7 @@ import (
 type SubscriptionResolver interface {
 	GetRoomUser(ctx context.Context) (<-chan *ent.RoomUser, error)
 	GetRoomUsers(ctx context.Context, req *model.RoomRequest) (<-chan []*ent.RoomUser, error)
-	GetRoomOngoingGame(ctx context.Context, req *model.RoomRequest) (<-chan *ent.Game, error)
+	GetRoomOngoingGame(ctx context.Context, req model.RoomRequest) (<-chan *ent.Game, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -29,10 +29,10 @@ type SubscriptionResolver interface {
 func (ec *executionContext) field_Subscription_getRoomOngoingGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.RoomRequest
+	var arg0 model.RoomRequest
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalORoomRequest2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -243,7 +243,7 @@ func (ec *executionContext) _Subscription_getRoomOngoingGame(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().GetRoomOngoingGame(rctx, fc.Args["req"].(*model.RoomRequest))
+		return ec.resolvers.Subscription().GetRoomOngoingGame(rctx, fc.Args["req"].(model.RoomRequest))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

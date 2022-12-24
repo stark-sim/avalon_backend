@@ -5,12 +5,12 @@ package graphql
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
-	"github.com/stark-sim/avalon_backend/pkg/ent/game"
-	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/tools"
@@ -61,7 +61,7 @@ func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.Room
 }
 
 // GetRoomOngoingGame is the resolver for the getRoomOngoingGame field.
-func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req *model.RoomRequest) (<-chan *ent.Game, error) {
+func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model.RoomRequest) (<-chan *ent.Game, error) {
 	// 获取某个 Room 中 end_by 状态还是 none 的 Game，按道理说，没有 bug 的情况下，不会能找到两条数据
 	ch := make(chan *ent.Game)
 	roomID := tools.StringToInt64(req.ID)
@@ -91,7 +91,10 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req *mode
 			}
 			if ongoingGamesLen == 0 {
 				// 游戏还没开始
-				continue
+				select {
+				case ch <- nil:
+					// 返回空对象
+				}
 			} else {
 				// 游戏开始，返回 game，带上 gameUsers，让前端判断当前用户是否在局中，以决定进入游戏界面
 				_game, err := r.client.Game.
