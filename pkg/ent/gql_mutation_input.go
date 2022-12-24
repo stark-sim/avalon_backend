@@ -338,19 +338,19 @@ func (c *GameUserUpdateOne) SetInput(i UpdateGameUserInput) *GameUserUpdateOne {
 
 // CreateMissionInput represents a mutation input for creating missions.
 type CreateMissionInput struct {
-	CreatedBy      *int64
-	UpdatedBy      *int64
-	CreatedAt      *time.Time
-	UpdatedAt      *time.Time
-	DeletedAt      *time.Time
-	Sequence       uint8
-	Status         *mission.Status
-	Failed         *bool
-	Capacity       *uint8
-	Leader         int64
-	GameID         int64
-	SquadIDs       []int64
-	MissionVoteIDs []int64
+	CreatedBy *int64
+	UpdatedBy *int64
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+	DeletedAt *time.Time
+	Sequence  uint8
+	Status    *mission.Status
+	Failed    *bool
+	Capacity  *uint8
+	Leader    int64
+	GameID    int64
+	SquadIDs  []int64
+	VoteIDs   []int64
 }
 
 // Mutate applies the CreateMissionInput on the MissionMutation builder.
@@ -385,8 +385,8 @@ func (i *CreateMissionInput) Mutate(m *MissionMutation) {
 	if v := i.SquadIDs; len(v) > 0 {
 		m.AddSquadIDs(v...)
 	}
-	if v := i.MissionVoteIDs; len(v) > 0 {
-		m.AddMissionVoteIDs(v...)
+	if v := i.VoteIDs; len(v) > 0 {
+		m.AddVoteIDs(v...)
 	}
 }
 
@@ -398,21 +398,21 @@ func (c *MissionCreate) SetInput(i CreateMissionInput) *MissionCreate {
 
 // UpdateMissionInput represents a mutation input for updating missions.
 type UpdateMissionInput struct {
-	CreatedBy            *int64
-	UpdatedBy            *int64
-	UpdatedAt            *time.Time
-	DeletedAt            *time.Time
-	Sequence             *uint8
-	Status               *mission.Status
-	Failed               *bool
-	Capacity             *uint8
-	Leader               *int64
-	ClearGame            bool
-	GameID               *int64
-	AddSquadIDs          []int64
-	RemoveSquadIDs       []int64
-	AddMissionVoteIDs    []int64
-	RemoveMissionVoteIDs []int64
+	CreatedBy      *int64
+	UpdatedBy      *int64
+	UpdatedAt      *time.Time
+	DeletedAt      *time.Time
+	Sequence       *uint8
+	Status         *mission.Status
+	Failed         *bool
+	Capacity       *uint8
+	Leader         *int64
+	ClearGame      bool
+	GameID         *int64
+	AddSquadIDs    []int64
+	RemoveSquadIDs []int64
+	AddVoteIDs     []int64
+	RemoveVoteIDs  []int64
 }
 
 // Mutate applies the UpdateMissionInput on the MissionMutation builder.
@@ -456,11 +456,11 @@ func (i *UpdateMissionInput) Mutate(m *MissionMutation) {
 	if v := i.RemoveSquadIDs; len(v) > 0 {
 		m.RemoveSquadIDs(v...)
 	}
-	if v := i.AddMissionVoteIDs; len(v) > 0 {
-		m.AddMissionVoteIDs(v...)
+	if v := i.AddVoteIDs; len(v) > 0 {
+		m.AddVoteIDs(v...)
 	}
-	if v := i.RemoveMissionVoteIDs; len(v) > 0 {
-		m.RemoveMissionVoteIDs(v...)
+	if v := i.RemoveVoteIDs; len(v) > 0 {
+		m.RemoveVoteIDs(v...)
 	}
 }
 

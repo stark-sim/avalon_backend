@@ -50,16 +50,16 @@ type MissionEdges struct {
 	Game *Game `json:"game,omitempty"`
 	// Squads holds the value of the squads edge.
 	Squads []*Squad `json:"squads,omitempty"`
-	// MissionVotes holds the value of the mission_votes edge.
-	MissionVotes []*Vote `json:"mission_votes,omitempty"`
+	// Votes holds the value of the votes edge.
+	Votes []*Vote `json:"votes,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
 	totalCount [3]map[string]int
 
-	namedSquads       map[string][]*Squad
-	namedMissionVotes map[string][]*Vote
+	namedSquads map[string][]*Squad
+	namedVotes  map[string][]*Vote
 }
 
 // GameOrErr returns the Game value or an error if the edge
@@ -84,13 +84,13 @@ func (e MissionEdges) SquadsOrErr() ([]*Squad, error) {
 	return nil, &NotLoadedError{edge: "squads"}
 }
 
-// MissionVotesOrErr returns the MissionVotes value or an error if the edge
+// VotesOrErr returns the Votes value or an error if the edge
 // was not loaded in eager-loading.
-func (e MissionEdges) MissionVotesOrErr() ([]*Vote, error) {
+func (e MissionEdges) VotesOrErr() ([]*Vote, error) {
 	if e.loadedTypes[2] {
-		return e.MissionVotes, nil
+		return e.Votes, nil
 	}
-	return nil, &NotLoadedError{edge: "mission_votes"}
+	return nil, &NotLoadedError{edge: "votes"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -208,9 +208,9 @@ func (m *Mission) QuerySquads() *SquadQuery {
 	return (&MissionClient{config: m.config}).QuerySquads(m)
 }
 
-// QueryMissionVotes queries the "mission_votes" edge of the Mission entity.
-func (m *Mission) QueryMissionVotes() *VoteQuery {
-	return (&MissionClient{config: m.config}).QueryMissionVotes(m)
+// QueryVotes queries the "votes" edge of the Mission entity.
+func (m *Mission) QueryVotes() *VoteQuery {
+	return (&MissionClient{config: m.config}).QueryVotes(m)
 }
 
 // Update returns a builder for updating this Mission.
@@ -299,27 +299,27 @@ func (m *Mission) appendNamedSquads(name string, edges ...*Squad) {
 	}
 }
 
-// NamedMissionVotes returns the MissionVotes named value or an error if the edge was not
+// NamedVotes returns the Votes named value or an error if the edge was not
 // loaded in eager-loading with this name.
-func (m *Mission) NamedMissionVotes(name string) ([]*Vote, error) {
-	if m.Edges.namedMissionVotes == nil {
+func (m *Mission) NamedVotes(name string) ([]*Vote, error) {
+	if m.Edges.namedVotes == nil {
 		return nil, &NotLoadedError{edge: name}
 	}
-	nodes, ok := m.Edges.namedMissionVotes[name]
+	nodes, ok := m.Edges.namedVotes[name]
 	if !ok {
 		return nil, &NotLoadedError{edge: name}
 	}
 	return nodes, nil
 }
 
-func (m *Mission) appendNamedMissionVotes(name string, edges ...*Vote) {
-	if m.Edges.namedMissionVotes == nil {
-		m.Edges.namedMissionVotes = make(map[string][]*Vote)
+func (m *Mission) appendNamedVotes(name string, edges ...*Vote) {
+	if m.Edges.namedVotes == nil {
+		m.Edges.namedVotes = make(map[string][]*Vote)
 	}
 	if len(edges) == 0 {
-		m.Edges.namedMissionVotes[name] = []*Vote{}
+		m.Edges.namedVotes[name] = []*Vote{}
 	} else {
-		m.Edges.namedMissionVotes[name] = append(m.Edges.namedMissionVotes[name], edges...)
+		m.Edges.namedVotes[name] = append(m.Edges.namedVotes[name], edges...)
 	}
 }
 

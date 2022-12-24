@@ -465,9 +465,9 @@ func (m *Mission) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[2] = &Edge{
 		Type: "Vote",
-		Name: "mission_votes",
+		Name: "votes",
 	}
-	err = m.QueryMissionVotes().
+	err = m.QueryVotes().
 		Select(vote.FieldID).
 		Scan(ctx, &node.Edges[2].IDs)
 	if err != nil {

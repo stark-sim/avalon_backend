@@ -805,25 +805,25 @@ func HasSquadsWith(preds ...predicate.Squad) predicate.Mission {
 	})
 }
 
-// HasMissionVotes applies the HasEdge predicate on the "mission_votes" edge.
-func HasMissionVotes() predicate.Mission {
+// HasVotes applies the HasEdge predicate on the "votes" edge.
+func HasVotes() predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MissionVotesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MissionVotesTable, MissionVotesColumn),
+			sqlgraph.To(VotesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VotesTable, VotesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasMissionVotesWith applies the HasEdge predicate on the "mission_votes" edge with a given conditions (other predicates).
-func HasMissionVotesWith(preds ...predicate.Vote) predicate.Mission {
+// HasVotesWith applies the HasEdge predicate on the "votes" edge with a given conditions (other predicates).
+func HasVotesWith(preds ...predicate.Vote) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MissionVotesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MissionVotesTable, MissionVotesColumn),
+			sqlgraph.To(VotesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VotesTable, VotesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

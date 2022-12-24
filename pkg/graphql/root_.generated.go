@@ -128,21 +128,21 @@ type ComplexityRoot struct {
 	}
 
 	Mission struct {
-		Capacity     func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		CreatedBy    func(childComplexity int) int
-		DeletedAt    func(childComplexity int) int
-		Failed       func(childComplexity int) int
-		Game         func(childComplexity int) int
-		GameID       func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Leader       func(childComplexity int) int
-		MissionVotes func(childComplexity int) int
-		Sequence     func(childComplexity int) int
-		Squads       func(childComplexity int) int
-		Status       func(childComplexity int) int
-		UpdatedAt    func(childComplexity int) int
-		UpdatedBy    func(childComplexity int) int
+		Capacity  func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		DeletedAt func(childComplexity int) int
+		Failed    func(childComplexity int) int
+		Game      func(childComplexity int) int
+		GameID    func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Leader    func(childComplexity int) int
+		Sequence  func(childComplexity int) int
+		Squads    func(childComplexity int) int
+		Status    func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+		Votes     func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -235,6 +235,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
+		GetMissionsByGame  func(childComplexity int, req model.GameRequest) int
 		GetRoomOngoingGame func(childComplexity int, req model.RoomRequest) int
 		GetRoomUser        func(childComplexity int) int
 		GetRoomUsers       func(childComplexity int, req *model.RoomRequest) int
@@ -600,13 +601,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mission.Leader(childComplexity), true
 
-	case "Mission.missionVotes":
-		if e.complexity.Mission.MissionVotes == nil {
-			break
-		}
-
-		return e.complexity.Mission.MissionVotes(childComplexity), true
-
 	case "Mission.sequence":
 		if e.complexity.Mission.Sequence == nil {
 			break
@@ -641,6 +635,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mission.UpdatedBy(childComplexity), true
+
+	case "Mission.votes":
+		if e.complexity.Mission.Votes == nil {
+			break
+		}
+
+		return e.complexity.Mission.Votes(childComplexity), true
 
 	case "Mutation.closeRoom":
 		if e.complexity.Mutation.CloseRoom == nil {
@@ -1168,6 +1169,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Squad.UserID(childComplexity), true
 
+	case "Subscription.getMissionsByGame":
+		if e.complexity.Subscription.GetMissionsByGame == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_getMissionsByGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.GetMissionsByGame(childComplexity, args["req"].(model.GameRequest)), true
+
 	case "Subscription.getRoomOngoingGame":
 		if e.complexity.Subscription.GetRoomOngoingGame == nil {
 			break
@@ -1324,6 +1337,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateSquadInput,
 		ec.unmarshalInputCreateVoteInput,
 		ec.unmarshalInputGameOrder,
+		ec.unmarshalInputGameRequest,
 		ec.unmarshalInputGameUserOrder,
 		ec.unmarshalInputGameUserWhereInput,
 		ec.unmarshalInputGameWhereInput,

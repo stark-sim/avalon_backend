@@ -208,7 +208,7 @@ input CreateMissionInput {
   leader: Int!
   gameID: ID!
   squadIDs: [ID!]
-  missionVoteIDs: [ID!]
+  voteIDs: [ID!]
 }
 """
 CreateRecordInput is used for create Record object.
@@ -555,7 +555,7 @@ type Mission implements Node {
   leader: Int!
   game: Game!
   squads: [Squad!]
-  missionVotes: [Vote!]
+  votes: [Vote!]
 }
 """Ordering options for Mission connections"""
 input MissionOrder {
@@ -686,9 +686,9 @@ input MissionWhereInput {
   """squads edge predicates"""
   hasSquads: Boolean
   hasSquadsWith: [SquadWhereInput!]
-  """mission_votes edge predicates"""
-  hasMissionVotes: Boolean
-  hasMissionVotesWith: [VoteWhereInput!]
+  """votes edge predicates"""
+  hasVotes: Boolean
+  hasVotesWith: [VoteWhereInput!]
 }
 """
 An object with an ID.
@@ -1261,8 +1261,8 @@ input UpdateMissionInput {
   gameID: ID
   addSquadIDs: [ID!]
   removeSquadIDs: [ID!]
-  addMissionVoteIDs: [ID!]
-  removeMissionVoteIDs: [ID!]
+  addVoteIDs: [ID!]
+  removeVoteIDs: [ID!]
 }
 """
 UpdateRecordInput is used for update Record object.

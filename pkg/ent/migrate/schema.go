@@ -228,7 +228,7 @@ var (
 		PrimaryKey: []*schema.Column{VotesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "votes_missions_mission_votes",
+				Symbol:     "votes_missions_votes",
 				Columns:    []*schema.Column{VotesColumns[8]},
 				RefColumns: []*schema.Column{MissionsColumns[0]},
 				OnDelete:   schema.NoAction,

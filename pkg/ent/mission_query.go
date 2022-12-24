@@ -21,19 +21,19 @@ import (
 // MissionQuery is the builder for querying Mission entities.
 type MissionQuery struct {
 	config
-	limit                 *int
-	offset                *int
-	unique                *bool
-	order                 []OrderFunc
-	fields                []string
-	predicates            []predicate.Mission
-	withGame              *GameQuery
-	withSquads            *SquadQuery
-	withMissionVotes      *VoteQuery
-	modifiers             []func(*sql.Selector)
-	loadTotal             []func(context.Context, []*Mission) error
-	withNamedSquads       map[string]*SquadQuery
-	withNamedMissionVotes map[string]*VoteQuery
+	limit           *int
+	offset          *int
+	unique          *bool
+	order           []OrderFunc
+	fields          []string
+	predicates      []predicate.Mission
+	withGame        *GameQuery
+	withSquads      *SquadQuery
+	withVotes       *VoteQuery
+	modifiers       []func(*sql.Selector)
+	loadTotal       []func(context.Context, []*Mission) error
+	withNamedSquads map[string]*SquadQuery
+	withNamedVotes  map[string]*VoteQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -114,8 +114,8 @@ func (mq *MissionQuery) QuerySquads() *SquadQuery {
 	return query
 }
 
-// QueryMissionVotes chains the current query on the "mission_votes" edge.
-func (mq *MissionQuery) QueryMissionVotes() *VoteQuery {
+// QueryVotes chains the current query on the "votes" edge.
+func (mq *MissionQuery) QueryVotes() *VoteQuery {
 	query := &VoteQuery{config: mq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := mq.prepareQuery(ctx); err != nil {
@@ -128,7 +128,7 @@ func (mq *MissionQuery) QueryMissionVotes() *VoteQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mission.Table, mission.FieldID, selector),
 			sqlgraph.To(vote.Table, vote.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, mission.MissionVotesTable, mission.MissionVotesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, mission.VotesTable, mission.VotesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -312,14 +312,14 @@ func (mq *MissionQuery) Clone() *MissionQuery {
 		return nil
 	}
 	return &MissionQuery{
-		config:           mq.config,
-		limit:            mq.limit,
-		offset:           mq.offset,
-		order:            append([]OrderFunc{}, mq.order...),
-		predicates:       append([]predicate.Mission{}, mq.predicates...),
-		withGame:         mq.withGame.Clone(),
-		withSquads:       mq.withSquads.Clone(),
-		withMissionVotes: mq.withMissionVotes.Clone(),
+		config:     mq.config,
+		limit:      mq.limit,
+		offset:     mq.offset,
+		order:      append([]OrderFunc{}, mq.order...),
+		predicates: append([]predicate.Mission{}, mq.predicates...),
+		withGame:   mq.withGame.Clone(),
+		withSquads: mq.withSquads.Clone(),
+		withVotes:  mq.withVotes.Clone(),
 		// clone intermediate query.
 		sql:    mq.sql.Clone(),
 		path:   mq.path,
@@ -349,14 +349,14 @@ func (mq *MissionQuery) WithSquads(opts ...func(*SquadQuery)) *MissionQuery {
 	return mq
 }
 
-// WithMissionVotes tells the query-builder to eager-load the nodes that are connected to
-// the "mission_votes" edge. The optional arguments are used to configure the query builder of the edge.
-func (mq *MissionQuery) WithMissionVotes(opts ...func(*VoteQuery)) *MissionQuery {
+// WithVotes tells the query-builder to eager-load the nodes that are connected to
+// the "votes" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MissionQuery) WithVotes(opts ...func(*VoteQuery)) *MissionQuery {
 	query := &VoteQuery{config: mq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	mq.withMissionVotes = query
+	mq.withVotes = query
 	return mq
 }
 
@@ -436,7 +436,7 @@ func (mq *MissionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Miss
 		loadedTypes = [3]bool{
 			mq.withGame != nil,
 			mq.withSquads != nil,
-			mq.withMissionVotes != nil,
+			mq.withVotes != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -473,10 +473,10 @@ func (mq *MissionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Miss
 			return nil, err
 		}
 	}
-	if query := mq.withMissionVotes; query != nil {
-		if err := mq.loadMissionVotes(ctx, query, nodes,
-			func(n *Mission) { n.Edges.MissionVotes = []*Vote{} },
-			func(n *Mission, e *Vote) { n.Edges.MissionVotes = append(n.Edges.MissionVotes, e) }); err != nil {
+	if query := mq.withVotes; query != nil {
+		if err := mq.loadVotes(ctx, query, nodes,
+			func(n *Mission) { n.Edges.Votes = []*Vote{} },
+			func(n *Mission, e *Vote) { n.Edges.Votes = append(n.Edges.Votes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -487,10 +487,10 @@ func (mq *MissionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Miss
 			return nil, err
 		}
 	}
-	for name, query := range mq.withNamedMissionVotes {
-		if err := mq.loadMissionVotes(ctx, query, nodes,
-			func(n *Mission) { n.appendNamedMissionVotes(name) },
-			func(n *Mission, e *Vote) { n.appendNamedMissionVotes(name, e) }); err != nil {
+	for name, query := range mq.withNamedVotes {
+		if err := mq.loadVotes(ctx, query, nodes,
+			func(n *Mission) { n.appendNamedVotes(name) },
+			func(n *Mission, e *Vote) { n.appendNamedVotes(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -555,7 +555,7 @@ func (mq *MissionQuery) loadSquads(ctx context.Context, query *SquadQuery, nodes
 	}
 	return nil
 }
-func (mq *MissionQuery) loadMissionVotes(ctx context.Context, query *VoteQuery, nodes []*Mission, init func(*Mission), assign func(*Mission, *Vote)) error {
+func (mq *MissionQuery) loadVotes(ctx context.Context, query *VoteQuery, nodes []*Mission, init func(*Mission), assign func(*Mission, *Vote)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int64]*Mission)
 	for i := range nodes {
@@ -566,7 +566,7 @@ func (mq *MissionQuery) loadMissionVotes(ctx context.Context, query *VoteQuery, 
 		}
 	}
 	query.Where(predicate.Vote(func(s *sql.Selector) {
-		s.Where(sql.InValues(mission.MissionVotesColumn, fks...))
+		s.Where(sql.InValues(mission.VotesColumn, fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -700,17 +700,17 @@ func (mq *MissionQuery) WithNamedSquads(name string, opts ...func(*SquadQuery)) 
 	return mq
 }
 
-// WithNamedMissionVotes tells the query-builder to eager-load the nodes that are connected to the "mission_votes"
+// WithNamedVotes tells the query-builder to eager-load the nodes that are connected to the "votes"
 // edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (mq *MissionQuery) WithNamedMissionVotes(name string, opts ...func(*VoteQuery)) *MissionQuery {
+func (mq *MissionQuery) WithNamedVotes(name string, opts ...func(*VoteQuery)) *MissionQuery {
 	query := &VoteQuery{config: mq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	if mq.withNamedMissionVotes == nil {
-		mq.withNamedMissionVotes = make(map[string]*VoteQuery)
+	if mq.withNamedVotes == nil {
+		mq.withNamedVotes = make(map[string]*VoteQuery)
 	}
-	mq.withNamedMissionVotes[name] = query
+	mq.withNamedVotes[name] = query
 	return mq
 }
 

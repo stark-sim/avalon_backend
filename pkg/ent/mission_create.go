@@ -187,19 +187,19 @@ func (mc *MissionCreate) AddSquads(s ...*Squad) *MissionCreate {
 	return mc.AddSquadIDs(ids...)
 }
 
-// AddMissionVoteIDs adds the "mission_votes" edge to the Vote entity by IDs.
-func (mc *MissionCreate) AddMissionVoteIDs(ids ...int64) *MissionCreate {
-	mc.mutation.AddMissionVoteIDs(ids...)
+// AddVoteIDs adds the "votes" edge to the Vote entity by IDs.
+func (mc *MissionCreate) AddVoteIDs(ids ...int64) *MissionCreate {
+	mc.mutation.AddVoteIDs(ids...)
 	return mc
 }
 
-// AddMissionVotes adds the "mission_votes" edges to the Vote entity.
-func (mc *MissionCreate) AddMissionVotes(v ...*Vote) *MissionCreate {
+// AddVotes adds the "votes" edges to the Vote entity.
+func (mc *MissionCreate) AddVotes(v ...*Vote) *MissionCreate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return mc.AddMissionVoteIDs(ids...)
+	return mc.AddVoteIDs(ids...)
 }
 
 // Mutation returns the MissionMutation object of the builder.
@@ -477,12 +477,12 @@ func (mc *MissionCreate) createSpec() (*Mission, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := mc.mutation.MissionVotesIDs(); len(nodes) > 0 {
+	if nodes := mc.mutation.VotesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

@@ -1418,9 +1418,9 @@ type MissionWhereInput struct {
 	HasSquads     *bool              `json:"hasSquads,omitempty"`
 	HasSquadsWith []*SquadWhereInput `json:"hasSquadsWith,omitempty"`
 
-	// "mission_votes" edge predicates.
-	HasMissionVotes     *bool             `json:"hasMissionVotes,omitempty"`
-	HasMissionVotesWith []*VoteWhereInput `json:"hasMissionVotesWith,omitempty"`
+	// "votes" edge predicates.
+	HasVotes     *bool             `json:"hasVotes,omitempty"`
+	HasVotesWith []*VoteWhereInput `json:"hasVotesWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1777,23 +1777,23 @@ func (i *MissionWhereInput) P() (predicate.Mission, error) {
 		}
 		predicates = append(predicates, mission.HasSquadsWith(with...))
 	}
-	if i.HasMissionVotes != nil {
-		p := mission.HasMissionVotes()
-		if !*i.HasMissionVotes {
+	if i.HasVotes != nil {
+		p := mission.HasVotes()
+		if !*i.HasVotes {
 			p = mission.Not(p)
 		}
 		predicates = append(predicates, p)
 	}
-	if len(i.HasMissionVotesWith) > 0 {
-		with := make([]predicate.Vote, 0, len(i.HasMissionVotesWith))
-		for _, w := range i.HasMissionVotesWith {
+	if len(i.HasVotesWith) > 0 {
+		with := make([]predicate.Vote, 0, len(i.HasVotesWith))
+		for _, w := range i.HasVotesWith {
 			p, err := w.P()
 			if err != nil {
-				return nil, fmt.Errorf("%w: field 'HasMissionVotesWith'", err)
+				return nil, fmt.Errorf("%w: field 'HasVotesWith'", err)
 			}
 			with = append(with, p)
 		}
-		predicates = append(predicates, mission.HasMissionVotesWith(with...))
+		predicates = append(predicates, mission.HasVotesWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

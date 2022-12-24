@@ -2,6 +2,10 @@
 
 package model
 
+type GameRequest struct {
+	ID string `json:"id"`
+}
+
 type JoinRoomInput struct {
 	ShortCode string `json:"shortCode"`
 	UserID    string `json:"userID"`

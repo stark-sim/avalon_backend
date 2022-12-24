@@ -40,8 +40,8 @@ const (
 	EdgeGame = "game"
 	// EdgeSquads holds the string denoting the squads edge name in mutations.
 	EdgeSquads = "squads"
-	// EdgeMissionVotes holds the string denoting the mission_votes edge name in mutations.
-	EdgeMissionVotes = "mission_votes"
+	// EdgeVotes holds the string denoting the votes edge name in mutations.
+	EdgeVotes = "votes"
 	// Table holds the table name of the mission in the database.
 	Table = "missions"
 	// GameTable is the table that holds the game relation/edge.
@@ -58,13 +58,13 @@ const (
 	SquadsInverseTable = "squads"
 	// SquadsColumn is the table column denoting the squads relation/edge.
 	SquadsColumn = "mission_id"
-	// MissionVotesTable is the table that holds the mission_votes relation/edge.
-	MissionVotesTable = "votes"
-	// MissionVotesInverseTable is the table name for the Vote entity.
+	// VotesTable is the table that holds the votes relation/edge.
+	VotesTable = "votes"
+	// VotesInverseTable is the table name for the Vote entity.
 	// It exists in this package in order to avoid circular dependency with the "vote" package.
-	MissionVotesInverseTable = "votes"
-	// MissionVotesColumn is the table column denoting the mission_votes relation/edge.
-	MissionVotesColumn = "mission_id"
+	VotesInverseTable = "votes"
+	// VotesColumn is the table column denoting the votes relation/edge.
+	VotesColumn = "mission_id"
 )
 
 // Columns holds all SQL columns for mission fields.

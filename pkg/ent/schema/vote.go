@@ -25,7 +25,7 @@ func (Vote) Fields() []ent.Field {
 // Edges of the Vote.
 func (Vote) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("mission", Mission.Type).Ref("mission_votes").Field("mission_id").Unique().Required(),
+		edge.From("mission", Mission.Type).Ref("votes").Field("mission_id").Unique().Required(),
 	}
 }
 

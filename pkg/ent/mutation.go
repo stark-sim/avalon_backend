@@ -2903,36 +2903,36 @@ func (m *GameUserMutation) ResetEdge(name string) error {
 // MissionMutation represents an operation that mutates the Mission nodes in the graph.
 type MissionMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int64
-	created_by           *int64
-	addcreated_by        *int64
-	updated_by           *int64
-	addupdated_by        *int64
-	created_at           *time.Time
-	updated_at           *time.Time
-	deleted_at           *time.Time
-	sequence             *uint8
-	addsequence          *int8
-	status               *mission.Status
-	failed               *bool
-	capacity             *uint8
-	addcapacity          *int8
-	leader               *int64
-	addleader            *int64
-	clearedFields        map[string]struct{}
-	game                 *int64
-	clearedgame          bool
-	squads               map[int64]struct{}
-	removedsquads        map[int64]struct{}
-	clearedsquads        bool
-	mission_votes        map[int64]struct{}
-	removedmission_votes map[int64]struct{}
-	clearedmission_votes bool
-	done                 bool
-	oldValue             func(context.Context) (*Mission, error)
-	predicates           []predicate.Mission
+	op            Op
+	typ           string
+	id            *int64
+	created_by    *int64
+	addcreated_by *int64
+	updated_by    *int64
+	addupdated_by *int64
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	sequence      *uint8
+	addsequence   *int8
+	status        *mission.Status
+	failed        *bool
+	capacity      *uint8
+	addcapacity   *int8
+	leader        *int64
+	addleader     *int64
+	clearedFields map[string]struct{}
+	game          *int64
+	clearedgame   bool
+	squads        map[int64]struct{}
+	removedsquads map[int64]struct{}
+	clearedsquads bool
+	votes         map[int64]struct{}
+	removedvotes  map[int64]struct{}
+	clearedvotes  bool
+	done          bool
+	oldValue      func(context.Context) (*Mission, error)
+	predicates    []predicate.Mission
 }
 
 var _ ent.Mutation = (*MissionMutation)(nil)
@@ -3615,58 +3615,58 @@ func (m *MissionMutation) ResetSquads() {
 	m.removedsquads = nil
 }
 
-// AddMissionVoteIDs adds the "mission_votes" edge to the Vote entity by ids.
-func (m *MissionMutation) AddMissionVoteIDs(ids ...int64) {
-	if m.mission_votes == nil {
-		m.mission_votes = make(map[int64]struct{})
+// AddVoteIDs adds the "votes" edge to the Vote entity by ids.
+func (m *MissionMutation) AddVoteIDs(ids ...int64) {
+	if m.votes == nil {
+		m.votes = make(map[int64]struct{})
 	}
 	for i := range ids {
-		m.mission_votes[ids[i]] = struct{}{}
+		m.votes[ids[i]] = struct{}{}
 	}
 }
 
-// ClearMissionVotes clears the "mission_votes" edge to the Vote entity.
-func (m *MissionMutation) ClearMissionVotes() {
-	m.clearedmission_votes = true
+// ClearVotes clears the "votes" edge to the Vote entity.
+func (m *MissionMutation) ClearVotes() {
+	m.clearedvotes = true
 }
 
-// MissionVotesCleared reports if the "mission_votes" edge to the Vote entity was cleared.
-func (m *MissionMutation) MissionVotesCleared() bool {
-	return m.clearedmission_votes
+// VotesCleared reports if the "votes" edge to the Vote entity was cleared.
+func (m *MissionMutation) VotesCleared() bool {
+	return m.clearedvotes
 }
 
-// RemoveMissionVoteIDs removes the "mission_votes" edge to the Vote entity by IDs.
-func (m *MissionMutation) RemoveMissionVoteIDs(ids ...int64) {
-	if m.removedmission_votes == nil {
-		m.removedmission_votes = make(map[int64]struct{})
+// RemoveVoteIDs removes the "votes" edge to the Vote entity by IDs.
+func (m *MissionMutation) RemoveVoteIDs(ids ...int64) {
+	if m.removedvotes == nil {
+		m.removedvotes = make(map[int64]struct{})
 	}
 	for i := range ids {
-		delete(m.mission_votes, ids[i])
-		m.removedmission_votes[ids[i]] = struct{}{}
+		delete(m.votes, ids[i])
+		m.removedvotes[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedMissionVotes returns the removed IDs of the "mission_votes" edge to the Vote entity.
-func (m *MissionMutation) RemovedMissionVotesIDs() (ids []int64) {
-	for id := range m.removedmission_votes {
+// RemovedVotes returns the removed IDs of the "votes" edge to the Vote entity.
+func (m *MissionMutation) RemovedVotesIDs() (ids []int64) {
+	for id := range m.removedvotes {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// MissionVotesIDs returns the "mission_votes" edge IDs in the mutation.
-func (m *MissionMutation) MissionVotesIDs() (ids []int64) {
-	for id := range m.mission_votes {
+// VotesIDs returns the "votes" edge IDs in the mutation.
+func (m *MissionMutation) VotesIDs() (ids []int64) {
+	for id := range m.votes {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetMissionVotes resets all changes to the "mission_votes" edge.
-func (m *MissionMutation) ResetMissionVotes() {
-	m.mission_votes = nil
-	m.clearedmission_votes = false
-	m.removedmission_votes = nil
+// ResetVotes resets all changes to the "votes" edge.
+func (m *MissionMutation) ResetVotes() {
+	m.votes = nil
+	m.clearedvotes = false
+	m.removedvotes = nil
 }
 
 // Where appends a list predicates to the MissionMutation builder.
@@ -4027,8 +4027,8 @@ func (m *MissionMutation) AddedEdges() []string {
 	if m.squads != nil {
 		edges = append(edges, mission.EdgeSquads)
 	}
-	if m.mission_votes != nil {
-		edges = append(edges, mission.EdgeMissionVotes)
+	if m.votes != nil {
+		edges = append(edges, mission.EdgeVotes)
 	}
 	return edges
 }
@@ -4047,9 +4047,9 @@ func (m *MissionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case mission.EdgeMissionVotes:
-		ids := make([]ent.Value, 0, len(m.mission_votes))
-		for id := range m.mission_votes {
+	case mission.EdgeVotes:
+		ids := make([]ent.Value, 0, len(m.votes))
+		for id := range m.votes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -4063,8 +4063,8 @@ func (m *MissionMutation) RemovedEdges() []string {
 	if m.removedsquads != nil {
 		edges = append(edges, mission.EdgeSquads)
 	}
-	if m.removedmission_votes != nil {
-		edges = append(edges, mission.EdgeMissionVotes)
+	if m.removedvotes != nil {
+		edges = append(edges, mission.EdgeVotes)
 	}
 	return edges
 }
@@ -4079,9 +4079,9 @@ func (m *MissionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case mission.EdgeMissionVotes:
-		ids := make([]ent.Value, 0, len(m.removedmission_votes))
-		for id := range m.removedmission_votes {
+	case mission.EdgeVotes:
+		ids := make([]ent.Value, 0, len(m.removedvotes))
+		for id := range m.removedvotes {
 			ids = append(ids, id)
 		}
 		return ids
@@ -4098,8 +4098,8 @@ func (m *MissionMutation) ClearedEdges() []string {
 	if m.clearedsquads {
 		edges = append(edges, mission.EdgeSquads)
 	}
-	if m.clearedmission_votes {
-		edges = append(edges, mission.EdgeMissionVotes)
+	if m.clearedvotes {
+		edges = append(edges, mission.EdgeVotes)
 	}
 	return edges
 }
@@ -4112,8 +4112,8 @@ func (m *MissionMutation) EdgeCleared(name string) bool {
 		return m.clearedgame
 	case mission.EdgeSquads:
 		return m.clearedsquads
-	case mission.EdgeMissionVotes:
-		return m.clearedmission_votes
+	case mission.EdgeVotes:
+		return m.clearedvotes
 	}
 	return false
 }
@@ -4139,8 +4139,8 @@ func (m *MissionMutation) ResetEdge(name string) error {
 	case mission.EdgeSquads:
 		m.ResetSquads()
 		return nil
-	case mission.EdgeMissionVotes:
-		m.ResetMissionVotes()
+	case mission.EdgeVotes:
+		m.ResetVotes()
 		return nil
 	}
 	return fmt.Errorf("unknown Mission edge %s", name)

@@ -194,19 +194,19 @@ func (mu *MissionUpdate) AddSquads(s ...*Squad) *MissionUpdate {
 	return mu.AddSquadIDs(ids...)
 }
 
-// AddMissionVoteIDs adds the "mission_votes" edge to the Vote entity by IDs.
-func (mu *MissionUpdate) AddMissionVoteIDs(ids ...int64) *MissionUpdate {
-	mu.mutation.AddMissionVoteIDs(ids...)
+// AddVoteIDs adds the "votes" edge to the Vote entity by IDs.
+func (mu *MissionUpdate) AddVoteIDs(ids ...int64) *MissionUpdate {
+	mu.mutation.AddVoteIDs(ids...)
 	return mu
 }
 
-// AddMissionVotes adds the "mission_votes" edges to the Vote entity.
-func (mu *MissionUpdate) AddMissionVotes(v ...*Vote) *MissionUpdate {
+// AddVotes adds the "votes" edges to the Vote entity.
+func (mu *MissionUpdate) AddVotes(v ...*Vote) *MissionUpdate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return mu.AddMissionVoteIDs(ids...)
+	return mu.AddVoteIDs(ids...)
 }
 
 // Mutation returns the MissionMutation object of the builder.
@@ -241,25 +241,25 @@ func (mu *MissionUpdate) RemoveSquads(s ...*Squad) *MissionUpdate {
 	return mu.RemoveSquadIDs(ids...)
 }
 
-// ClearMissionVotes clears all "mission_votes" edges to the Vote entity.
-func (mu *MissionUpdate) ClearMissionVotes() *MissionUpdate {
-	mu.mutation.ClearMissionVotes()
+// ClearVotes clears all "votes" edges to the Vote entity.
+func (mu *MissionUpdate) ClearVotes() *MissionUpdate {
+	mu.mutation.ClearVotes()
 	return mu
 }
 
-// RemoveMissionVoteIDs removes the "mission_votes" edge to Vote entities by IDs.
-func (mu *MissionUpdate) RemoveMissionVoteIDs(ids ...int64) *MissionUpdate {
-	mu.mutation.RemoveMissionVoteIDs(ids...)
+// RemoveVoteIDs removes the "votes" edge to Vote entities by IDs.
+func (mu *MissionUpdate) RemoveVoteIDs(ids ...int64) *MissionUpdate {
+	mu.mutation.RemoveVoteIDs(ids...)
 	return mu
 }
 
-// RemoveMissionVotes removes "mission_votes" edges to Vote entities.
-func (mu *MissionUpdate) RemoveMissionVotes(v ...*Vote) *MissionUpdate {
+// RemoveVotes removes "votes" edges to Vote entities.
+func (mu *MissionUpdate) RemoveVotes(v ...*Vote) *MissionUpdate {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return mu.RemoveMissionVoteIDs(ids...)
+	return mu.RemoveVoteIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -498,12 +498,12 @@ func (mu *MissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if mu.mutation.MissionVotesCleared() {
+	if mu.mutation.VotesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -514,12 +514,12 @@ func (mu *MissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := mu.mutation.RemovedMissionVotesIDs(); len(nodes) > 0 && !mu.mutation.MissionVotesCleared() {
+	if nodes := mu.mutation.RemovedVotesIDs(); len(nodes) > 0 && !mu.mutation.VotesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -533,12 +533,12 @@ func (mu *MissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := mu.mutation.MissionVotesIDs(); len(nodes) > 0 {
+	if nodes := mu.mutation.VotesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -734,19 +734,19 @@ func (muo *MissionUpdateOne) AddSquads(s ...*Squad) *MissionUpdateOne {
 	return muo.AddSquadIDs(ids...)
 }
 
-// AddMissionVoteIDs adds the "mission_votes" edge to the Vote entity by IDs.
-func (muo *MissionUpdateOne) AddMissionVoteIDs(ids ...int64) *MissionUpdateOne {
-	muo.mutation.AddMissionVoteIDs(ids...)
+// AddVoteIDs adds the "votes" edge to the Vote entity by IDs.
+func (muo *MissionUpdateOne) AddVoteIDs(ids ...int64) *MissionUpdateOne {
+	muo.mutation.AddVoteIDs(ids...)
 	return muo
 }
 
-// AddMissionVotes adds the "mission_votes" edges to the Vote entity.
-func (muo *MissionUpdateOne) AddMissionVotes(v ...*Vote) *MissionUpdateOne {
+// AddVotes adds the "votes" edges to the Vote entity.
+func (muo *MissionUpdateOne) AddVotes(v ...*Vote) *MissionUpdateOne {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return muo.AddMissionVoteIDs(ids...)
+	return muo.AddVoteIDs(ids...)
 }
 
 // Mutation returns the MissionMutation object of the builder.
@@ -781,25 +781,25 @@ func (muo *MissionUpdateOne) RemoveSquads(s ...*Squad) *MissionUpdateOne {
 	return muo.RemoveSquadIDs(ids...)
 }
 
-// ClearMissionVotes clears all "mission_votes" edges to the Vote entity.
-func (muo *MissionUpdateOne) ClearMissionVotes() *MissionUpdateOne {
-	muo.mutation.ClearMissionVotes()
+// ClearVotes clears all "votes" edges to the Vote entity.
+func (muo *MissionUpdateOne) ClearVotes() *MissionUpdateOne {
+	muo.mutation.ClearVotes()
 	return muo
 }
 
-// RemoveMissionVoteIDs removes the "mission_votes" edge to Vote entities by IDs.
-func (muo *MissionUpdateOne) RemoveMissionVoteIDs(ids ...int64) *MissionUpdateOne {
-	muo.mutation.RemoveMissionVoteIDs(ids...)
+// RemoveVoteIDs removes the "votes" edge to Vote entities by IDs.
+func (muo *MissionUpdateOne) RemoveVoteIDs(ids ...int64) *MissionUpdateOne {
+	muo.mutation.RemoveVoteIDs(ids...)
 	return muo
 }
 
-// RemoveMissionVotes removes "mission_votes" edges to Vote entities.
-func (muo *MissionUpdateOne) RemoveMissionVotes(v ...*Vote) *MissionUpdateOne {
+// RemoveVotes removes "votes" edges to Vote entities.
+func (muo *MissionUpdateOne) RemoveVotes(v ...*Vote) *MissionUpdateOne {
 	ids := make([]int64, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return muo.RemoveMissionVoteIDs(ids...)
+	return muo.RemoveVoteIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1068,12 +1068,12 @@ func (muo *MissionUpdateOne) sqlSave(ctx context.Context) (_node *Mission, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if muo.mutation.MissionVotesCleared() {
+	if muo.mutation.VotesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1084,12 +1084,12 @@ func (muo *MissionUpdateOne) sqlSave(ctx context.Context) (_node *Mission, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := muo.mutation.RemovedMissionVotesIDs(); len(nodes) > 0 && !muo.mutation.MissionVotesCleared() {
+	if nodes := muo.mutation.RemovedVotesIDs(); len(nodes) > 0 && !muo.mutation.VotesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1103,12 +1103,12 @@ func (muo *MissionUpdateOne) sqlSave(ctx context.Context) (_node *Mission, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := muo.mutation.MissionVotesIDs(); len(nodes) > 0 {
+	if nodes := muo.mutation.VotesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   mission.MissionVotesTable,
-			Columns: []string{mission.MissionVotesColumn},
+			Table:   mission.VotesTable,
+			Columns: []string{mission.VotesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

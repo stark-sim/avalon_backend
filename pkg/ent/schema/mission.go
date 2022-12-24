@@ -30,7 +30,7 @@ func (Mission) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("game", Game.Type).Ref("missions").Field("game_id").Unique().Required(),
 		edge.To("squads", Squad.Type),
-		edge.To("mission_votes", Vote.Type),
+		edge.To("votes", Vote.Type),
 	}
 }
 

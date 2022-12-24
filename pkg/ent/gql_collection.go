@@ -329,7 +329,7 @@ func (m *MissionQuery) collectField(ctx context.Context, op *graphql.OperationCo
 			m.WithNamedSquads(alias, func(wq *SquadQuery) {
 				*wq = *query
 			})
-		case "missionVotes":
+		case "votes":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
@@ -338,7 +338,7 @@ func (m *MissionQuery) collectField(ctx context.Context, op *graphql.OperationCo
 			if err := query.collectField(ctx, op, field, path, satisfies...); err != nil {
 				return err
 			}
-			m.WithNamedMissionVotes(alias, func(wq *VoteQuery) {
+			m.WithNamedVotes(alias, func(wq *VoteQuery) {
 				*wq = *query
 			})
 		}

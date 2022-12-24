@@ -88,14 +88,14 @@ func (m *Mission) Squads(ctx context.Context) (result []*Squad, err error) {
 	return result, err
 }
 
-func (m *Mission) MissionVotes(ctx context.Context) (result []*Vote, err error) {
+func (m *Mission) Votes(ctx context.Context) (result []*Vote, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = m.NamedMissionVotes(graphql.GetFieldContext(ctx).Field.Alias)
+		result, err = m.NamedVotes(graphql.GetFieldContext(ctx).Field.Alias)
 	} else {
-		result, err = m.Edges.MissionVotesOrErr()
+		result, err = m.Edges.VotesOrErr()
 	}
 	if IsNotLoaded(err) {
-		result, err = m.QueryMissionVotes().All(ctx)
+		result, err = m.QueryVotes().All(ctx)
 	}
 	return result, err
 }

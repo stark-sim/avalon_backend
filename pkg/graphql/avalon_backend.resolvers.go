@@ -105,8 +105,6 @@ func (r *gameUserResolver) Number(ctx context.Context, obj *ent.GameUser) (int, 
 
 // User is the resolver for the user field.
 func (r *gameUserResolver) User(ctx context.Context, obj *ent.GameUser) (*model.User, error) {
-	fc := graphql.GetFieldContext(ctx)
-	logrus.Infof("%s\n", fc.Object)
 	return &model.User{ID: strconv.FormatInt(obj.UserID, 10)}, nil
 }
 
@@ -355,10 +353,14 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 			Create().
 			SetGameID(_game.ID).
 			SetLeader(userIDs[i]).
-			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i)).
-			SetSequence(uint8(i))
+			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i+1)).
+			SetSequence(uint8(i + 1))
 	}
 	_, err = tx.Mission.CreateBulk(missionCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating missions: %v", err)
+		return nil, err
+	}
 	// 创建完毕，现在准备返回，把有可能需要的 EagerLoad 上
 	_game, err = tx.Game.
 		Query().
@@ -1025,10 +1027,10 @@ func (r *createMissionInputResolver) SquadIDs(ctx context.Context, obj *ent.Crea
 	return nil
 }
 
-// MissionVoteIDs is the resolver for the missionVoteIDs field.
-func (r *createMissionInputResolver) MissionVoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error {
+// VoteIDs is the resolver for the voteIDs field.
+func (r *createMissionInputResolver) VoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error {
 	for _, v := range data {
-		obj.MissionVoteIDs = append(obj.MissionVoteIDs, tools.StringToInt64(v))
+		obj.VoteIDs = append(obj.VoteIDs, tools.StringToInt64(v))
 	}
 	return nil
 }
@@ -3578,18 +3580,18 @@ func (r *updateMissionInputResolver) RemoveSquadIDs(ctx context.Context, obj *en
 	return nil
 }
 
-// AddMissionVoteIDs is the resolver for the addMissionVoteIDs field.
-func (r *updateMissionInputResolver) AddMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
+// AddVoteIDs is the resolver for the addVoteIDs field.
+func (r *updateMissionInputResolver) AddVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
 	for _, v := range data {
-		obj.AddMissionVoteIDs = append(obj.AddMissionVoteIDs, tools.StringToInt64(v))
+		obj.AddVoteIDs = append(obj.AddVoteIDs, tools.StringToInt64(v))
 	}
 	return nil
 }
 
-// RemoveMissionVoteIDs is the resolver for the removeMissionVoteIDs field.
-func (r *updateMissionInputResolver) RemoveMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
+// RemoveVoteIDs is the resolver for the removeVoteIDs field.
+func (r *updateMissionInputResolver) RemoveVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error {
 	for _, v := range data {
-		obj.RemoveMissionVoteIDs = append(obj.RemoveMissionVoteIDs, tools.StringToInt64(v))
+		obj.RemoveVoteIDs = append(obj.RemoveVoteIDs, tools.StringToInt64(v))
 	}
 	return nil
 }

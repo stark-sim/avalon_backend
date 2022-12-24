@@ -5,6 +5,7 @@ package graphql
 
 import (
 	"context"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -89,6 +90,7 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 				logrus.Errorf("something is wrong, room %s has many ongoing games", req.ID)
 				return
 			}
+			time.Sleep(time.Second)
 			if ongoingGamesLen == 0 {
 				// 游戏还没开始
 				select {
@@ -109,6 +111,37 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 				case ch <- _game:
 					// 传输
 				}
+			}
+		}
+	}()
+	return ch, nil
+}
+
+// GetMissionsByGame is the resolver for the getMissionsByGame field.
+func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.GameRequest) (<-chan []*ent.Mission, error) {
+	// 前端目前用这个方法，只需要知道轮到哪个任务在进行，并且这些任务的状态，不需要知道 Mission 的 Squad 等后续数据
+	ch := make(chan []*ent.Mission)
+	// 检查如参 gameID
+	gameID := tools.StringToInt64(req.ID)
+	_, err := r.client.Game.Query().Where(game.ID(gameID), game.EndByEQ(game.EndByNone), game.DeletedAt(tools.ZeroTime)).First(ctx)
+	if err != nil {
+		logrus.Errorf("error at query missions, gameID not exist or ended: %v", err)
+		return nil, err
+	}
+	go func() {
+		for {
+			missions, err := r.client.Mission.
+				Query().
+				Where(mission.GameID(gameID), mission.DeletedAt(tools.ZeroTime)).
+				Order(ent.Asc(mission.FieldSequence), ent.Asc(mission.FieldCreatedAt)).
+				All(ctx)
+			if err != nil {
+				logrus.Errorf("error at query missions: %v", err)
+				return
+			}
+			select {
+			case ch <- missions:
+				// 传输
 			}
 		}
 	}()

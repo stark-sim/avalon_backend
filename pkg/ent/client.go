@@ -664,15 +664,15 @@ func (c *MissionClient) QuerySquads(m *Mission) *SquadQuery {
 	return query
 }
 
-// QueryMissionVotes queries the mission_votes edge of a Mission.
-func (c *MissionClient) QueryMissionVotes(m *Mission) *VoteQuery {
+// QueryVotes queries the votes edge of a Mission.
+func (c *MissionClient) QueryVotes(m *Mission) *VoteQuery {
 	query := &VoteQuery{config: c.config}
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(mission.Table, mission.FieldID, id),
 			sqlgraph.To(vote.Table, vote.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, mission.MissionVotesTable, mission.MissionVotesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, mission.VotesTable, mission.VotesColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil

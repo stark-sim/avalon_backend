@@ -2,8 +2,14 @@ type Subscription {
     GetRoomUser: RoomUser
     getRoomUsers(req: RoomRequest): [RoomUser]
     getRoomOngoingGame(req: RoomRequest!): Game
+    getMissionsByGame(req: GameRequest!): [Mission!]!
+
 }
 
 input RoomRequest {
+    id: String!
+}
+
+input GameRequest {
     id: String!
 }

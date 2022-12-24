@@ -188,7 +188,7 @@ type CreateMissionInputResolver interface {
 
 	GameID(ctx context.Context, obj *ent.CreateMissionInput, data string) error
 	SquadIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error
-	MissionVoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error
+	VoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error
 }
 type CreateRecordInputResolver interface {
 	CreatedBy(ctx context.Context, obj *ent.CreateRecordInput, data *string) error
@@ -552,8 +552,8 @@ type UpdateMissionInputResolver interface {
 	GameID(ctx context.Context, obj *ent.UpdateMissionInput, data *string) error
 	AddSquadIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
 	RemoveSquadIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
-	AddMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
-	RemoveMissionVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
+	AddVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
+	RemoveVoteIDs(ctx context.Context, obj *ent.UpdateMissionInput, data []string) error
 }
 type UpdateRecordInputResolver interface {
 	CreatedBy(ctx context.Context, obj *ent.UpdateRecordInput, data *string) error
@@ -1809,8 +1809,8 @@ func (ec *executionContext) fieldContext_Game_missions(ctx context.Context, fiel
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
 				return ec.fieldContext_Mission_squads(ctx, field)
-			case "missionVotes":
-				return ec.fieldContext_Mission_missionVotes(ctx, field)
+			case "votes":
+				return ec.fieldContext_Mission_votes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Mission", field.Name)
 		},
@@ -3179,8 +3179,8 @@ func (ec *executionContext) fieldContext_Mission_squads(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Mission_missionVotes(ctx context.Context, field graphql.CollectedField, obj *ent.Mission) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mission_missionVotes(ctx, field)
+func (ec *executionContext) _Mission_votes(ctx context.Context, field graphql.CollectedField, obj *ent.Mission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mission_votes(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3193,7 +3193,7 @@ func (ec *executionContext) _Mission_missionVotes(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.MissionVotes(ctx)
+		return obj.Votes(ctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3207,7 +3207,7 @@ func (ec *executionContext) _Mission_missionVotes(ctx context.Context, field gra
 	return ec.marshalOVote2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mission_missionVotes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mission_votes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mission",
 		Field:      field,
@@ -4326,8 +4326,8 @@ func (ec *executionContext) fieldContext_Query_missions(ctx context.Context, fie
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
 				return ec.fieldContext_Mission_squads(ctx, field)
-			case "missionVotes":
-				return ec.fieldContext_Mission_missionVotes(ctx, field)
+			case "votes":
+				return ec.fieldContext_Mission_votes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Mission", field.Name)
 		},
@@ -6953,8 +6953,8 @@ func (ec *executionContext) fieldContext_Squad_mission(ctx context.Context, fiel
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
 				return ec.fieldContext_Mission_squads(ctx, field)
-			case "missionVotes":
-				return ec.fieldContext_Mission_missionVotes(ctx, field)
+			case "votes":
+				return ec.fieldContext_Mission_votes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Mission", field.Name)
 		},
@@ -7609,8 +7609,8 @@ func (ec *executionContext) fieldContext_Vote_mission(ctx context.Context, field
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
 				return ec.fieldContext_Mission_squads(ctx, field)
-			case "missionVotes":
-				return ec.fieldContext_Mission_missionVotes(ctx, field)
+			case "votes":
+				return ec.fieldContext_Mission_votes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Mission", field.Name)
 		},
@@ -8734,7 +8734,7 @@ func (ec *executionContext) unmarshalInputCreateMissionInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leader", "gameID", "squadIDs", "missionVoteIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leader", "gameID", "squadIDs", "voteIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8855,15 +8855,15 @@ func (ec *executionContext) unmarshalInputCreateMissionInput(ctx context.Context
 			if err = ec.resolvers.CreateMissionInput().SquadIDs(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "missionVoteIDs":
+		case "voteIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("missionVoteIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voteIDs"))
 			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.CreateMissionInput().MissionVoteIDs(ctx, &it, data); err != nil {
+			if err = ec.resolvers.CreateMissionInput().VoteIDs(ctx, &it, data); err != nil {
 				return it, err
 			}
 		}
@@ -11042,7 +11042,7 @@ func (ec *executionContext) unmarshalInputMissionWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "sequence", "sequenceNEQ", "sequenceIn", "sequenceNotIn", "sequenceGT", "sequenceGTE", "sequenceLT", "sequenceLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "failed", "failedNEQ", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "leader", "leaderNEQ", "leaderIn", "leaderNotIn", "leaderGT", "leaderGTE", "leaderLT", "leaderLTE", "hasGame", "hasGameWith", "hasSquads", "hasSquadsWith", "hasMissionVotes", "hasMissionVotesWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "sequence", "sequenceNEQ", "sequenceIn", "sequenceNotIn", "sequenceGT", "sequenceGTE", "sequenceLT", "sequenceLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "failed", "failedNEQ", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "leader", "leaderNEQ", "leaderIn", "leaderNotIn", "leaderGT", "leaderGTE", "leaderLT", "leaderLTE", "hasGame", "hasGameWith", "hasSquads", "hasSquadsWith", "hasVotes", "hasVotesWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11893,19 +11893,19 @@ func (ec *executionContext) unmarshalInputMissionWhereInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "hasMissionVotes":
+		case "hasVotes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMissionVotes"))
-			it.HasMissionVotes, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasVotes"))
+			it.HasVotes, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "hasMissionVotesWith":
+		case "hasVotesWith":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMissionVotesWith"))
-			it.HasMissionVotesWith, err = ec.unmarshalOVoteWhereInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteWhereInputᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasVotesWith"))
+			it.HasVotesWith, err = ec.unmarshalOVoteWhereInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15152,7 +15152,7 @@ func (ec *executionContext) unmarshalInputUpdateMissionInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leader", "clearGame", "gameID", "addSquadIDs", "removeSquadIDs", "addMissionVoteIDs", "removeMissionVoteIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leader", "clearGame", "gameID", "addSquadIDs", "removeSquadIDs", "addVoteIDs", "removeVoteIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15284,26 +15284,26 @@ func (ec *executionContext) unmarshalInputUpdateMissionInput(ctx context.Context
 			if err = ec.resolvers.UpdateMissionInput().RemoveSquadIDs(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "addMissionVoteIDs":
+		case "addVoteIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addMissionVoteIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addVoteIDs"))
 			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateMissionInput().AddMissionVoteIDs(ctx, &it, data); err != nil {
+			if err = ec.resolvers.UpdateMissionInput().AddVoteIDs(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "removeMissionVoteIDs":
+		case "removeVoteIDs":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeMissionVoteIDs"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeVoteIDs"))
 			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateMissionInput().RemoveMissionVoteIDs(ctx, &it, data); err != nil {
+			if err = ec.resolvers.UpdateMissionInput().RemoveVoteIDs(ctx, &it, data); err != nil {
 				return it, err
 			}
 		}
@@ -17396,7 +17396,7 @@ func (ec *executionContext) _Mission(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "missionVotes":
+		case "votes":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -17405,7 +17405,7 @@ func (ec *executionContext) _Mission(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Mission_missionVotes(ctx, field, obj)
+				res = ec._Mission_votes(ctx, field, obj)
 				return res
 			}
 
