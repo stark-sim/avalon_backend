@@ -205,7 +205,7 @@ input CreateMissionInput {
   failed: Boolean
   """任务人数"""
   capacity: Int
-  leader: Int!
+  leaderID: ID
   gameID: ID!
   squadIDs: [ID!]
   voteIDs: [ID!]
@@ -552,7 +552,7 @@ type Mission implements Node {
   gameID: ID!
   """任务人数"""
   capacity: Int!
-  leader: Int!
+  leaderID: ID!
   game: Game!
   squads: [Squad!]
   votes: [Vote!]
@@ -671,15 +671,15 @@ input MissionWhereInput {
   capacityGTE: Int
   capacityLT: Int
   capacityLTE: Int
-  """leader field predicates"""
-  leader: Int
-  leaderNEQ: Int
-  leaderIn: [Int!]
-  leaderNotIn: [Int!]
-  leaderGT: Int
-  leaderGTE: Int
-  leaderLT: Int
-  leaderLTE: Int
+  """leader_id field predicates"""
+  leaderID: ID
+  leaderIDNEQ: ID
+  leaderIDIn: [ID!]
+  leaderIDNotIn: [ID!]
+  leaderIDGT: ID
+  leaderIDGTE: ID
+  leaderIDLT: ID
+  leaderIDLTE: ID
   """game edge predicates"""
   hasGame: Boolean
   hasGameWith: [GameWhereInput!]
@@ -1256,7 +1256,7 @@ input UpdateMissionInput {
   failed: Boolean
   """任务人数"""
   capacity: Int
-  leader: Int
+  leaderID: ID
   clearGame: Boolean
   gameID: ID
   addSquadIDs: [ID!]
@@ -1456,6 +1456,7 @@ type Mutation {
   closeRoom(req: RoomRequest!): Room
   createGame(req: RoomRequest!): Game
   createCard(req: CreateCardInput!): Card
+  pickSquads(req: [CreateSquadInput!]!): [Squad!]
 
   joinRoomByShortCode(req: JoinRoomInput!): RoomUser
 }

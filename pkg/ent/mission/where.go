@@ -144,10 +144,10 @@ func Capacity(v uint8) predicate.Mission {
 	})
 }
 
-// Leader applies equality check predicate on the "leader" field. It's identical to LeaderEQ.
-func Leader(v int64) predicate.Mission {
+// LeaderID applies equality check predicate on the "leader_id" field. It's identical to LeaderIDEQ.
+func LeaderID(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLeader), v))
+		s.Where(sql.EQ(s.C(FieldLeaderID), v))
 	})
 }
 
@@ -685,67 +685,67 @@ func CapacityLTE(v uint8) predicate.Mission {
 	})
 }
 
-// LeaderEQ applies the EQ predicate on the "leader" field.
-func LeaderEQ(v int64) predicate.Mission {
+// LeaderIDEQ applies the EQ predicate on the "leader_id" field.
+func LeaderIDEQ(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLeader), v))
+		s.Where(sql.EQ(s.C(FieldLeaderID), v))
 	})
 }
 
-// LeaderNEQ applies the NEQ predicate on the "leader" field.
-func LeaderNEQ(v int64) predicate.Mission {
+// LeaderIDNEQ applies the NEQ predicate on the "leader_id" field.
+func LeaderIDNEQ(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLeader), v))
+		s.Where(sql.NEQ(s.C(FieldLeaderID), v))
 	})
 }
 
-// LeaderIn applies the In predicate on the "leader" field.
-func LeaderIn(vs ...int64) predicate.Mission {
+// LeaderIDIn applies the In predicate on the "leader_id" field.
+func LeaderIDIn(vs ...int64) predicate.Mission {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldLeader), v...))
+		s.Where(sql.In(s.C(FieldLeaderID), v...))
 	})
 }
 
-// LeaderNotIn applies the NotIn predicate on the "leader" field.
-func LeaderNotIn(vs ...int64) predicate.Mission {
+// LeaderIDNotIn applies the NotIn predicate on the "leader_id" field.
+func LeaderIDNotIn(vs ...int64) predicate.Mission {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldLeader), v...))
+		s.Where(sql.NotIn(s.C(FieldLeaderID), v...))
 	})
 }
 
-// LeaderGT applies the GT predicate on the "leader" field.
-func LeaderGT(v int64) predicate.Mission {
+// LeaderIDGT applies the GT predicate on the "leader_id" field.
+func LeaderIDGT(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLeader), v))
+		s.Where(sql.GT(s.C(FieldLeaderID), v))
 	})
 }
 
-// LeaderGTE applies the GTE predicate on the "leader" field.
-func LeaderGTE(v int64) predicate.Mission {
+// LeaderIDGTE applies the GTE predicate on the "leader_id" field.
+func LeaderIDGTE(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLeader), v))
+		s.Where(sql.GTE(s.C(FieldLeaderID), v))
 	})
 }
 
-// LeaderLT applies the LT predicate on the "leader" field.
-func LeaderLT(v int64) predicate.Mission {
+// LeaderIDLT applies the LT predicate on the "leader_id" field.
+func LeaderIDLT(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLeader), v))
+		s.Where(sql.LT(s.C(FieldLeaderID), v))
 	})
 }
 
-// LeaderLTE applies the LTE predicate on the "leader" field.
-func LeaderLTE(v int64) predicate.Mission {
+// LeaderIDLTE applies the LTE predicate on the "leader_id" field.
+func LeaderIDLTE(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLeader), v))
+		s.Where(sql.LTE(s.C(FieldLeaderID), v))
 	})
 }
 

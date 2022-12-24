@@ -347,7 +347,7 @@ type CreateMissionInput struct {
 	Status    *mission.Status
 	Failed    *bool
 	Capacity  *uint8
-	Leader    int64
+	LeaderID  *int64
 	GameID    int64
 	SquadIDs  []int64
 	VoteIDs   []int64
@@ -380,7 +380,9 @@ func (i *CreateMissionInput) Mutate(m *MissionMutation) {
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
 	}
-	m.SetLeader(i.Leader)
+	if v := i.LeaderID; v != nil {
+		m.SetLeaderID(*v)
+	}
 	m.SetGameID(i.GameID)
 	if v := i.SquadIDs; len(v) > 0 {
 		m.AddSquadIDs(v...)
@@ -406,7 +408,7 @@ type UpdateMissionInput struct {
 	Status         *mission.Status
 	Failed         *bool
 	Capacity       *uint8
-	Leader         *int64
+	LeaderID       *int64
 	ClearGame      bool
 	GameID         *int64
 	AddSquadIDs    []int64
@@ -441,8 +443,8 @@ func (i *UpdateMissionInput) Mutate(m *MissionMutation) {
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
 	}
-	if v := i.Leader; v != nil {
-		m.SetLeader(*v)
+	if v := i.LeaderID; v != nil {
+		m.SetLeaderID(*v)
 	}
 	if i.ClearGame {
 		m.ClearGame()

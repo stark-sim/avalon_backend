@@ -147,9 +147,17 @@ func (mc *MissionCreate) SetNillableCapacity(u *uint8) *MissionCreate {
 	return mc
 }
 
-// SetLeader sets the "leader" field.
-func (mc *MissionCreate) SetLeader(i int64) *MissionCreate {
-	mc.mutation.SetLeader(i)
+// SetLeaderID sets the "leader_id" field.
+func (mc *MissionCreate) SetLeaderID(i int64) *MissionCreate {
+	mc.mutation.SetLeaderID(i)
+	return mc
+}
+
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (mc *MissionCreate) SetNillableLeaderID(i *int64) *MissionCreate {
+	if i != nil {
+		mc.SetLeaderID(*i)
+	}
 	return mc
 }
 
@@ -311,6 +319,10 @@ func (mc *MissionCreate) defaults() {
 		v := mission.DefaultCapacity
 		mc.mutation.SetCapacity(v)
 	}
+	if _, ok := mc.mutation.LeaderID(); !ok {
+		v := mission.DefaultLeaderID
+		mc.mutation.SetLeaderID(v)
+	}
 	if _, ok := mc.mutation.ID(); !ok {
 		v := mission.DefaultID()
 		mc.mutation.SetID(v)
@@ -359,8 +371,8 @@ func (mc *MissionCreate) check() error {
 	if _, ok := mc.mutation.Capacity(); !ok {
 		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "Mission.capacity"`)}
 	}
-	if _, ok := mc.mutation.Leader(); !ok {
-		return &ValidationError{Name: "leader", err: errors.New(`ent: missing required field "Mission.leader"`)}
+	if _, ok := mc.mutation.LeaderID(); !ok {
+		return &ValidationError{Name: "leader_id", err: errors.New(`ent: missing required field "Mission.leader_id"`)}
 	}
 	if _, ok := mc.mutation.GameID(); !ok {
 		return &ValidationError{Name: "game", err: errors.New(`ent: missing required edge "Mission.game"`)}
@@ -434,9 +446,9 @@ func (mc *MissionCreate) createSpec() (*Mission, *sqlgraph.CreateSpec) {
 		_spec.SetField(mission.FieldCapacity, field.TypeUint8, value)
 		_node.Capacity = value
 	}
-	if value, ok := mc.mutation.Leader(); ok {
-		_spec.SetField(mission.FieldLeader, field.TypeInt64, value)
-		_node.Leader = value
+	if value, ok := mc.mutation.LeaderID(); ok {
+		_spec.SetField(mission.FieldLeaderID, field.TypeInt64, value)
+		_node.LeaderID = value
 	}
 	if nodes := mc.mutation.GameIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

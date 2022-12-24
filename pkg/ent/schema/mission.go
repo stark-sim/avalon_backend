@@ -21,7 +21,7 @@ func (Mission) Fields() []ent.Field {
 		field.Bool("failed").Default(false).StructTag(`json:"failed"`),
 		field.Int64("game_id").StructTag(`json:"game_id"`),
 		field.Uint8("capacity").Default(0).StructTag(`json:"capacity"`).Comment("任务人数"),
-		field.Int64("leader").StructTag(`json:"leader"`),
+		field.Int64("leader_id").Default(0).StructTag(`json:"leader_id"`).Annotations(entgql.Type("ID")),
 	}
 }
 

@@ -1400,15 +1400,15 @@ type MissionWhereInput struct {
 	CapacityLT    *uint8  `json:"capacityLT,omitempty"`
 	CapacityLTE   *uint8  `json:"capacityLTE,omitempty"`
 
-	// "leader" field predicates.
-	Leader      *int64  `json:"leader,omitempty"`
-	LeaderNEQ   *int64  `json:"leaderNEQ,omitempty"`
-	LeaderIn    []int64 `json:"leaderIn,omitempty"`
-	LeaderNotIn []int64 `json:"leaderNotIn,omitempty"`
-	LeaderGT    *int64  `json:"leaderGT,omitempty"`
-	LeaderGTE   *int64  `json:"leaderGTE,omitempty"`
-	LeaderLT    *int64  `json:"leaderLT,omitempty"`
-	LeaderLTE   *int64  `json:"leaderLTE,omitempty"`
+	// "leader_id" field predicates.
+	LeaderID      *int64  `json:"leaderID,omitempty"`
+	LeaderIDNEQ   *int64  `json:"leaderIDNEQ,omitempty"`
+	LeaderIDIn    []int64 `json:"leaderIDIn,omitempty"`
+	LeaderIDNotIn []int64 `json:"leaderIDNotIn,omitempty"`
+	LeaderIDGT    *int64  `json:"leaderIDGT,omitempty"`
+	LeaderIDGTE   *int64  `json:"leaderIDGTE,omitempty"`
+	LeaderIDLT    *int64  `json:"leaderIDLT,omitempty"`
+	LeaderIDLTE   *int64  `json:"leaderIDLTE,omitempty"`
 
 	// "game" edge predicates.
 	HasGame     *bool             `json:"hasGame,omitempty"`
@@ -1716,29 +1716,29 @@ func (i *MissionWhereInput) P() (predicate.Mission, error) {
 	if i.CapacityLTE != nil {
 		predicates = append(predicates, mission.CapacityLTE(*i.CapacityLTE))
 	}
-	if i.Leader != nil {
-		predicates = append(predicates, mission.LeaderEQ(*i.Leader))
+	if i.LeaderID != nil {
+		predicates = append(predicates, mission.LeaderIDEQ(*i.LeaderID))
 	}
-	if i.LeaderNEQ != nil {
-		predicates = append(predicates, mission.LeaderNEQ(*i.LeaderNEQ))
+	if i.LeaderIDNEQ != nil {
+		predicates = append(predicates, mission.LeaderIDNEQ(*i.LeaderIDNEQ))
 	}
-	if len(i.LeaderIn) > 0 {
-		predicates = append(predicates, mission.LeaderIn(i.LeaderIn...))
+	if len(i.LeaderIDIn) > 0 {
+		predicates = append(predicates, mission.LeaderIDIn(i.LeaderIDIn...))
 	}
-	if len(i.LeaderNotIn) > 0 {
-		predicates = append(predicates, mission.LeaderNotIn(i.LeaderNotIn...))
+	if len(i.LeaderIDNotIn) > 0 {
+		predicates = append(predicates, mission.LeaderIDNotIn(i.LeaderIDNotIn...))
 	}
-	if i.LeaderGT != nil {
-		predicates = append(predicates, mission.LeaderGT(*i.LeaderGT))
+	if i.LeaderIDGT != nil {
+		predicates = append(predicates, mission.LeaderIDGT(*i.LeaderIDGT))
 	}
-	if i.LeaderGTE != nil {
-		predicates = append(predicates, mission.LeaderGTE(*i.LeaderGTE))
+	if i.LeaderIDGTE != nil {
+		predicates = append(predicates, mission.LeaderIDGTE(*i.LeaderIDGTE))
 	}
-	if i.LeaderLT != nil {
-		predicates = append(predicates, mission.LeaderLT(*i.LeaderLT))
+	if i.LeaderIDLT != nil {
+		predicates = append(predicates, mission.LeaderIDLT(*i.LeaderIDLT))
 	}
-	if i.LeaderLTE != nil {
-		predicates = append(predicates, mission.LeaderLTE(*i.LeaderLTE))
+	if i.LeaderIDLTE != nil {
+		predicates = append(predicates, mission.LeaderIDLTE(*i.LeaderIDLTE))
 	}
 
 	if i.HasGame != nil {

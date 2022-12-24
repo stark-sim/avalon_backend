@@ -2919,8 +2919,8 @@ type MissionMutation struct {
 	failed        *bool
 	capacity      *uint8
 	addcapacity   *int8
-	leader        *int64
-	addleader     *int64
+	leader_id     *int64
+	addleader_id  *int64
 	clearedFields map[string]struct{}
 	game          *int64
 	clearedgame   bool
@@ -3479,60 +3479,60 @@ func (m *MissionMutation) ResetCapacity() {
 	m.addcapacity = nil
 }
 
-// SetLeader sets the "leader" field.
-func (m *MissionMutation) SetLeader(i int64) {
-	m.leader = &i
-	m.addleader = nil
+// SetLeaderID sets the "leader_id" field.
+func (m *MissionMutation) SetLeaderID(i int64) {
+	m.leader_id = &i
+	m.addleader_id = nil
 }
 
-// Leader returns the value of the "leader" field in the mutation.
-func (m *MissionMutation) Leader() (r int64, exists bool) {
-	v := m.leader
+// LeaderID returns the value of the "leader_id" field in the mutation.
+func (m *MissionMutation) LeaderID() (r int64, exists bool) {
+	v := m.leader_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLeader returns the old "leader" field's value of the Mission entity.
+// OldLeaderID returns the old "leader_id" field's value of the Mission entity.
 // If the Mission object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MissionMutation) OldLeader(ctx context.Context) (v int64, err error) {
+func (m *MissionMutation) OldLeaderID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLeader is only allowed on UpdateOne operations")
+		return v, errors.New("OldLeaderID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLeader requires an ID field in the mutation")
+		return v, errors.New("OldLeaderID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLeader: %w", err)
+		return v, fmt.Errorf("querying old value for OldLeaderID: %w", err)
 	}
-	return oldValue.Leader, nil
+	return oldValue.LeaderID, nil
 }
 
-// AddLeader adds i to the "leader" field.
-func (m *MissionMutation) AddLeader(i int64) {
-	if m.addleader != nil {
-		*m.addleader += i
+// AddLeaderID adds i to the "leader_id" field.
+func (m *MissionMutation) AddLeaderID(i int64) {
+	if m.addleader_id != nil {
+		*m.addleader_id += i
 	} else {
-		m.addleader = &i
+		m.addleader_id = &i
 	}
 }
 
-// AddedLeader returns the value that was added to the "leader" field in this mutation.
-func (m *MissionMutation) AddedLeader() (r int64, exists bool) {
-	v := m.addleader
+// AddedLeaderID returns the value that was added to the "leader_id" field in this mutation.
+func (m *MissionMutation) AddedLeaderID() (r int64, exists bool) {
+	v := m.addleader_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetLeader resets all changes to the "leader" field.
-func (m *MissionMutation) ResetLeader() {
-	m.leader = nil
-	m.addleader = nil
+// ResetLeaderID resets all changes to the "leader_id" field.
+func (m *MissionMutation) ResetLeaderID() {
+	m.leader_id = nil
+	m.addleader_id = nil
 }
 
 // ClearGame clears the "game" edge to the Game entity.
@@ -3719,8 +3719,8 @@ func (m *MissionMutation) Fields() []string {
 	if m.capacity != nil {
 		fields = append(fields, mission.FieldCapacity)
 	}
-	if m.leader != nil {
-		fields = append(fields, mission.FieldLeader)
+	if m.leader_id != nil {
+		fields = append(fields, mission.FieldLeaderID)
 	}
 	return fields
 }
@@ -3750,8 +3750,8 @@ func (m *MissionMutation) Field(name string) (ent.Value, bool) {
 		return m.GameID()
 	case mission.FieldCapacity:
 		return m.Capacity()
-	case mission.FieldLeader:
-		return m.Leader()
+	case mission.FieldLeaderID:
+		return m.LeaderID()
 	}
 	return nil, false
 }
@@ -3781,8 +3781,8 @@ func (m *MissionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldGameID(ctx)
 	case mission.FieldCapacity:
 		return m.OldCapacity(ctx)
-	case mission.FieldLeader:
-		return m.OldLeader(ctx)
+	case mission.FieldLeaderID:
+		return m.OldLeaderID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Mission field %s", name)
 }
@@ -3862,12 +3862,12 @@ func (m *MissionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCapacity(v)
 		return nil
-	case mission.FieldLeader:
+	case mission.FieldLeaderID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLeader(v)
+		m.SetLeaderID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Mission field %s", name)
@@ -3889,8 +3889,8 @@ func (m *MissionMutation) AddedFields() []string {
 	if m.addcapacity != nil {
 		fields = append(fields, mission.FieldCapacity)
 	}
-	if m.addleader != nil {
-		fields = append(fields, mission.FieldLeader)
+	if m.addleader_id != nil {
+		fields = append(fields, mission.FieldLeaderID)
 	}
 	return fields
 }
@@ -3908,8 +3908,8 @@ func (m *MissionMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSequence()
 	case mission.FieldCapacity:
 		return m.AddedCapacity()
-	case mission.FieldLeader:
-		return m.AddedLeader()
+	case mission.FieldLeaderID:
+		return m.AddedLeaderID()
 	}
 	return nil, false
 }
@@ -3947,12 +3947,12 @@ func (m *MissionMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCapacity(v)
 		return nil
-	case mission.FieldLeader:
+	case mission.FieldLeaderID:
 		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddLeader(v)
+		m.AddLeaderID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Mission numeric field %s", name)
@@ -4011,8 +4011,8 @@ func (m *MissionMutation) ResetField(name string) error {
 	case mission.FieldCapacity:
 		m.ResetCapacity()
 		return nil
-	case mission.FieldLeader:
-		m.ResetLeader()
+	case mission.FieldLeaderID:
+		m.ResetLeaderID()
 		return nil
 	}
 	return fmt.Errorf("unknown Mission field %s", name)

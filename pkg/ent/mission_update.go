@@ -161,16 +161,24 @@ func (mu *MissionUpdate) AddCapacity(u int8) *MissionUpdate {
 	return mu
 }
 
-// SetLeader sets the "leader" field.
-func (mu *MissionUpdate) SetLeader(i int64) *MissionUpdate {
-	mu.mutation.ResetLeader()
-	mu.mutation.SetLeader(i)
+// SetLeaderID sets the "leader_id" field.
+func (mu *MissionUpdate) SetLeaderID(i int64) *MissionUpdate {
+	mu.mutation.ResetLeaderID()
+	mu.mutation.SetLeaderID(i)
 	return mu
 }
 
-// AddLeader adds i to the "leader" field.
-func (mu *MissionUpdate) AddLeader(i int64) *MissionUpdate {
-	mu.mutation.AddLeader(i)
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (mu *MissionUpdate) SetNillableLeaderID(i *int64) *MissionUpdate {
+	if i != nil {
+		mu.SetLeaderID(*i)
+	}
+	return mu
+}
+
+// AddLeaderID adds i to the "leader_id" field.
+func (mu *MissionUpdate) AddLeaderID(i int64) *MissionUpdate {
+	mu.mutation.AddLeaderID(i)
 	return mu
 }
 
@@ -403,11 +411,11 @@ func (mu *MissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.AddedCapacity(); ok {
 		_spec.AddField(mission.FieldCapacity, field.TypeUint8, value)
 	}
-	if value, ok := mu.mutation.Leader(); ok {
-		_spec.SetField(mission.FieldLeader, field.TypeInt64, value)
+	if value, ok := mu.mutation.LeaderID(); ok {
+		_spec.SetField(mission.FieldLeaderID, field.TypeInt64, value)
 	}
-	if value, ok := mu.mutation.AddedLeader(); ok {
-		_spec.AddField(mission.FieldLeader, field.TypeInt64, value)
+	if value, ok := mu.mutation.AddedLeaderID(); ok {
+		_spec.AddField(mission.FieldLeaderID, field.TypeInt64, value)
 	}
 	if mu.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -701,16 +709,24 @@ func (muo *MissionUpdateOne) AddCapacity(u int8) *MissionUpdateOne {
 	return muo
 }
 
-// SetLeader sets the "leader" field.
-func (muo *MissionUpdateOne) SetLeader(i int64) *MissionUpdateOne {
-	muo.mutation.ResetLeader()
-	muo.mutation.SetLeader(i)
+// SetLeaderID sets the "leader_id" field.
+func (muo *MissionUpdateOne) SetLeaderID(i int64) *MissionUpdateOne {
+	muo.mutation.ResetLeaderID()
+	muo.mutation.SetLeaderID(i)
 	return muo
 }
 
-// AddLeader adds i to the "leader" field.
-func (muo *MissionUpdateOne) AddLeader(i int64) *MissionUpdateOne {
-	muo.mutation.AddLeader(i)
+// SetNillableLeaderID sets the "leader_id" field if the given value is not nil.
+func (muo *MissionUpdateOne) SetNillableLeaderID(i *int64) *MissionUpdateOne {
+	if i != nil {
+		muo.SetLeaderID(*i)
+	}
+	return muo
+}
+
+// AddLeaderID adds i to the "leader_id" field.
+func (muo *MissionUpdateOne) AddLeaderID(i int64) *MissionUpdateOne {
+	muo.mutation.AddLeaderID(i)
 	return muo
 }
 
@@ -973,11 +989,11 @@ func (muo *MissionUpdateOne) sqlSave(ctx context.Context) (_node *Mission, err e
 	if value, ok := muo.mutation.AddedCapacity(); ok {
 		_spec.AddField(mission.FieldCapacity, field.TypeUint8, value)
 	}
-	if value, ok := muo.mutation.Leader(); ok {
-		_spec.SetField(mission.FieldLeader, field.TypeInt64, value)
+	if value, ok := muo.mutation.LeaderID(); ok {
+		_spec.SetField(mission.FieldLeaderID, field.TypeInt64, value)
 	}
-	if value, ok := muo.mutation.AddedLeader(); ok {
-		_spec.AddField(mission.FieldLeader, field.TypeInt64, value)
+	if value, ok := muo.mutation.AddedLeaderID(); ok {
+		_spec.AddField(mission.FieldLeaderID, field.TypeInt64, value)
 	}
 	if muo.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{

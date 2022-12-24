@@ -412,8 +412,8 @@ func (ec *executionContext) fieldContext_Subscription_getMissionsByGame(ctx cont
 				return ec.fieldContext_Mission_gameID(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Mission_capacity(ctx, field)
-			case "leader":
-				return ec.fieldContext_Mission_leader(ctx, field)
+			case "leaderID":
+				return ec.fieldContext_Mission_leaderID(ctx, field)
 			case "game":
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":

@@ -97,7 +97,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"picking", "voting", "acting", "closed", "delayed"}, Default: "picking"},
 		{Name: "failed", Type: field.TypeBool, Default: false},
 		{Name: "capacity", Type: field.TypeUint8, Default: 0},
-		{Name: "leader", Type: field.TypeInt64},
+		{Name: "leader_id", Type: field.TypeInt64, Default: 0},
 		{Name: "game_id", Type: field.TypeInt64},
 	}
 	// MissionsTable holds the schema information for the "missions" table.

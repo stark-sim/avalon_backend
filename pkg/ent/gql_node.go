@@ -435,12 +435,12 @@ func (m *Mission) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "capacity",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(m.Leader); err != nil {
+	if buf, err = json.Marshal(m.LeaderID); err != nil {
 		return nil, err
 	}
 	node.Fields[10] = &Field{
 		Type:  "int64",
-		Name:  "leader",
+		Name:  "leader_id",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

@@ -5,12 +5,12 @@ package graphql
 
 import (
 	"context"
-	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
@@ -141,7 +141,7 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 			}
 			select {
 			case ch <- missions:
-				// 传输
+				time.Sleep(time.Second)
 			}
 		}
 	}()

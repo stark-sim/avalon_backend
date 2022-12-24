@@ -136,7 +136,7 @@ type ComplexityRoot struct {
 		Game      func(childComplexity int) int
 		GameID    func(childComplexity int) int
 		ID        func(childComplexity int) int
-		Leader    func(childComplexity int) int
+		LeaderID  func(childComplexity int) int
 		Sequence  func(childComplexity int) int
 		Squads    func(childComplexity int) int
 		Status    func(childComplexity int) int
@@ -153,6 +153,7 @@ type ComplexityRoot struct {
 		JoinRoom            func(childComplexity int, req ent.CreateRoomUserInput) int
 		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
 		LeaveRoom           func(childComplexity int, req ent.CreateRoomUserInput) int
+		PickSquads          func(childComplexity int, req []*ent.CreateSquadInput) int
 	}
 
 	PageInfo struct {
@@ -594,12 +595,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mission.ID(childComplexity), true
 
-	case "Mission.leader":
-		if e.complexity.Mission.Leader == nil {
+	case "Mission.leaderID":
+		if e.complexity.Mission.LeaderID == nil {
 			break
 		}
 
-		return e.complexity.Mission.Leader(childComplexity), true
+		return e.complexity.Mission.LeaderID(childComplexity), true
 
 	case "Mission.sequence":
 		if e.complexity.Mission.Sequence == nil {
@@ -726,6 +727,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LeaveRoom(childComplexity, args["req"].(ent.CreateRoomUserInput)), true
+
+	case "Mutation.pickSquads":
+		if e.complexity.Mutation.PickSquads == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_pickSquads_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {

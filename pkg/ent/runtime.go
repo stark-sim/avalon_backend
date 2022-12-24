@@ -175,6 +175,10 @@ func init() {
 	missionDescCapacity := missionFields[4].Descriptor()
 	// mission.DefaultCapacity holds the default value on creation for the capacity field.
 	mission.DefaultCapacity = missionDescCapacity.Default.(uint8)
+	// missionDescLeaderID is the schema descriptor for leader_id field.
+	missionDescLeaderID := missionFields[5].Descriptor()
+	// mission.DefaultLeaderID holds the default value on creation for the leader_id field.
+	mission.DefaultLeaderID = missionDescLeaderID.Default.(int64)
 	// missionDescID is the schema descriptor for id field.
 	missionDescID := missionMixinFields0[0].Descriptor()
 	// mission.DefaultID holds the default value on creation for the id field.

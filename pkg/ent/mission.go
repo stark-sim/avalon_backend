@@ -37,8 +37,8 @@ type Mission struct {
 	GameID int64 `json:"game_id"`
 	// 任务人数
 	Capacity uint8 `json:"capacity"`
-	// Leader holds the value of the "leader" field.
-	Leader int64 `json:"leader"`
+	// LeaderID holds the value of the "leader_id" field.
+	LeaderID int64 `json:"leader_id"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MissionQuery when eager-loading is set.
 	Edges MissionEdges `json:"edges"`
@@ -100,7 +100,7 @@ func (*Mission) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case mission.FieldFailed:
 			values[i] = new(sql.NullBool)
-		case mission.FieldID, mission.FieldCreatedBy, mission.FieldUpdatedBy, mission.FieldSequence, mission.FieldGameID, mission.FieldCapacity, mission.FieldLeader:
+		case mission.FieldID, mission.FieldCreatedBy, mission.FieldUpdatedBy, mission.FieldSequence, mission.FieldGameID, mission.FieldCapacity, mission.FieldLeaderID:
 			values[i] = new(sql.NullInt64)
 		case mission.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -187,11 +187,11 @@ func (m *Mission) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Capacity = uint8(value.Int64)
 			}
-		case mission.FieldLeader:
+		case mission.FieldLeaderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field leader", values[i])
+				return fmt.Errorf("unexpected type %T for field leader_id", values[i])
 			} else if value.Valid {
-				m.Leader = value.Int64
+				m.LeaderID = value.Int64
 			}
 		}
 	}
@@ -266,8 +266,8 @@ func (m *Mission) String() string {
 	builder.WriteString("capacity=")
 	builder.WriteString(fmt.Sprintf("%v", m.Capacity))
 	builder.WriteString(", ")
-	builder.WriteString("leader=")
-	builder.WriteString(fmt.Sprintf("%v", m.Leader))
+	builder.WriteString("leader_id=")
+	builder.WriteString(fmt.Sprintf("%v", m.LeaderID))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -34,8 +34,8 @@ const (
 	FieldGameID = "game_id"
 	// FieldCapacity holds the string denoting the capacity field in the database.
 	FieldCapacity = "capacity"
-	// FieldLeader holds the string denoting the leader field in the database.
-	FieldLeader = "leader"
+	// FieldLeaderID holds the string denoting the leader_id field in the database.
+	FieldLeaderID = "leader_id"
 	// EdgeGame holds the string denoting the game edge name in mutations.
 	EdgeGame = "game"
 	// EdgeSquads holds the string denoting the squads edge name in mutations.
@@ -80,7 +80,7 @@ var Columns = []string{
 	FieldFailed,
 	FieldGameID,
 	FieldCapacity,
-	FieldLeader,
+	FieldLeaderID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -112,6 +112,8 @@ var (
 	DefaultFailed bool
 	// DefaultCapacity holds the default value on creation for the "capacity" field.
 	DefaultCapacity uint8
+	// DefaultLeaderID holds the default value on creation for the "leader_id" field.
+	DefaultLeaderID int64
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"strconv"
 	"time"
 
@@ -136,6 +138,11 @@ func (r *missionResolver) GameID(ctx context.Context, obj *ent.Mission) (string,
 // Capacity is the resolver for the capacity field.
 func (r *missionResolver) Capacity(ctx context.Context, obj *ent.Mission) (int, error) {
 	return int(obj.Capacity), nil
+}
+
+// LeaderID is the resolver for the leaderID field.
+func (r *missionResolver) LeaderID(ctx context.Context, obj *ent.Mission) (string, error) {
+	return strconv.FormatInt(obj.LeaderID, 10), nil
 }
 
 // CreateRoom is the resolver for the createRoom field.
@@ -352,7 +359,7 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest
 		missionCreates[i] = tx.Mission.
 			Create().
 			SetGameID(_game.ID).
-			SetLeader(userIDs[i]).
+			SetLeaderID(userIDs[i]).
 			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i+1)).
 			SetSequence(uint8(i + 1))
 	}
@@ -387,6 +394,71 @@ func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInp
 		tale = *req.Tale
 	}
 	return r.client.Card.Create().SetName(*req.Name).SetRole(req.Role).SetTale(tale).Save(ctx)
+}
+
+// PickSquads is the resolver for the pickSquads field.
+func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
+	// 队长选任务小队人数，选好后任务进去投票阶段
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 检查 1. 小队任务的是同一个 2. 小队人数和任务任务相等 3. 小队人员在任务所属游戏中
+	missionID := int64(0)
+	userIDs := make([]int64, len(req))
+	for i, v := range req {
+		if missionID == 0 {
+			missionID = v.MissionID
+		} else if missionID != v.MissionID {
+			return nil, errors.New("squads' mission_id not the same")
+		}
+		userIDs[i] = req[i].UserID
+	}
+	if missionID == 0 {
+		return nil, errors.New("squads' mission_id is 0")
+	}
+	_mission, err := tx.Mission.
+		Query().
+		Where(
+			mission.ID(missionID),
+			mission.DeletedAt(tools.ZeroTime),
+			mission.StatusEQ(mission.StatusPicking),
+		).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _mission.Capacity != uint8(len(userIDs)) {
+		return nil, errors.New("squad number doesn't match mission's capacity")
+	}
+	// 通过查目标玩家和这局游戏中的玩家数量和 id 对得上来判断是不是属于这局游戏
+	count, err := tx.GameUser.
+		Query().
+		Where(
+			gameuser.GameID(_mission.GameID),
+			gameuser.UserIDIn(userIDs...),
+			gameuser.DeletedAt(tools.ZeroTime),
+		).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if count != len(userIDs) {
+		return nil, errors.New("squad users not in squad's game")
+	}
+	// 检查完毕，开始创建 Squad
+	squadCreates := make([]*ent.SquadCreate, len(userIDs))
+	for i, v := range userIDs {
+		squadCreates[i] = tx.Squad.
+			Create().
+			SetMissionID(missionID).
+			SetUserID(v)
+	}
+	squads, err := tx.Squad.CreateBulk(squadCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating squads: %v", err)
+		return nil, err
+	}
+	return squads, nil
 }
 
 // JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
@@ -1009,6 +1081,18 @@ func (r *createMissionInputResolver) Capacity(ctx context.Context, obj *ent.Crea
 		return nil
 	} else {
 		return errors.New("null")
+	}
+}
+
+// LeaderID is the resolver for the leaderID field.
+func (r *createMissionInputResolver) LeaderID(ctx context.Context, obj *ent.CreateMissionInput, data *string) error {
+	if data != nil {
+		leaderID := tools.StringToInt64(*data)
+		obj.LeaderID = &leaderID
+		return nil
+	} else {
+		obj.LeaderID = nil
+		return nil
 	}
 }
 
@@ -2339,6 +2423,66 @@ func (r *missionWhereInputResolver) CapacityLte(ctx context.Context, obj *ent.Mi
 	}
 }
 
+// LeaderID is the resolver for the leaderID field.
+func (r *missionWhereInputResolver) LeaderID(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	if data != nil {
+		tempLeaderID := tools.StringToInt64(*data)
+		obj.LeaderID = &tempLeaderID
+		return nil
+	} else {
+		obj.LeaderID = nil
+		return nil
+	}
+}
+
+// LeaderIDNeq is the resolver for the leaderIDNEQ field.
+func (r *missionWhereInputResolver) LeaderIDNeq(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	if data != nil {
+		tempLeaderID := tools.StringToInt64(*data)
+		obj.LeaderIDNEQ = &tempLeaderID
+		return nil
+	} else {
+		obj.LeaderIDNEQ = nil
+		return nil
+	}
+}
+
+// LeaderIDIn is the resolver for the leaderIDIn field.
+func (r *missionWhereInputResolver) LeaderIDIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
+	for _, v := range data {
+		obj.LeaderIDIn = append(obj.LeaderIDIn, tools.StringToInt64(v))
+	}
+	return nil
+}
+
+// LeaderIDNotIn is the resolver for the leaderIDNotIn field.
+func (r *missionWhereInputResolver) LeaderIDNotIn(ctx context.Context, obj *ent.MissionWhereInput, data []string) error {
+	for _, v := range data {
+		obj.LeaderIDNotIn = append(obj.LeaderIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
+}
+
+// LeaderIDGt is the resolver for the leaderIDGT field.
+func (r *missionWhereInputResolver) LeaderIDGt(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LeaderIDGt - leaderIDGT"))
+}
+
+// LeaderIDGte is the resolver for the leaderIDGTE field.
+func (r *missionWhereInputResolver) LeaderIDGte(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LeaderIDGte - leaderIDGTE"))
+}
+
+// LeaderIDLt is the resolver for the leaderIDLT field.
+func (r *missionWhereInputResolver) LeaderIDLt(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LeaderIDLt - leaderIDLT"))
+}
+
+// LeaderIDLte is the resolver for the leaderIDLTE field.
+func (r *missionWhereInputResolver) LeaderIDLte(ctx context.Context, obj *ent.MissionWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: LeaderIDLte - leaderIDLTE"))
+}
+
 // ID is the resolver for the id field.
 func (r *recordWhereInputResolver) ID(ctx context.Context, obj *ent.RecordWhereInput, data *string) error {
 	if data != nil {
@@ -3550,6 +3694,18 @@ func (r *updateMissionInputResolver) Capacity(ctx context.Context, obj *ent.Upda
 		return nil
 	} else {
 		return errors.New("null")
+	}
+}
+
+// LeaderID is the resolver for the leaderID field.
+func (r *updateMissionInputResolver) LeaderID(ctx context.Context, obj *ent.UpdateMissionInput, data *string) error {
+	if data != nil {
+		tempLeaderID := tools.StringToInt64(*data)
+		obj.LeaderID = &tempLeaderID
+		return nil
+	} else {
+		obj.LeaderID = nil
+		return nil
 	}
 }
 
