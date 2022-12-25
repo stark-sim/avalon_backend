@@ -19,6 +19,7 @@ func (Game) Fields() []ent.Field {
 		field.Int64("room_id").StructTag(`json:"room_id"`),
 		field.Enum("end_by").Values("none", "blue", "red", "slayer").Default("none").StructTag(`json:"end_by"`),
 		field.Uint8("capacity").Default(0).StructTag(`json:"capacity"`).Comment("游戏人数"),
+		field.Int64("the_assassinated_id").Default(0).StructTag(`json:"the_assassinated_id"`).Comment("被刺杀者").Annotations(entgql.Type("ID")),
 	}
 }
 

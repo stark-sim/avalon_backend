@@ -1478,8 +1478,17 @@ type Mutation {
   createGame(req: RoomRequest!): Game
   createCard(req: CreateCardInput!): Card
   pickSquads(req: [CreateSquadInput!]!): [Squad!]
+  vote(req: UpdateVoteInput!): Vote
+  act(req: UpdateSquadInput!): Squad
 
   joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+}
+
+extend type Query {
+  """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
+  getVoteInMission(req: VoteWhereInput!): Vote
+  """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
+  getSquadInMission(req: SquadWhereInput!): Squad
 }
 
 input JoinRoomInput {
