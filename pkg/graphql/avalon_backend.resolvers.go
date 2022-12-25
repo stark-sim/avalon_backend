@@ -468,10 +468,20 @@ func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSqua
 		Scan(ctx, &notPickedUserIDs)
 	voteCreates := make([]*ent.VoteCreate, len(notPickedUserIDs))
 	for i, v := range notPickedUserIDs {
-		voteCreates[i] = tx.Vote.
-			Create().
-			SetUserID(v.UserID).
-			SetMissionID(_mission.ID)
+		// 如果用户是该任务的 leader，那么该 Vote 已经决定且通过
+		if v.UserID == _mission.LeaderID {
+			voteCreates[i] = tx.Vote.
+				Create().
+				SetUserID(v.UserID).
+				SetMissionID(_mission.ID).
+				SetPass(true).
+				SetVoted(true)
+		} else {
+			voteCreates[i] = tx.Vote.
+				Create().
+				SetUserID(v.UserID).
+				SetMissionID(_mission.ID)
+		}
 	}
 	_, err = tx.Vote.CreateBulk(voteCreates...).Save(ctx)
 	if err != nil {
