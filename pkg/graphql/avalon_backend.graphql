@@ -171,6 +171,8 @@ input CreateGameInput {
   endBy: GameEndBy
   """游戏人数"""
   capacity: Int
+  """被刺杀者"""
+  theAssassinatedID: ID
   gameUserIDs: [ID!]
   missionIDs: [ID!]
   roomID: ID!
@@ -304,6 +306,8 @@ type Game implements Node {
   endBy: GameEndBy!
   """游戏人数"""
   capacity: Int!
+  """被刺杀者"""
+  theAssassinatedID: ID!
   gameUsers: [GameUser!]
   missions: [Mission!]
   room: Room!
@@ -534,6 +538,15 @@ input GameWhereInput {
   capacityGTE: Int
   capacityLT: Int
   capacityLTE: Int
+  """the_assassinated_id field predicates"""
+  theAssassinatedID: ID
+  theAssassinatedIDNEQ: ID
+  theAssassinatedIDIn: [ID!]
+  theAssassinatedIDNotIn: [ID!]
+  theAssassinatedIDGT: ID
+  theAssassinatedIDGTE: ID
+  theAssassinatedIDLT: ID
+  theAssassinatedIDLTE: ID
   """game_users edge predicates"""
   hasGameUsers: Boolean
   hasGameUsersWith: [GameUserWhereInput!]
@@ -1229,6 +1242,8 @@ input UpdateGameInput {
   endBy: GameEndBy
   """游戏人数"""
   capacity: Int
+  """被刺杀者"""
+  theAssassinatedID: ID
   addGameUserIDs: [ID!]
   removeGameUserIDs: [ID!]
   addMissionIDs: [ID!]
@@ -1478,10 +1493,20 @@ type Mutation {
   createGame(req: RoomRequest!): Game
   createCard(req: CreateCardInput!): Card
   pickSquads(req: [CreateSquadInput!]!): [Squad!]
-  vote(req: UpdateVoteInput!): Vote
-  act(req: UpdateSquadInput!): Squad
+  vote(req: VoteRequest!): Vote
+  act(req: ActRequest!): Squad
 
   joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+}
+
+input VoteRequest {
+  voteID: ID!
+  pass: Boolean!
+}
+
+input ActRequest {
+  squadID: ID!
+  rat: Boolean!
 }
 
 extend type Query {
@@ -1489,6 +1514,8 @@ extend type Query {
   getVoteInMission(req: VoteWhereInput!): Vote
   """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
   getSquadInMission(req: SquadWhereInput!): Squad
+  """任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空"""
+  getEndedGame(req: GameRequest!): Game
 }
 
 input JoinRoomInput {

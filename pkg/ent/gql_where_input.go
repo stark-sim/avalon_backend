@@ -514,6 +514,16 @@ type GameWhereInput struct {
 	CapacityLT    *uint8  `json:"capacityLT,omitempty"`
 	CapacityLTE   *uint8  `json:"capacityLTE,omitempty"`
 
+	// "the_assassinated_id" field predicates.
+	TheAssassinatedID      *int64  `json:"theAssassinatedID,omitempty"`
+	TheAssassinatedIDNEQ   *int64  `json:"theAssassinatedIDNEQ,omitempty"`
+	TheAssassinatedIDIn    []int64 `json:"theAssassinatedIDIn,omitempty"`
+	TheAssassinatedIDNotIn []int64 `json:"theAssassinatedIDNotIn,omitempty"`
+	TheAssassinatedIDGT    *int64  `json:"theAssassinatedIDGT,omitempty"`
+	TheAssassinatedIDGTE   *int64  `json:"theAssassinatedIDGTE,omitempty"`
+	TheAssassinatedIDLT    *int64  `json:"theAssassinatedIDLT,omitempty"`
+	TheAssassinatedIDLTE   *int64  `json:"theAssassinatedIDLTE,omitempty"`
+
 	// "game_users" edge predicates.
 	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
 	HasGameUsersWith []*GameUserWhereInput `json:"hasGameUsersWith,omitempty"`
@@ -789,6 +799,30 @@ func (i *GameWhereInput) P() (predicate.Game, error) {
 	}
 	if i.CapacityLTE != nil {
 		predicates = append(predicates, game.CapacityLTE(*i.CapacityLTE))
+	}
+	if i.TheAssassinatedID != nil {
+		predicates = append(predicates, game.TheAssassinatedIDEQ(*i.TheAssassinatedID))
+	}
+	if i.TheAssassinatedIDNEQ != nil {
+		predicates = append(predicates, game.TheAssassinatedIDNEQ(*i.TheAssassinatedIDNEQ))
+	}
+	if len(i.TheAssassinatedIDIn) > 0 {
+		predicates = append(predicates, game.TheAssassinatedIDIn(i.TheAssassinatedIDIn...))
+	}
+	if len(i.TheAssassinatedIDNotIn) > 0 {
+		predicates = append(predicates, game.TheAssassinatedIDNotIn(i.TheAssassinatedIDNotIn...))
+	}
+	if i.TheAssassinatedIDGT != nil {
+		predicates = append(predicates, game.TheAssassinatedIDGT(*i.TheAssassinatedIDGT))
+	}
+	if i.TheAssassinatedIDGTE != nil {
+		predicates = append(predicates, game.TheAssassinatedIDGTE(*i.TheAssassinatedIDGTE))
+	}
+	if i.TheAssassinatedIDLT != nil {
+		predicates = append(predicates, game.TheAssassinatedIDLT(*i.TheAssassinatedIDLT))
+	}
+	if i.TheAssassinatedIDLTE != nil {
+		predicates = append(predicates, game.TheAssassinatedIDLTE(*i.TheAssassinatedIDLTE))
 	}
 
 	if i.HasGameUsers != nil {

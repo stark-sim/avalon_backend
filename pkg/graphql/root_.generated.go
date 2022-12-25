@@ -97,18 +97,19 @@ type ComplexityRoot struct {
 	}
 
 	Game struct {
-		Capacity  func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		CreatedBy func(childComplexity int) int
-		DeletedAt func(childComplexity int) int
-		EndBy     func(childComplexity int) int
-		GameUsers func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Missions  func(childComplexity int) int
-		Room      func(childComplexity int) int
-		RoomID    func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		UpdatedBy func(childComplexity int) int
+		Capacity          func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		CreatedBy         func(childComplexity int) int
+		DeletedAt         func(childComplexity int) int
+		EndBy             func(childComplexity int) int
+		GameUsers         func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Missions          func(childComplexity int) int
+		Room              func(childComplexity int) int
+		RoomID            func(childComplexity int) int
+		TheAssassinatedID func(childComplexity int) int
+		UpdatedAt         func(childComplexity int) int
+		UpdatedBy         func(childComplexity int) int
 	}
 
 	GameUser struct {
@@ -146,6 +147,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		Act                 func(childComplexity int, req model.ActRequest) int
 		CloseRoom           func(childComplexity int, req model.RoomRequest) int
 		CreateCard          func(childComplexity int, req ent.CreateCardInput) int
 		CreateGame          func(childComplexity int, req model.RoomRequest) int
@@ -154,6 +156,7 @@ type ComplexityRoot struct {
 		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
 		LeaveRoom           func(childComplexity int, req ent.CreateRoomUserInput) int
 		PickSquads          func(childComplexity int, req []*ent.CreateSquadInput) int
+		Vote                func(childComplexity int, req model.VoteRequest) int
 	}
 
 	PageInfo struct {
@@ -167,6 +170,9 @@ type ComplexityRoot struct {
 		Cards              func(childComplexity int) int
 		GameUsers          func(childComplexity int) int
 		Games              func(childComplexity int) int
+		GetEndedGame       func(childComplexity int, req model.GameRequest) int
+		GetSquadInMission  func(childComplexity int, req ent.SquadWhereInput) int
+		GetVoteInMission   func(childComplexity int, req ent.VoteWhereInput) int
 		Missions           func(childComplexity int) int
 		Node               func(childComplexity int, id string) int
 		Nodes              func(childComplexity int, ids []string) int
@@ -436,6 +442,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Game.RoomID(childComplexity), true
 
+	case "Game.theAssassinatedID":
+		if e.complexity.Game.TheAssassinatedID == nil {
+			break
+		}
+
+		return e.complexity.Game.TheAssassinatedID(childComplexity), true
+
 	case "Game.updatedAt":
 		if e.complexity.Game.UpdatedAt == nil {
 			break
@@ -646,6 +659,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mission.Votes(childComplexity), true
 
+	case "Mutation.act":
+		if e.complexity.Mutation.Act == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_act_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Act(childComplexity, args["req"].(model.ActRequest)), true
+
 	case "Mutation.closeRoom":
 		if e.complexity.Mutation.CloseRoom == nil {
 			break
@@ -742,6 +767,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
 
+	case "Mutation.vote":
+		if e.complexity.Mutation.Vote == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_vote_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Vote(childComplexity, args["req"].(model.VoteRequest)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -790,6 +827,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Games(childComplexity), true
+
+	case "Query.getEndedGame":
+		if e.complexity.Query.GetEndedGame == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getEndedGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetEndedGame(childComplexity, args["req"].(model.GameRequest)), true
+
+	case "Query.getSquadInMission":
+		if e.complexity.Query.GetSquadInMission == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSquadInMission_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSquadInMission(childComplexity, args["req"].(ent.SquadWhereInput)), true
+
+	case "Query.getVoteInMission":
+		if e.complexity.Query.GetVoteInMission == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getVoteInMission_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetVoteInMission(childComplexity, args["req"].(ent.VoteWhereInput)), true
 
 	case "Query.missions":
 		if e.complexity.Query.Missions == nil {
@@ -1354,6 +1427,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputActRequest,
 		ec.unmarshalInputCardOrder,
 		ec.unmarshalInputCardWhereInput,
 		ec.unmarshalInputCreateCardInput,
@@ -1392,6 +1466,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateSquadInput,
 		ec.unmarshalInputUpdateVoteInput,
 		ec.unmarshalInputVoteOrder,
+		ec.unmarshalInputVoteRequest,
 		ec.unmarshalInputVoteWhereInput,
 	)
 	first := true

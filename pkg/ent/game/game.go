@@ -30,6 +30,8 @@ const (
 	FieldEndBy = "end_by"
 	// FieldCapacity holds the string denoting the capacity field in the database.
 	FieldCapacity = "capacity"
+	// FieldTheAssassinatedID holds the string denoting the the_assassinated_id field in the database.
+	FieldTheAssassinatedID = "the_assassinated_id"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
 	// EdgeMissions holds the string denoting the missions edge name in mutations.
@@ -72,6 +74,7 @@ var Columns = []string{
 	FieldRoomID,
 	FieldEndBy,
 	FieldCapacity,
+	FieldTheAssassinatedID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -99,6 +102,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultCapacity holds the default value on creation for the "capacity" field.
 	DefaultCapacity uint8
+	// DefaultTheAssassinatedID holds the default value on creation for the "the_assassinated_id" field.
+	DefaultTheAssassinatedID int64
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

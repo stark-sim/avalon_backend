@@ -33,6 +33,8 @@ type Game struct {
 	EndBy game.EndBy `json:"end_by"`
 	// 游戏人数
 	Capacity uint8 `json:"capacity"`
+	// 被刺杀者
+	TheAssassinatedID int64 `json:"the_assassinated_id"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameQuery when eager-loading is set.
 	Edges GameEdges `json:"edges"`
@@ -92,7 +94,7 @@ func (*Game) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity:
+		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity, game.FieldTheAssassinatedID:
 			values[i] = new(sql.NullInt64)
 		case game.FieldEndBy:
 			values[i] = new(sql.NullString)
@@ -167,6 +169,12 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ga.Capacity = uint8(value.Int64)
 			}
+		case game.FieldTheAssassinatedID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field the_assassinated_id", values[i])
+			} else if value.Valid {
+				ga.TheAssassinatedID = value.Int64
+			}
 		}
 	}
 	return nil
@@ -233,6 +241,9 @@ func (ga *Game) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("capacity=")
 	builder.WriteString(fmt.Sprintf("%v", ga.Capacity))
+	builder.WriteString(", ")
+	builder.WriteString("the_assassinated_id=")
+	builder.WriteString(fmt.Sprintf("%v", ga.TheAssassinatedID))
 	builder.WriteByte(')')
 	return builder.String()
 }

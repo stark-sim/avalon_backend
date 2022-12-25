@@ -2,6 +2,11 @@
 
 package model
 
+type ActRequest struct {
+	SquadID string `json:"squadID"`
+	Rat     bool   `json:"rat"`
+}
+
 type GameRequest struct {
 	ID string `json:"id"`
 }
@@ -22,3 +27,8 @@ type User struct {
 }
 
 func (User) IsEntity() {}
+
+type VoteRequest struct {
+	VoteID string `json:"voteID"`
+	Pass   bool   `json:"pass"`
+}

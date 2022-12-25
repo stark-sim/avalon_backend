@@ -134,6 +134,27 @@ func (gu *GameUpdate) AddCapacity(u int8) *GameUpdate {
 	return gu
 }
 
+// SetTheAssassinatedID sets the "the_assassinated_id" field.
+func (gu *GameUpdate) SetTheAssassinatedID(i int64) *GameUpdate {
+	gu.mutation.ResetTheAssassinatedID()
+	gu.mutation.SetTheAssassinatedID(i)
+	return gu
+}
+
+// SetNillableTheAssassinatedID sets the "the_assassinated_id" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableTheAssassinatedID(i *int64) *GameUpdate {
+	if i != nil {
+		gu.SetTheAssassinatedID(*i)
+	}
+	return gu
+}
+
+// AddTheAssassinatedID adds i to the "the_assassinated_id" field.
+func (gu *GameUpdate) AddTheAssassinatedID(i int64) *GameUpdate {
+	gu.mutation.AddTheAssassinatedID(i)
+	return gu
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
 func (gu *GameUpdate) AddGameUserIDs(ids ...int64) *GameUpdate {
 	gu.mutation.AddGameUserIDs(ids...)
@@ -348,6 +369,12 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.AddedCapacity(); ok {
 		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
+	}
+	if value, ok := gu.mutation.TheAssassinatedID(); ok {
+		_spec.SetField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	}
+	if value, ok := gu.mutation.AddedTheAssassinatedID(); ok {
+		_spec.AddField(game.FieldTheAssassinatedID, field.TypeInt64, value)
 	}
 	if gu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -614,6 +641,27 @@ func (guo *GameUpdateOne) AddCapacity(u int8) *GameUpdateOne {
 	return guo
 }
 
+// SetTheAssassinatedID sets the "the_assassinated_id" field.
+func (guo *GameUpdateOne) SetTheAssassinatedID(i int64) *GameUpdateOne {
+	guo.mutation.ResetTheAssassinatedID()
+	guo.mutation.SetTheAssassinatedID(i)
+	return guo
+}
+
+// SetNillableTheAssassinatedID sets the "the_assassinated_id" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableTheAssassinatedID(i *int64) *GameUpdateOne {
+	if i != nil {
+		guo.SetTheAssassinatedID(*i)
+	}
+	return guo
+}
+
+// AddTheAssassinatedID adds i to the "the_assassinated_id" field.
+func (guo *GameUpdateOne) AddTheAssassinatedID(i int64) *GameUpdateOne {
+	guo.mutation.AddTheAssassinatedID(i)
+	return guo
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
 func (guo *GameUpdateOne) AddGameUserIDs(ids ...int64) *GameUpdateOne {
 	guo.mutation.AddGameUserIDs(ids...)
@@ -858,6 +906,12 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 	}
 	if value, ok := guo.mutation.AddedCapacity(); ok {
 		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
+	}
+	if value, ok := guo.mutation.TheAssassinatedID(); ok {
+		_spec.SetField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	}
+	if value, ok := guo.mutation.AddedTheAssassinatedID(); ok {
+		_spec.AddField(game.FieldTheAssassinatedID, field.TypeInt64, value)
 	}
 	if guo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

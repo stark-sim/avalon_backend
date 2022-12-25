@@ -903,31 +903,33 @@ func (m *CardMutation) ResetEdge(name string) error {
 // GameMutation represents an operation that mutates the Game nodes in the graph.
 type GameMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int64
-	created_by        *int64
-	addcreated_by     *int64
-	updated_by        *int64
-	addupdated_by     *int64
-	created_at        *time.Time
-	updated_at        *time.Time
-	deleted_at        *time.Time
-	end_by            *game.EndBy
-	capacity          *uint8
-	addcapacity       *int8
-	clearedFields     map[string]struct{}
-	game_users        map[int64]struct{}
-	removedgame_users map[int64]struct{}
-	clearedgame_users bool
-	missions          map[int64]struct{}
-	removedmissions   map[int64]struct{}
-	clearedmissions   bool
-	room              *int64
-	clearedroom       bool
-	done              bool
-	oldValue          func(context.Context) (*Game, error)
-	predicates        []predicate.Game
+	op                     Op
+	typ                    string
+	id                     *int64
+	created_by             *int64
+	addcreated_by          *int64
+	updated_by             *int64
+	addupdated_by          *int64
+	created_at             *time.Time
+	updated_at             *time.Time
+	deleted_at             *time.Time
+	end_by                 *game.EndBy
+	capacity               *uint8
+	addcapacity            *int8
+	the_assassinated_id    *int64
+	addthe_assassinated_id *int64
+	clearedFields          map[string]struct{}
+	game_users             map[int64]struct{}
+	removedgame_users      map[int64]struct{}
+	clearedgame_users      bool
+	missions               map[int64]struct{}
+	removedmissions        map[int64]struct{}
+	clearedmissions        bool
+	room                   *int64
+	clearedroom            bool
+	done                   bool
+	oldValue               func(context.Context) (*Game, error)
+	predicates             []predicate.Game
 }
 
 var _ ent.Mutation = (*GameMutation)(nil)
@@ -1382,6 +1384,62 @@ func (m *GameMutation) ResetCapacity() {
 	m.addcapacity = nil
 }
 
+// SetTheAssassinatedID sets the "the_assassinated_id" field.
+func (m *GameMutation) SetTheAssassinatedID(i int64) {
+	m.the_assassinated_id = &i
+	m.addthe_assassinated_id = nil
+}
+
+// TheAssassinatedID returns the value of the "the_assassinated_id" field in the mutation.
+func (m *GameMutation) TheAssassinatedID() (r int64, exists bool) {
+	v := m.the_assassinated_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTheAssassinatedID returns the old "the_assassinated_id" field's value of the Game entity.
+// If the Game object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameMutation) OldTheAssassinatedID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTheAssassinatedID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTheAssassinatedID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTheAssassinatedID: %w", err)
+	}
+	return oldValue.TheAssassinatedID, nil
+}
+
+// AddTheAssassinatedID adds i to the "the_assassinated_id" field.
+func (m *GameMutation) AddTheAssassinatedID(i int64) {
+	if m.addthe_assassinated_id != nil {
+		*m.addthe_assassinated_id += i
+	} else {
+		m.addthe_assassinated_id = &i
+	}
+}
+
+// AddedTheAssassinatedID returns the value that was added to the "the_assassinated_id" field in this mutation.
+func (m *GameMutation) AddedTheAssassinatedID() (r int64, exists bool) {
+	v := m.addthe_assassinated_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTheAssassinatedID resets all changes to the "the_assassinated_id" field.
+func (m *GameMutation) ResetTheAssassinatedID() {
+	m.the_assassinated_id = nil
+	m.addthe_assassinated_id = nil
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by ids.
 func (m *GameMutation) AddGameUserIDs(ids ...int64) {
 	if m.game_users == nil {
@@ -1535,7 +1593,7 @@ func (m *GameMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_by != nil {
 		fields = append(fields, game.FieldCreatedBy)
 	}
@@ -1559,6 +1617,9 @@ func (m *GameMutation) Fields() []string {
 	}
 	if m.capacity != nil {
 		fields = append(fields, game.FieldCapacity)
+	}
+	if m.the_assassinated_id != nil {
+		fields = append(fields, game.FieldTheAssassinatedID)
 	}
 	return fields
 }
@@ -1584,6 +1645,8 @@ func (m *GameMutation) Field(name string) (ent.Value, bool) {
 		return m.EndBy()
 	case game.FieldCapacity:
 		return m.Capacity()
+	case game.FieldTheAssassinatedID:
+		return m.TheAssassinatedID()
 	}
 	return nil, false
 }
@@ -1609,6 +1672,8 @@ func (m *GameMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEndBy(ctx)
 	case game.FieldCapacity:
 		return m.OldCapacity(ctx)
+	case game.FieldTheAssassinatedID:
+		return m.OldTheAssassinatedID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Game field %s", name)
 }
@@ -1674,6 +1739,13 @@ func (m *GameMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCapacity(v)
 		return nil
+	case game.FieldTheAssassinatedID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTheAssassinatedID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Game field %s", name)
 }
@@ -1691,6 +1763,9 @@ func (m *GameMutation) AddedFields() []string {
 	if m.addcapacity != nil {
 		fields = append(fields, game.FieldCapacity)
 	}
+	if m.addthe_assassinated_id != nil {
+		fields = append(fields, game.FieldTheAssassinatedID)
+	}
 	return fields
 }
 
@@ -1705,6 +1780,8 @@ func (m *GameMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedUpdatedBy()
 	case game.FieldCapacity:
 		return m.AddedCapacity()
+	case game.FieldTheAssassinatedID:
+		return m.AddedTheAssassinatedID()
 	}
 	return nil, false
 }
@@ -1734,6 +1811,13 @@ func (m *GameMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCapacity(v)
+		return nil
+	case game.FieldTheAssassinatedID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTheAssassinatedID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Game numeric field %s", name)
@@ -1785,6 +1869,9 @@ func (m *GameMutation) ResetField(name string) error {
 		return nil
 	case game.FieldCapacity:
 		m.ResetCapacity()
+		return nil
+	case game.FieldTheAssassinatedID:
+		m.ResetTheAssassinatedID()
 		return nil
 	}
 	return fmt.Errorf("unknown Game field %s", name)

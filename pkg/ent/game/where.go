@@ -130,6 +130,13 @@ func Capacity(v uint8) predicate.Game {
 	})
 }
 
+// TheAssassinatedID applies equality check predicate on the "the_assassinated_id" field. It's identical to TheAssassinatedIDEQ.
+func TheAssassinatedID(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
@@ -583,6 +590,70 @@ func CapacityLT(v uint8) predicate.Game {
 func CapacityLTE(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCapacity), v))
+	})
+}
+
+// TheAssassinatedIDEQ applies the EQ predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDEQ(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
+// TheAssassinatedIDNEQ applies the NEQ predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDNEQ(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
+// TheAssassinatedIDIn applies the In predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDIn(vs ...int64) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.In(s.C(FieldTheAssassinatedID), v...))
+	})
+}
+
+// TheAssassinatedIDNotIn applies the NotIn predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDNotIn(vs ...int64) predicate.Game {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NotIn(s.C(FieldTheAssassinatedID), v...))
+	})
+}
+
+// TheAssassinatedIDGT applies the GT predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDGT(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
+// TheAssassinatedIDGTE applies the GTE predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDGTE(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
+// TheAssassinatedIDLT applies the LT predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDLT(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTheAssassinatedID), v))
+	})
+}
+
+// TheAssassinatedIDLTE applies the LTE predicate on the "the_assassinated_id" field.
+func TheAssassinatedIDLTE(v int64) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTheAssassinatedID), v))
 	})
 }
 

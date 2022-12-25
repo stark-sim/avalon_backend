@@ -36,6 +36,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "end_by", Type: field.TypeEnum, Enums: []string{"none", "blue", "red", "slayer"}, Default: "none"},
 		{Name: "capacity", Type: field.TypeUint8, Default: 0},
+		{Name: "the_assassinated_id", Type: field.TypeInt64, Default: 0},
 		{Name: "room_id", Type: field.TypeInt64},
 	}
 	// GamesTable holds the schema information for the "games" table.
@@ -46,7 +47,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "games_rooms_games",
-				Columns:    []*schema.Column{GamesColumns[8]},
+				Columns:    []*schema.Column{GamesColumns[9]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

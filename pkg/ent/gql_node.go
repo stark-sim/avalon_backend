@@ -143,7 +143,7 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ga.ID,
 		Type:   "Game",
-		Fields: make([]*Field, 8),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -209,6 +209,14 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[7] = &Field{
 		Type:  "uint8",
 		Name:  "capacity",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ga.TheAssassinatedID); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "int64",
+		Name:  "the_assassinated_id",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

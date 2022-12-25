@@ -87,6 +87,10 @@ func init() {
 	gameDescCapacity := gameFields[2].Descriptor()
 	// game.DefaultCapacity holds the default value on creation for the capacity field.
 	game.DefaultCapacity = gameDescCapacity.Default.(uint8)
+	// gameDescTheAssassinatedID is the schema descriptor for the_assassinated_id field.
+	gameDescTheAssassinatedID := gameFields[3].Descriptor()
+	// game.DefaultTheAssassinatedID holds the default value on creation for the the_assassinated_id field.
+	game.DefaultTheAssassinatedID = gameDescTheAssassinatedID.Default.(int64)
 	// gameDescID is the schema descriptor for id field.
 	gameDescID := gameMixinFields0[0].Descriptor()
 	// game.DefaultID holds the default value on creation for the id field.

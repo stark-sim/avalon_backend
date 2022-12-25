@@ -116,16 +116,17 @@ func (c *CardUpdateOne) SetInput(i UpdateCardInput) *CardUpdateOne {
 
 // CreateGameInput represents a mutation input for creating games.
 type CreateGameInput struct {
-	CreatedBy   *int64
-	UpdatedBy   *int64
-	CreatedAt   *time.Time
-	UpdatedAt   *time.Time
-	DeletedAt   *time.Time
-	EndBy       *game.EndBy
-	Capacity    *uint8
-	GameUserIDs []int64
-	MissionIDs  []int64
-	RoomID      int64
+	CreatedBy         *int64
+	UpdatedBy         *int64
+	CreatedAt         *time.Time
+	UpdatedAt         *time.Time
+	DeletedAt         *time.Time
+	EndBy             *game.EndBy
+	Capacity          *uint8
+	TheAssassinatedID *int64
+	GameUserIDs       []int64
+	MissionIDs        []int64
+	RoomID            int64
 }
 
 // Mutate applies the CreateGameInput on the GameMutation builder.
@@ -151,6 +152,9 @@ func (i *CreateGameInput) Mutate(m *GameMutation) {
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
 	}
+	if v := i.TheAssassinatedID; v != nil {
+		m.SetTheAssassinatedID(*v)
+	}
 	if v := i.GameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
 	}
@@ -174,6 +178,7 @@ type UpdateGameInput struct {
 	DeletedAt         *time.Time
 	EndBy             *game.EndBy
 	Capacity          *uint8
+	TheAssassinatedID *int64
 	AddGameUserIDs    []int64
 	RemoveGameUserIDs []int64
 	AddMissionIDs     []int64
@@ -201,6 +206,9 @@ func (i *UpdateGameInput) Mutate(m *GameMutation) {
 	}
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
+	}
+	if v := i.TheAssassinatedID; v != nil {
+		m.SetTheAssassinatedID(*v)
 	}
 	if v := i.AddGameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)

@@ -21,6 +21,8 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/pkg/grpc"
 	"github.com/stark-sim/avalon_backend/tools"
@@ -68,6 +70,11 @@ func (r *gameResolver) RoomID(ctx context.Context, obj *ent.Game) (string, error
 // Capacity is the resolver for the capacity field.
 func (r *gameResolver) Capacity(ctx context.Context, obj *ent.Game) (int, error) {
 	return int(obj.Capacity), nil
+}
+
+// TheAssassinatedID is the resolver for the theAssassinatedID field.
+func (r *gameResolver) TheAssassinatedID(ctx context.Context, obj *ent.Game) (string, error) {
+	return strconv.FormatInt(obj.TheAssassinatedID, 10), nil
 }
 
 // ID is the resolver for the id field.
@@ -505,6 +512,146 @@ func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSqua
 	return squads, nil
 }
 
+// Vote is the resolver for the vote field.
+func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*ent.Vote, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_vote, err := tx.Vote.UpdateOneID(tools.StringToInt64(req.VoteID)).SetPass(req.Pass).SetVoted(true).Save(ctx)
+	// 如果大家都投票完了，那么更改 Mission 的状态
+	votes, err := tx.Vote.Query().Where(vote.MissionID(_vote.MissionID), vote.DeletedAt(tools.ZeroTime)).All(ctx)
+	allVoted := true
+	passCount := 0
+	notPassCount := 0
+	for _, v := range votes {
+		if !v.Voted {
+			allVoted = true
+			break
+		}
+		if v.Pass {
+			passCount += 1
+		} else {
+			notPassCount += 1
+		}
+	}
+	if allVoted {
+		_mission, err := tx.Mission.Query().Where(mission.ID(_vote.MissionID), mission.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			logrus.Errorf("error at querying mission by vote: %v", err)
+			return nil, err
+		}
+		// 判断流局还是继续进行
+		if notPassCount >= passCount {
+			err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusDelayed).Exec(ctx)
+			if err != nil {
+				logrus.Errorf("error at update mission to status delayed: %v", err)
+				return nil, err
+			}
+			// 流局要创建新的任务，并且后续任务的 Leader 都往后延一人
+			// 先把后面的 Mission 找出来
+			postMissions, err := tx.Mission.Query().Where(mission.SequenceGT(_mission.Sequence), mission.DeletedAt(tools.ZeroTime)).All(ctx)
+			if err != nil {
+				return nil, err
+			}
+			// 再把 GameUser 中的 userID 按 number 找出来
+			var inGameUserIDs []struct {
+				UserID int64 `json:"user_id"`
+			}
+			err = tx.GameUser.Query().
+				Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
+				Order(ent.Asc(gameuser.FieldNumber)).
+				Select(gameuser.FieldUserID).
+				Scan(ctx, &inGameUserIDs)
+			if err != nil {
+				return nil, err
+			}
+			// 之后的任务的 leader 往后盐，第一个 leader 作为流局重开局的 leader
+			newMissionLeaderID := postMissions[0].LeaderID
+			for _, postMission := range postMissions {
+				for i, v := range inGameUserIDs {
+					if postMission.LeaderID == v.UserID {
+						err = tx.Mission.UpdateOne(postMission).SetLeaderID(inGameUserIDs[i+1].UserID).Exec(ctx)
+						return nil, err
+					}
+				}
+			}
+			err = tx.Mission.Create().
+				SetGameID(_mission.GameID).
+				SetSequence(_mission.Sequence).
+				SetLeaderID(newMissionLeaderID).
+				SetCapacity(_mission.Capacity).
+				Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// 没有流局，进入任务执行阶段
+			err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusActing).Exec(ctx)
+			if err != nil {
+				logrus.Errorf("error at update mission to status closed: %v", err)
+				return nil, err
+			}
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _vote, nil
+}
+
+// Act is the resolver for the act field.
+func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.Squad, error) {
+	// 执行任务是否破坏
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_squad, err := tx.Squad.UpdateOneID(tools.StringToInt64(req.SquadID)).SetRat(req.Rat).SetActed(true).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 执行后判断是不是小队成员都执行完了
+	allActed := true
+	squads, err := tx.Squad.Query().Where(squad.MissionID(_squad.MissionID), squad.DeletedAt(tools.ZeroTime)).All(ctx)
+	ratCount := 0
+	for _, v := range squads {
+		if !v.Acted {
+			allActed = false
+			break
+		}
+		if v.Rat {
+			ratCount += 1
+		}
+	}
+	// 全部执行完毕，任务结束，判断任务成功与否
+	if allActed {
+		_mission, err := tx.Mission.Query().Where(mission.ID(_squad.MissionID), mission.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		missionFailed := false
+		if ratCount > 0 {
+			// 保护轮
+			if _mission.Sequence == 4 && ratCount <= 1 {
+				missionFailed = false
+			} else {
+				missionFailed = true
+			}
+		}
+		err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusClosed).SetFailed(missionFailed).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _squad, err
+}
+
 // JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
 func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error) {
 	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
@@ -582,6 +729,94 @@ func (r *queryResolver) Squads(ctx context.Context) ([]*ent.Squad, error) {
 // Votes is the resolver for the votes field.
 func (r *queryResolver) Votes(ctx context.Context) ([]*ent.Vote, error) {
 	return r.client.Vote.Query().All(ctx)
+}
+
+// GetVoteInMission is the resolver for the getVoteInMission field.
+func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereInput) (*ent.Vote, error) {
+	userID := req.UserID
+	missionID := req.MissionID
+	if userID == nil || missionID == nil {
+		return nil, errors.New("userID and missionID can't be null")
+	}
+	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		logrus.Errorf("error at query vote in mission: %v", err)
+		return nil, err
+	} else {
+		return _vote, nil
+	}
+}
+
+// GetSquadInMission is the resolver for the getSquadInMission field.
+func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWhereInput) (*ent.Squad, error) {
+	userID := req.UserID
+	missionID := req.MissionID
+	if userID == nil || missionID == nil {
+		return nil, errors.New("userID and missionID can't be null")
+	}
+	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		logrus.Errorf("error at query vote in mission: %v", err)
+		return nil, err
+	} else {
+		return _squad, nil
+	}
+}
+
+// GetEndedGame is the resolver for the getEndedGame field.
+func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest) (*ent.Game, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 先看看 Game 的 Missions 是不是分出结果了
+	missions, err := tx.Mission.Query().
+		Where(
+			mission.GameID(tools.StringToInt64(req.ID)),
+			mission.DeletedAt(tools.ZeroTime),
+			mission.StatusNEQ(mission.StatusDelayed),
+		).
+		All(ctx)
+	closedCount := 0
+	failedCount := 0
+	for _, v := range missions {
+		if v.Status == mission.StatusClosed {
+			closedCount += 1
+			if v.Failed {
+				failedCount += 1
+			}
+		}
+	}
+	// 还没结束的话，返回空
+	if failedCount != 3 && closedCount-failedCount < 3 {
+		return nil, nil
+	}
+	// 如果失败达到 3 次，游戏状态直接变成 end_by red
+	if failedCount == 3 {
+		err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetEndBy(game.EndByRed).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_game, err := tx.Game.Query().
+		Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
+		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
+			query.WithCard()
+		}).
+		First(ctx)
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	// 如果游戏还没结束，不返回游戏玩家，前端开始刺杀阶段
+	if _game.EndBy == game.EndByNone {
+		_game.Edges.GameUsers = make([]*ent.GameUser, 0)
+	}
+	return _game, nil
 }
 
 // ID is the resolver for the id field.
@@ -1014,6 +1249,17 @@ func (r *createGameInputResolver) Capacity(ctx context.Context, obj *ent.CreateG
 	} else {
 		return errors.New("null")
 	}
+}
+
+// TheAssassinatedID is the resolver for the theAssassinatedID field.
+func (r *createGameInputResolver) TheAssassinatedID(ctx context.Context, obj *ent.CreateGameInput, data *string) error {
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.TheAssassinatedID = &tempID
+	} else {
+		obj.TheAssassinatedID = nil
+	}
+	return nil
 }
 
 // GameUserIDs is the resolver for the gameUserIDs field.
@@ -2087,8 +2333,69 @@ func (r *gameWhereInputResolver) CapacityLte(ctx context.Context, obj *ent.GameW
 		obj.CapacityLTE = &tempCapacity
 		return nil
 	} else {
-		return errors.New("null")
+		obj.CapacityLTE = nil
+		return nil
 	}
+}
+
+// TheAssassinatedID is the resolver for the theAssassinatedID field.
+func (r *gameWhereInputResolver) TheAssassinatedID(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.TheAssassinatedID = &tempID
+		return nil
+	} else {
+		obj.TheAssassinatedID = nil
+		return nil
+	}
+}
+
+// TheAssassinatedIDNeq is the resolver for the theAssassinatedIDNEQ field.
+func (r *gameWhereInputResolver) TheAssassinatedIDNeq(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.TheAssassinatedIDNEQ = &tempID
+		return nil
+	} else {
+		obj.TheAssassinatedIDNEQ = nil
+		return nil
+	}
+}
+
+// TheAssassinatedIDIn is the resolver for the theAssassinatedIDIn field.
+func (r *gameWhereInputResolver) TheAssassinatedIDIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error {
+	for _, v := range data {
+		obj.TheAssassinatedIDIn = append(obj.TheAssassinatedIDIn, tools.StringToInt64(v))
+	}
+	return nil
+}
+
+// TheAssassinatedIDNotIn is the resolver for the theAssassinatedIDNotIn field.
+func (r *gameWhereInputResolver) TheAssassinatedIDNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error {
+	for _, v := range data {
+		obj.TheAssassinatedIDNotIn = append(obj.TheAssassinatedIDNotIn, tools.StringToInt64(v))
+	}
+	return nil
+}
+
+// TheAssassinatedIDGt is the resolver for the theAssassinatedIDGT field.
+func (r *gameWhereInputResolver) TheAssassinatedIDGt(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: TheAssassinatedIDGt - theAssassinatedIDGT"))
+}
+
+// TheAssassinatedIDGte is the resolver for the theAssassinatedIDGTE field.
+func (r *gameWhereInputResolver) TheAssassinatedIDGte(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: TheAssassinatedIDGte - theAssassinatedIDGTE"))
+}
+
+// TheAssassinatedIDLt is the resolver for the theAssassinatedIDLT field.
+func (r *gameWhereInputResolver) TheAssassinatedIDLt(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: TheAssassinatedIDLt - theAssassinatedIDLT"))
+}
+
+// TheAssassinatedIDLte is the resolver for the theAssassinatedIDLTE field.
+func (r *gameWhereInputResolver) TheAssassinatedIDLte(ctx context.Context, obj *ent.GameWhereInput, data *string) error {
+	panic(fmt.Errorf("not implemented: TheAssassinatedIDLte - theAssassinatedIDLTE"))
 }
 
 // ID is the resolver for the id field.
@@ -3586,6 +3893,17 @@ func (r *updateGameInputResolver) Capacity(ctx context.Context, obj *ent.UpdateG
 	} else {
 		return errors.New("null")
 	}
+}
+
+// TheAssassinatedID is the resolver for the theAssassinatedID field.
+func (r *updateGameInputResolver) TheAssassinatedID(ctx context.Context, obj *ent.UpdateGameInput, data *string) error {
+	if data != nil {
+		tempID := tools.StringToInt64(*data)
+		obj.TheAssassinatedID = &tempID
+	} else {
+		obj.TheAssassinatedID = nil
+	}
+	return nil
 }
 
 // AddGameUserIDs is the resolver for the addGameUserIDs field.

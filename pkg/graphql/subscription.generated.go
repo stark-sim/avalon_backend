@@ -313,6 +313,8 @@ func (ec *executionContext) fieldContext_Subscription_getRoomOngoingGame(ctx con
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
+			case "theAssassinatedID":
+				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
