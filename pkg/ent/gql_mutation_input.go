@@ -797,6 +797,7 @@ type CreateSquadInput struct {
 	DeletedAt *time.Time
 	UserID    int64
 	Rat       *bool
+	Acted     *bool
 	MissionID int64
 }
 
@@ -821,6 +822,9 @@ func (i *CreateSquadInput) Mutate(m *SquadMutation) {
 	if v := i.Rat; v != nil {
 		m.SetRat(*v)
 	}
+	if v := i.Acted; v != nil {
+		m.SetActed(*v)
+	}
 	m.SetMissionID(i.MissionID)
 }
 
@@ -838,6 +842,7 @@ type UpdateSquadInput struct {
 	DeletedAt    *time.Time
 	UserID       *int64
 	Rat          *bool
+	Acted        *bool
 	ClearMission bool
 	MissionID    *int64
 }
@@ -861,6 +866,9 @@ func (i *UpdateSquadInput) Mutate(m *SquadMutation) {
 	}
 	if v := i.Rat; v != nil {
 		m.SetRat(*v)
+	}
+	if v := i.Acted; v != nil {
+		m.SetActed(*v)
 	}
 	if i.ClearMission {
 		m.ClearMission()
@@ -891,6 +899,7 @@ type CreateVoteInput struct {
 	DeletedAt *time.Time
 	UserID    int64
 	Pass      *bool
+	Voted     *bool
 	MissionID int64
 }
 
@@ -915,6 +924,9 @@ func (i *CreateVoteInput) Mutate(m *VoteMutation) {
 	if v := i.Pass; v != nil {
 		m.SetPass(*v)
 	}
+	if v := i.Voted; v != nil {
+		m.SetVoted(*v)
+	}
 	m.SetMissionID(i.MissionID)
 }
 
@@ -932,6 +944,7 @@ type UpdateVoteInput struct {
 	DeletedAt    *time.Time
 	UserID       *int64
 	Pass         *bool
+	Voted        *bool
 	ClearMission bool
 	MissionID    *int64
 }
@@ -955,6 +968,9 @@ func (i *UpdateVoteInput) Mutate(m *VoteMutation) {
 	}
 	if v := i.Pass; v != nil {
 		m.SetPass(*v)
+	}
+	if v := i.Voted; v != nil {
+		m.SetVoted(*v)
 	}
 	if i.ClearMission {
 		m.ClearMission()

@@ -27,6 +27,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldPass holds the string denoting the pass field in the database.
 	FieldPass = "pass"
+	// FieldVoted holds the string denoting the voted field in the database.
+	FieldVoted = "voted"
 	// EdgeMission holds the string denoting the mission edge name in mutations.
 	EdgeMission = "mission"
 	// Table holds the table name of the vote in the database.
@@ -51,6 +53,7 @@ var Columns = []string{
 	FieldMissionID,
 	FieldUserID,
 	FieldPass,
+	FieldVoted,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -78,6 +81,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultPass holds the default value on creation for the "pass" field.
 	DefaultPass bool
+	// DefaultVoted holds the default value on creation for the "voted" field.
+	DefaultVoted bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

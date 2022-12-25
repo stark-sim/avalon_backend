@@ -267,6 +267,8 @@ input CreateSquadInput {
   userID: ID!
   """是否破坏任务"""
   rat: Boolean
+  """是否已经行动"""
+  acted: Boolean
   missionID: ID!
 }
 """
@@ -280,7 +282,10 @@ input CreateVoteInput {
   updatedAt: Time
   deletedAt: Time
   userID: ID!
+  """是否赞同目前小队出征"""
   pass: Boolean
+  """是否已投票"""
+  voted: Boolean
   missionID: ID!
 }
 """
@@ -1091,6 +1096,8 @@ type Squad implements Node {
   userID: ID!
   """是否破坏任务"""
   rat: Boolean!
+  """是否已经行动"""
+  acted: Boolean!
   mission: Mission!
   user: User!
 }
@@ -1186,6 +1193,9 @@ input SquadWhereInput {
   """rat field predicates"""
   rat: Boolean
   ratNEQ: Boolean
+  """acted field predicates"""
+  acted: Boolean
+  actedNEQ: Boolean
   """mission edge predicates"""
   hasMission: Boolean
   hasMissionWith: [MissionWhereInput!]
@@ -1322,6 +1332,8 @@ input UpdateSquadInput {
   userID: ID
   """是否破坏任务"""
   rat: Boolean
+  """是否已经行动"""
+  acted: Boolean
   clearMission: Boolean
   missionID: ID
 }
@@ -1335,7 +1347,10 @@ input UpdateVoteInput {
   updatedAt: Time
   deletedAt: Time
   userID: ID
+  """是否赞同目前小队出征"""
   pass: Boolean
+  """是否已投票"""
+  voted: Boolean
   clearMission: Boolean
   missionID: ID
 }
@@ -1348,7 +1363,10 @@ type Vote implements Node {
   deletedAt: Time!
   missionID: ID!
   userID: ID!
+  """是否赞同目前小队出征"""
   pass: Boolean!
+  """是否已投票"""
+  voted: Boolean!
   mission: Mission!
   user: User!
 }
@@ -1444,6 +1462,9 @@ input VoteWhereInput {
   """pass field predicates"""
   pass: Boolean
   passNEQ: Boolean
+  """voted field predicates"""
+  voted: Boolean
+  votedNEQ: Boolean
   """mission edge predicates"""
   hasMission: Boolean
   hasMissionWith: [MissionWhereInput!]

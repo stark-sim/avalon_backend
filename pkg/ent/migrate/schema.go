@@ -193,6 +193,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "rat", Type: field.TypeBool, Default: false},
+		{Name: "acted", Type: field.TypeBool, Default: false},
 		{Name: "mission_id", Type: field.TypeInt64},
 	}
 	// SquadsTable holds the schema information for the "squads" table.
@@ -203,7 +204,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "squads_missions_squads",
-				Columns:    []*schema.Column{SquadsColumns[8]},
+				Columns:    []*schema.Column{SquadsColumns[9]},
 				RefColumns: []*schema.Column{MissionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -219,6 +220,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "pass", Type: field.TypeBool, Default: false},
+		{Name: "voted", Type: field.TypeBool, Default: false},
 		{Name: "mission_id", Type: field.TypeInt64},
 	}
 	// VotesTable holds the schema information for the "votes" table.
@@ -229,7 +231,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "votes_missions_votes",
-				Columns:    []*schema.Column{VotesColumns[8]},
+				Columns:    []*schema.Column{VotesColumns[9]},
 				RefColumns: []*schema.Column{MissionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

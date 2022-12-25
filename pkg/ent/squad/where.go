@@ -137,6 +137,13 @@ func Rat(v bool) predicate.Squad {
 	})
 }
 
+// Acted applies equality check predicate on the "acted" field. It's identical to ActedEQ.
+func Acted(v bool) predicate.Squad {
+	return predicate.Squad(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldActed), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Squad {
 	return predicate.Squad(func(s *sql.Selector) {
@@ -568,6 +575,20 @@ func RatEQ(v bool) predicate.Squad {
 func RatNEQ(v bool) predicate.Squad {
 	return predicate.Squad(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldRat), v))
+	})
+}
+
+// ActedEQ applies the EQ predicate on the "acted" field.
+func ActedEQ(v bool) predicate.Squad {
+	return predicate.Squad(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldActed), v))
+	})
+}
+
+// ActedNEQ applies the NEQ predicate on the "acted" field.
+func ActedNEQ(v bool) predicate.Squad {
+	return predicate.Squad(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldActed), v))
 	})
 }
 

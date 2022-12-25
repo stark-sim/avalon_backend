@@ -3096,6 +3096,10 @@ type SquadWhereInput struct {
 	Rat    *bool `json:"rat,omitempty"`
 	RatNEQ *bool `json:"ratNEQ,omitempty"`
 
+	// "acted" field predicates.
+	Acted    *bool `json:"acted,omitempty"`
+	ActedNEQ *bool `json:"actedNEQ,omitempty"`
+
 	// "mission" edge predicates.
 	HasMission     *bool                `json:"hasMission,omitempty"`
 	HasMissionWith []*MissionWhereInput `json:"hasMissionWith,omitempty"`
@@ -3358,6 +3362,12 @@ func (i *SquadWhereInput) P() (predicate.Squad, error) {
 	if i.RatNEQ != nil {
 		predicates = append(predicates, squad.RatNEQ(*i.RatNEQ))
 	}
+	if i.Acted != nil {
+		predicates = append(predicates, squad.ActedEQ(*i.Acted))
+	}
+	if i.ActedNEQ != nil {
+		predicates = append(predicates, squad.ActedNEQ(*i.ActedNEQ))
+	}
 
 	if i.HasMission != nil {
 		p := squad.HasMission()
@@ -3473,6 +3483,10 @@ type VoteWhereInput struct {
 	// "pass" field predicates.
 	Pass    *bool `json:"pass,omitempty"`
 	PassNEQ *bool `json:"passNEQ,omitempty"`
+
+	// "voted" field predicates.
+	Voted    *bool `json:"voted,omitempty"`
+	VotedNEQ *bool `json:"votedNEQ,omitempty"`
 
 	// "mission" edge predicates.
 	HasMission     *bool                `json:"hasMission,omitempty"`
@@ -3735,6 +3749,12 @@ func (i *VoteWhereInput) P() (predicate.Vote, error) {
 	}
 	if i.PassNEQ != nil {
 		predicates = append(predicates, vote.PassNEQ(*i.PassNEQ))
+	}
+	if i.Voted != nil {
+		predicates = append(predicates, vote.VotedEQ(*i.Voted))
+	}
+	if i.VotedNEQ != nil {
+		predicates = append(predicates, vote.VotedNEQ(*i.VotedNEQ))
 	}
 
 	if i.HasMission != nil {

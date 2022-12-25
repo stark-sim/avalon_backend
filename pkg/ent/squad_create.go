@@ -117,6 +117,20 @@ func (sc *SquadCreate) SetNillableRat(b *bool) *SquadCreate {
 	return sc
 }
 
+// SetActed sets the "acted" field.
+func (sc *SquadCreate) SetActed(b bool) *SquadCreate {
+	sc.mutation.SetActed(b)
+	return sc
+}
+
+// SetNillableActed sets the "acted" field if the given value is not nil.
+func (sc *SquadCreate) SetNillableActed(b *bool) *SquadCreate {
+	if b != nil {
+		sc.SetActed(*b)
+	}
+	return sc
+}
+
 // SetID sets the "id" field.
 func (sc *SquadCreate) SetID(i int64) *SquadCreate {
 	sc.mutation.SetID(i)
@@ -237,6 +251,10 @@ func (sc *SquadCreate) defaults() {
 		v := squad.DefaultRat
 		sc.mutation.SetRat(v)
 	}
+	if _, ok := sc.mutation.Acted(); !ok {
+		v := squad.DefaultActed
+		sc.mutation.SetActed(v)
+	}
 	if _, ok := sc.mutation.ID(); !ok {
 		v := squad.DefaultID()
 		sc.mutation.SetID(v)
@@ -268,6 +286,9 @@ func (sc *SquadCreate) check() error {
 	}
 	if _, ok := sc.mutation.Rat(); !ok {
 		return &ValidationError{Name: "rat", err: errors.New(`ent: missing required field "Squad.rat"`)}
+	}
+	if _, ok := sc.mutation.Acted(); !ok {
+		return &ValidationError{Name: "acted", err: errors.New(`ent: missing required field "Squad.acted"`)}
 	}
 	if _, ok := sc.mutation.MissionID(); !ok {
 		return &ValidationError{Name: "mission", err: errors.New(`ent: missing required edge "Squad.mission"`)}
@@ -332,6 +353,10 @@ func (sc *SquadCreate) createSpec() (*Squad, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.Rat(); ok {
 		_spec.SetField(squad.FieldRat, field.TypeBool, value)
 		_node.Rat = value
+	}
+	if value, ok := sc.mutation.Acted(); ok {
+		_spec.SetField(squad.FieldActed, field.TypeBool, value)
+		_node.Acted = value
 	}
 	if nodes := sc.mutation.MissionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

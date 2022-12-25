@@ -6864,6 +6864,7 @@ type SquadMutation struct {
 	user_id        *int64
 	adduser_id     *int64
 	rat            *bool
+	acted          *bool
 	clearedFields  map[string]struct{}
 	mission        *int64
 	clearedmission bool
@@ -7324,6 +7325,42 @@ func (m *SquadMutation) ResetRat() {
 	m.rat = nil
 }
 
+// SetActed sets the "acted" field.
+func (m *SquadMutation) SetActed(b bool) {
+	m.acted = &b
+}
+
+// Acted returns the value of the "acted" field in the mutation.
+func (m *SquadMutation) Acted() (r bool, exists bool) {
+	v := m.acted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActed returns the old "acted" field's value of the Squad entity.
+// If the Squad object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SquadMutation) OldActed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActed: %w", err)
+	}
+	return oldValue.Acted, nil
+}
+
+// ResetActed resets all changes to the "acted" field.
+func (m *SquadMutation) ResetActed() {
+	m.acted = nil
+}
+
 // ClearMission clears the "mission" edge to the Mission entity.
 func (m *SquadMutation) ClearMission() {
 	m.clearedmission = true
@@ -7369,7 +7406,7 @@ func (m *SquadMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SquadMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_by != nil {
 		fields = append(fields, squad.FieldCreatedBy)
 	}
@@ -7393,6 +7430,9 @@ func (m *SquadMutation) Fields() []string {
 	}
 	if m.rat != nil {
 		fields = append(fields, squad.FieldRat)
+	}
+	if m.acted != nil {
+		fields = append(fields, squad.FieldActed)
 	}
 	return fields
 }
@@ -7418,6 +7458,8 @@ func (m *SquadMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case squad.FieldRat:
 		return m.Rat()
+	case squad.FieldActed:
+		return m.Acted()
 	}
 	return nil, false
 }
@@ -7443,6 +7485,8 @@ func (m *SquadMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldUserID(ctx)
 	case squad.FieldRat:
 		return m.OldRat(ctx)
+	case squad.FieldActed:
+		return m.OldActed(ctx)
 	}
 	return nil, fmt.Errorf("unknown Squad field %s", name)
 }
@@ -7507,6 +7551,13 @@ func (m *SquadMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRat(v)
+		return nil
+	case squad.FieldActed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Squad field %s", name)
@@ -7620,6 +7671,9 @@ func (m *SquadMutation) ResetField(name string) error {
 	case squad.FieldRat:
 		m.ResetRat()
 		return nil
+	case squad.FieldActed:
+		m.ResetActed()
+		return nil
 	}
 	return fmt.Errorf("unknown Squad field %s", name)
 }
@@ -7714,6 +7768,7 @@ type VoteMutation struct {
 	user_id        *int64
 	adduser_id     *int64
 	pass           *bool
+	voted          *bool
 	clearedFields  map[string]struct{}
 	mission        *int64
 	clearedmission bool
@@ -8174,6 +8229,42 @@ func (m *VoteMutation) ResetPass() {
 	m.pass = nil
 }
 
+// SetVoted sets the "voted" field.
+func (m *VoteMutation) SetVoted(b bool) {
+	m.voted = &b
+}
+
+// Voted returns the value of the "voted" field in the mutation.
+func (m *VoteMutation) Voted() (r bool, exists bool) {
+	v := m.voted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVoted returns the old "voted" field's value of the Vote entity.
+// If the Vote object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VoteMutation) OldVoted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVoted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVoted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVoted: %w", err)
+	}
+	return oldValue.Voted, nil
+}
+
+// ResetVoted resets all changes to the "voted" field.
+func (m *VoteMutation) ResetVoted() {
+	m.voted = nil
+}
+
 // ClearMission clears the "mission" edge to the Mission entity.
 func (m *VoteMutation) ClearMission() {
 	m.clearedmission = true
@@ -8219,7 +8310,7 @@ func (m *VoteMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VoteMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_by != nil {
 		fields = append(fields, vote.FieldCreatedBy)
 	}
@@ -8243,6 +8334,9 @@ func (m *VoteMutation) Fields() []string {
 	}
 	if m.pass != nil {
 		fields = append(fields, vote.FieldPass)
+	}
+	if m.voted != nil {
+		fields = append(fields, vote.FieldVoted)
 	}
 	return fields
 }
@@ -8268,6 +8362,8 @@ func (m *VoteMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case vote.FieldPass:
 		return m.Pass()
+	case vote.FieldVoted:
+		return m.Voted()
 	}
 	return nil, false
 }
@@ -8293,6 +8389,8 @@ func (m *VoteMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUserID(ctx)
 	case vote.FieldPass:
 		return m.OldPass(ctx)
+	case vote.FieldVoted:
+		return m.OldVoted(ctx)
 	}
 	return nil, fmt.Errorf("unknown Vote field %s", name)
 }
@@ -8357,6 +8455,13 @@ func (m *VoteMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPass(v)
+		return nil
+	case vote.FieldVoted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVoted(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Vote field %s", name)
@@ -8469,6 +8574,9 @@ func (m *VoteMutation) ResetField(name string) error {
 		return nil
 	case vote.FieldPass:
 		m.ResetPass()
+		return nil
+	case vote.FieldVoted:
+		m.ResetVoted()
 		return nil
 	}
 	return fmt.Errorf("unknown Vote field %s", name)

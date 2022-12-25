@@ -27,6 +27,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldRat holds the string denoting the rat field in the database.
 	FieldRat = "rat"
+	// FieldActed holds the string denoting the acted field in the database.
+	FieldActed = "acted"
 	// EdgeMission holds the string denoting the mission edge name in mutations.
 	EdgeMission = "mission"
 	// Table holds the table name of the squad in the database.
@@ -51,6 +53,7 @@ var Columns = []string{
 	FieldMissionID,
 	FieldUserID,
 	FieldRat,
+	FieldActed,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -78,6 +81,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultRat holds the default value on creation for the "rat" field.
 	DefaultRat bool
+	// DefaultActed holds the default value on creation for the "acted" field.
+	DefaultActed bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

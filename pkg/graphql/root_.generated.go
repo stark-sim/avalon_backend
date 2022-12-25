@@ -222,6 +222,7 @@ type ComplexityRoot struct {
 	}
 
 	Squad struct {
+		Acted     func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
@@ -260,6 +261,7 @@ type ComplexityRoot struct {
 		UpdatedBy func(childComplexity int) int
 		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
+		Voted     func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -1105,6 +1107,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RoomUser.UserID(childComplexity), true
 
+	case "Squad.acted":
+		if e.complexity.Squad.Acted == nil {
+			break
+		}
+
+		return e.complexity.Squad.Acted(childComplexity), true
+
 	case "Squad.createdAt":
 		if e.complexity.Squad.CreatedAt == nil {
 			break
@@ -1322,6 +1331,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Vote.UserID(childComplexity), true
+
+	case "Vote.voted":
+		if e.complexity.Vote.Voted == nil {
+			break
+		}
+
+		return e.complexity.Vote.Voted(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {

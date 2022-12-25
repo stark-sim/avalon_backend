@@ -137,6 +137,13 @@ func Pass(v bool) predicate.Vote {
 	})
 }
 
+// Voted applies equality check predicate on the "voted" field. It's identical to VotedEQ.
+func Voted(v bool) predicate.Vote {
+	return predicate.Vote(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldVoted), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Vote {
 	return predicate.Vote(func(s *sql.Selector) {
@@ -568,6 +575,20 @@ func PassEQ(v bool) predicate.Vote {
 func PassNEQ(v bool) predicate.Vote {
 	return predicate.Vote(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPass), v))
+	})
+}
+
+// VotedEQ applies the EQ predicate on the "voted" field.
+func VotedEQ(v bool) predicate.Vote {
+	return predicate.Vote(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldVoted), v))
+	})
+}
+
+// VotedNEQ applies the NEQ predicate on the "voted" field.
+func VotedNEQ(v bool) predicate.Vote {
+	return predicate.Vote(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldVoted), v))
 	})
 }
 

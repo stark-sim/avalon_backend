@@ -323,6 +323,10 @@ func init() {
 	squadDescRat := squadFields[2].Descriptor()
 	// squad.DefaultRat holds the default value on creation for the rat field.
 	squad.DefaultRat = squadDescRat.Default.(bool)
+	// squadDescActed is the schema descriptor for acted field.
+	squadDescActed := squadFields[3].Descriptor()
+	// squad.DefaultActed holds the default value on creation for the acted field.
+	squad.DefaultActed = squadDescActed.Default.(bool)
 	// squadDescID is the schema descriptor for id field.
 	squadDescID := squadMixinFields0[0].Descriptor()
 	// squad.DefaultID holds the default value on creation for the id field.
@@ -358,6 +362,10 @@ func init() {
 	voteDescPass := voteFields[2].Descriptor()
 	// vote.DefaultPass holds the default value on creation for the pass field.
 	vote.DefaultPass = voteDescPass.Default.(bool)
+	// voteDescVoted is the schema descriptor for voted field.
+	voteDescVoted := voteFields[3].Descriptor()
+	// vote.DefaultVoted holds the default value on creation for the voted field.
+	vote.DefaultVoted = voteDescVoted.Default.(bool)
 	// voteDescID is the schema descriptor for id field.
 	voteDescID := voteMixinFields0[0].Descriptor()
 	// vote.DefaultID holds the default value on creation for the id field.

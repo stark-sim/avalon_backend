@@ -33,6 +33,8 @@ type Squad struct {
 	UserID int64 `json:"user_id"`
 	// 是否破坏任务
 	Rat bool `json:"rat"`
+	// 是否已经行动
+	Acted bool `json:"acted"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SquadQuery when eager-loading is set.
 	Edges SquadEdges `json:"edges"`
@@ -67,7 +69,7 @@ func (*Squad) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case squad.FieldRat:
+		case squad.FieldRat, squad.FieldActed:
 			values[i] = new(sql.NullBool)
 		case squad.FieldID, squad.FieldCreatedBy, squad.FieldUpdatedBy, squad.FieldMissionID, squad.FieldUserID:
 			values[i] = new(sql.NullInt64)
@@ -142,6 +144,12 @@ func (s *Squad) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.Rat = value.Bool
 			}
+		case squad.FieldActed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field acted", values[i])
+			} else if value.Valid {
+				s.Acted = value.Bool
+			}
 		}
 	}
 	return nil
@@ -198,6 +206,9 @@ func (s *Squad) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("rat=")
 	builder.WriteString(fmt.Sprintf("%v", s.Rat))
+	builder.WriteString(", ")
+	builder.WriteString("acted=")
+	builder.WriteString(fmt.Sprintf("%v", s.Acted))
 	builder.WriteByte(')')
 	return builder.String()
 }

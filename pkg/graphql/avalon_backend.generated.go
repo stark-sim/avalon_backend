@@ -3194,6 +3194,8 @@ func (ec *executionContext) fieldContext_Mission_squads(ctx context.Context, fie
 				return ec.fieldContext_Squad_userID(ctx, field)
 			case "rat":
 				return ec.fieldContext_Squad_rat(ctx, field)
+			case "acted":
+				return ec.fieldContext_Squad_acted(ctx, field)
 			case "mission":
 				return ec.fieldContext_Squad_mission(ctx, field)
 			case "user":
@@ -3259,6 +3261,8 @@ func (ec *executionContext) fieldContext_Mission_votes(ctx context.Context, fiel
 				return ec.fieldContext_Vote_userID(ctx, field)
 			case "pass":
 				return ec.fieldContext_Vote_pass(ctx, field)
+			case "voted":
+				return ec.fieldContext_Vote_voted(ctx, field)
 			case "mission":
 				return ec.fieldContext_Vote_mission(ctx, field)
 			case "user":
@@ -3780,6 +3784,8 @@ func (ec *executionContext) fieldContext_Mutation_pickSquads(ctx context.Context
 				return ec.fieldContext_Squad_userID(ctx, field)
 			case "rat":
 				return ec.fieldContext_Squad_rat(ctx, field)
+			case "acted":
+				return ec.fieldContext_Squad_acted(ctx, field)
 			case "mission":
 				return ec.fieldContext_Squad_mission(ctx, field)
 			case "user":
@@ -4698,6 +4704,8 @@ func (ec *executionContext) fieldContext_Query_squads(ctx context.Context, field
 				return ec.fieldContext_Squad_userID(ctx, field)
 			case "rat":
 				return ec.fieldContext_Squad_rat(ctx, field)
+			case "acted":
+				return ec.fieldContext_Squad_acted(ctx, field)
 			case "mission":
 				return ec.fieldContext_Squad_mission(ctx, field)
 			case "user":
@@ -4766,6 +4774,8 @@ func (ec *executionContext) fieldContext_Query_votes(ctx context.Context, field 
 				return ec.fieldContext_Vote_userID(ctx, field)
 			case "pass":
 				return ec.fieldContext_Vote_pass(ctx, field)
+			case "voted":
+				return ec.fieldContext_Vote_voted(ctx, field)
 			case "mission":
 				return ec.fieldContext_Vote_mission(ctx, field)
 			case "user":
@@ -6988,6 +6998,50 @@ func (ec *executionContext) fieldContext_Squad_rat(ctx context.Context, field gr
 	return fc, nil
 }
 
+func (ec *executionContext) _Squad_acted(ctx context.Context, field graphql.CollectedField, obj *ent.Squad) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Squad_acted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Acted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Squad_acted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Squad",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Squad_mission(ctx context.Context, field graphql.CollectedField, obj *ent.Squad) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Squad_mission(ctx, field)
 	if err != nil {
@@ -7632,6 +7686,50 @@ func (ec *executionContext) _Vote_pass(ctx context.Context, field graphql.Collec
 }
 
 func (ec *executionContext) fieldContext_Vote_pass(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vote",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Vote_voted(ctx context.Context, field graphql.CollectedField, obj *ent.Vote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vote_voted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Voted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vote_voted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Vote",
 		Field:      field,
@@ -9291,7 +9389,7 @@ func (ec *executionContext) unmarshalInputCreateSquadInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "rat", "missionID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "rat", "acted", "missionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9363,6 +9461,14 @@ func (ec *executionContext) unmarshalInputCreateSquadInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "acted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("acted"))
+			it.Acted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "missionID":
 			var err error
 
@@ -9387,7 +9493,7 @@ func (ec *executionContext) unmarshalInputCreateVoteInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "pass", "missionID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "pass", "voted", "missionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9456,6 +9562,14 @@ func (ec *executionContext) unmarshalInputCreateVoteInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pass"))
 			it.Pass, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "voted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voted"))
+			it.Voted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14255,7 +14369,7 @@ func (ec *executionContext) unmarshalInputSquadWhereInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "missionID", "missionIDNEQ", "missionIDIn", "missionIDNotIn", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "rat", "ratNEQ", "hasMission", "hasMissionWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "missionID", "missionIDNEQ", "missionIDIn", "missionIDNotIn", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "rat", "ratNEQ", "acted", "actedNEQ", "hasMission", "hasMissionWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -14887,6 +15001,22 @@ func (ec *executionContext) unmarshalInputSquadWhereInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ratNEQ"))
 			it.RatNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "acted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("acted"))
+			it.Acted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "actedNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("actedNEQ"))
+			it.ActedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15783,7 +15913,7 @@ func (ec *executionContext) unmarshalInputUpdateSquadInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "rat", "clearMission", "missionID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "rat", "acted", "clearMission", "missionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15847,6 +15977,14 @@ func (ec *executionContext) unmarshalInputUpdateSquadInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "acted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("acted"))
+			it.Acted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "clearMission":
 			var err error
 
@@ -15879,7 +16017,7 @@ func (ec *executionContext) unmarshalInputUpdateVoteInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "pass", "clearMission", "missionID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "pass", "voted", "clearMission", "missionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15940,6 +16078,14 @@ func (ec *executionContext) unmarshalInputUpdateVoteInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pass"))
 			it.Pass, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "voted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voted"))
+			it.Voted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16015,7 +16161,7 @@ func (ec *executionContext) unmarshalInputVoteWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "missionID", "missionIDNEQ", "missionIDIn", "missionIDNotIn", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "pass", "passNEQ", "hasMission", "hasMissionWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "missionID", "missionIDNEQ", "missionIDIn", "missionIDNotIn", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "pass", "passNEQ", "voted", "votedNEQ", "hasMission", "hasMissionWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16647,6 +16793,22 @@ func (ec *executionContext) unmarshalInputVoteWhereInput(ctx context.Context, ob
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("passNEQ"))
 			it.PassNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "voted":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voted"))
+			it.Voted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "votedNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("votedNEQ"))
+			it.VotedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18711,6 +18873,13 @@ func (ec *executionContext) _Squad(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "acted":
+
+			out.Values[i] = ec._Squad_acted(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "mission":
 			field := field
 
@@ -18938,6 +19107,13 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 		case "pass":
 
 			out.Values[i] = ec._Vote_pass(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "voted":
+
+			out.Values[i] = ec._Vote_voted(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

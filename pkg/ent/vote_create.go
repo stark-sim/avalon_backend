@@ -117,6 +117,20 @@ func (vc *VoteCreate) SetNillablePass(b *bool) *VoteCreate {
 	return vc
 }
 
+// SetVoted sets the "voted" field.
+func (vc *VoteCreate) SetVoted(b bool) *VoteCreate {
+	vc.mutation.SetVoted(b)
+	return vc
+}
+
+// SetNillableVoted sets the "voted" field if the given value is not nil.
+func (vc *VoteCreate) SetNillableVoted(b *bool) *VoteCreate {
+	if b != nil {
+		vc.SetVoted(*b)
+	}
+	return vc
+}
+
 // SetID sets the "id" field.
 func (vc *VoteCreate) SetID(i int64) *VoteCreate {
 	vc.mutation.SetID(i)
@@ -237,6 +251,10 @@ func (vc *VoteCreate) defaults() {
 		v := vote.DefaultPass
 		vc.mutation.SetPass(v)
 	}
+	if _, ok := vc.mutation.Voted(); !ok {
+		v := vote.DefaultVoted
+		vc.mutation.SetVoted(v)
+	}
 	if _, ok := vc.mutation.ID(); !ok {
 		v := vote.DefaultID()
 		vc.mutation.SetID(v)
@@ -268,6 +286,9 @@ func (vc *VoteCreate) check() error {
 	}
 	if _, ok := vc.mutation.Pass(); !ok {
 		return &ValidationError{Name: "pass", err: errors.New(`ent: missing required field "Vote.pass"`)}
+	}
+	if _, ok := vc.mutation.Voted(); !ok {
+		return &ValidationError{Name: "voted", err: errors.New(`ent: missing required field "Vote.voted"`)}
 	}
 	if _, ok := vc.mutation.MissionID(); !ok {
 		return &ValidationError{Name: "mission", err: errors.New(`ent: missing required edge "Vote.mission"`)}
@@ -332,6 +353,10 @@ func (vc *VoteCreate) createSpec() (*Vote, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.Pass(); ok {
 		_spec.SetField(vote.FieldPass, field.TypeBool, value)
 		_node.Pass = value
+	}
+	if value, ok := vc.mutation.Voted(); ok {
+		_spec.SetField(vote.FieldVoted, field.TypeBool, value)
+		_node.Voted = value
 	}
 	if nodes := vc.mutation.MissionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

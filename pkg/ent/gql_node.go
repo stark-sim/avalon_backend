@@ -747,7 +747,7 @@ func (s *Squad) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Squad",
-		Fields: make([]*Field, 8),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -815,6 +815,14 @@ func (s *Squad) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "rat",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(s.Acted); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "bool",
+		Name:  "acted",
+		Value: string(buf),
+	}
 	node.Edges[0] = &Edge{
 		Type: "Mission",
 		Name: "mission",
@@ -832,7 +840,7 @@ func (v *Vote) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     v.ID,
 		Type:   "Vote",
-		Fields: make([]*Field, 8),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -898,6 +906,14 @@ func (v *Vote) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[7] = &Field{
 		Type:  "bool",
 		Name:  "pass",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(v.Voted); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
+		Type:  "bool",
+		Name:  "voted",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

@@ -124,6 +124,20 @@ func (vu *VoteUpdate) SetNillablePass(b *bool) *VoteUpdate {
 	return vu
 }
 
+// SetVoted sets the "voted" field.
+func (vu *VoteUpdate) SetVoted(b bool) *VoteUpdate {
+	vu.mutation.SetVoted(b)
+	return vu
+}
+
+// SetNillableVoted sets the "voted" field if the given value is not nil.
+func (vu *VoteUpdate) SetNillableVoted(b *bool) *VoteUpdate {
+	if b != nil {
+		vu.SetVoted(*b)
+	}
+	return vu
+}
+
 // SetMission sets the "mission" edge to the Mission entity.
 func (vu *VoteUpdate) SetMission(m *Mission) *VoteUpdate {
 	return vu.SetMissionID(m.ID)
@@ -261,6 +275,9 @@ func (vu *VoteUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.Pass(); ok {
 		_spec.SetField(vote.FieldPass, field.TypeBool, value)
+	}
+	if value, ok := vu.mutation.Voted(); ok {
+		_spec.SetField(vote.FieldVoted, field.TypeBool, value)
 	}
 	if vu.mutation.MissionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -407,6 +424,20 @@ func (vuo *VoteUpdateOne) SetPass(b bool) *VoteUpdateOne {
 func (vuo *VoteUpdateOne) SetNillablePass(b *bool) *VoteUpdateOne {
 	if b != nil {
 		vuo.SetPass(*b)
+	}
+	return vuo
+}
+
+// SetVoted sets the "voted" field.
+func (vuo *VoteUpdateOne) SetVoted(b bool) *VoteUpdateOne {
+	vuo.mutation.SetVoted(b)
+	return vuo
+}
+
+// SetNillableVoted sets the "voted" field if the given value is not nil.
+func (vuo *VoteUpdateOne) SetNillableVoted(b *bool) *VoteUpdateOne {
+	if b != nil {
+		vuo.SetVoted(*b)
 	}
 	return vuo
 }
@@ -578,6 +609,9 @@ func (vuo *VoteUpdateOne) sqlSave(ctx context.Context) (_node *Vote, err error) 
 	}
 	if value, ok := vuo.mutation.Pass(); ok {
 		_spec.SetField(vote.FieldPass, field.TypeBool, value)
+	}
+	if value, ok := vuo.mutation.Voted(); ok {
+		_spec.SetField(vote.FieldVoted, field.TypeBool, value)
 	}
 	if vuo.mutation.MissionCleared() {
 		edge := &sqlgraph.EdgeSpec{

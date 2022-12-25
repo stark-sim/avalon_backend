@@ -20,6 +20,7 @@ func (Squad) Fields() []ent.Field {
 		field.Int64("mission_id").StructTag(`json:"mission_id"`),
 		field.Int64("user_id").StructTag(`json:"user_id"`).Annotations(entgql.Type("ID")),
 		field.Bool("rat").Default(false).StructTag(`json:"rat"`).Comment("是否破坏任务"),
+		field.Bool("acted").Default(false).StructTag(`json:"acted"`).Comment("是否已经行动"),
 	}
 }
 

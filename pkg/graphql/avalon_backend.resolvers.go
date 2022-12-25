@@ -7,8 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
-	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"strconv"
 	"time"
 
@@ -19,6 +17,8 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
@@ -204,7 +204,7 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 		redisClient.Close()
 		return newRoomUser, nil
 	} else {
-		err = tx.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Exec(ctx)
+		roomUser, err = tx.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Save(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -398,7 +398,7 @@ func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInp
 
 // PickSquads is the resolver for the pickSquads field.
 func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
-	// 队长选任务小队人数，选好后任务进去投票阶段
+	// 队长选任务小队人数，选好后任务进去投票阶段，并且为其他人创建 Vote
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -456,6 +456,40 @@ func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSqua
 	squads, err := tx.Squad.CreateBulk(squadCreates...).Save(ctx)
 	if err != nil {
 		logrus.Errorf("error at creating squads: %v", err)
+		return nil, err
+	}
+	// 获取不是小队中的游戏其他人员 id，用来创建 Vote
+	var notPickedUserIDs []struct {
+		UserID int64 `json:"user_id"`
+	}
+	err = tx.GameUser.Query().
+		Where(gameuser.GameID(_mission.GameID), gameuser.UserIDNotIn(userIDs...)).
+		Select(gameuser.FieldUserID).
+		Scan(ctx, &notPickedUserIDs)
+	voteCreates := make([]*ent.VoteCreate, len(notPickedUserIDs))
+	for i, v := range notPickedUserIDs {
+		voteCreates[i] = tx.Vote.
+			Create().
+			SetUserID(v.UserID).
+			SetMissionID(_mission.ID)
+	}
+	_, err = tx.Vote.CreateBulk(voteCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating votes: %v", err)
+		return nil, err
+	}
+	// 新增 Squad 和 Vote 后别忘了修改 Mission 状态为 voting
+	_, err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusVoting).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at updating mission's status to voting: %v", err)
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		err = tx.Rollback()
+		if err != nil {
+			return nil, err
+		}
 		return nil, err
 	}
 	return squads, nil

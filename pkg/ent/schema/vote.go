@@ -18,7 +18,8 @@ func (Vote) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("mission_id").StructTag(`json:"mission_id"`),
 		field.Int64("user_id").StructTag(`json:"user_id"`).Annotations(entgql.Type("ID")),
-		field.Bool("pass").Default(false).StructTag(`json:"pass"`),
+		field.Bool("pass").Default(false).StructTag(`json:"pass"`).Comment("是否赞同目前小队出征"),
+		field.Bool("voted").Default(false).StructTag(`json:"voted"`).Comment("是否已投票"),
 	}
 }
 

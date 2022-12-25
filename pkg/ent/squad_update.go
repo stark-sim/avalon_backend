@@ -124,6 +124,20 @@ func (su *SquadUpdate) SetNillableRat(b *bool) *SquadUpdate {
 	return su
 }
 
+// SetActed sets the "acted" field.
+func (su *SquadUpdate) SetActed(b bool) *SquadUpdate {
+	su.mutation.SetActed(b)
+	return su
+}
+
+// SetNillableActed sets the "acted" field if the given value is not nil.
+func (su *SquadUpdate) SetNillableActed(b *bool) *SquadUpdate {
+	if b != nil {
+		su.SetActed(*b)
+	}
+	return su
+}
+
 // SetMission sets the "mission" edge to the Mission entity.
 func (su *SquadUpdate) SetMission(m *Mission) *SquadUpdate {
 	return su.SetMissionID(m.ID)
@@ -261,6 +275,9 @@ func (su *SquadUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.Rat(); ok {
 		_spec.SetField(squad.FieldRat, field.TypeBool, value)
+	}
+	if value, ok := su.mutation.Acted(); ok {
+		_spec.SetField(squad.FieldActed, field.TypeBool, value)
 	}
 	if su.mutation.MissionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -407,6 +424,20 @@ func (suo *SquadUpdateOne) SetRat(b bool) *SquadUpdateOne {
 func (suo *SquadUpdateOne) SetNillableRat(b *bool) *SquadUpdateOne {
 	if b != nil {
 		suo.SetRat(*b)
+	}
+	return suo
+}
+
+// SetActed sets the "acted" field.
+func (suo *SquadUpdateOne) SetActed(b bool) *SquadUpdateOne {
+	suo.mutation.SetActed(b)
+	return suo
+}
+
+// SetNillableActed sets the "acted" field if the given value is not nil.
+func (suo *SquadUpdateOne) SetNillableActed(b *bool) *SquadUpdateOne {
+	if b != nil {
+		suo.SetActed(*b)
 	}
 	return suo
 }
@@ -578,6 +609,9 @@ func (suo *SquadUpdateOne) sqlSave(ctx context.Context) (_node *Squad, err error
 	}
 	if value, ok := suo.mutation.Rat(); ok {
 		_spec.SetField(squad.FieldRat, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.Acted(); ok {
+		_spec.SetField(squad.FieldActed, field.TypeBool, value)
 	}
 	if suo.mutation.MissionCleared() {
 		edge := &sqlgraph.EdgeSpec{

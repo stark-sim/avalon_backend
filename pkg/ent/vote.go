@@ -31,8 +31,10 @@ type Vote struct {
 	MissionID int64 `json:"mission_id"`
 	// UserID holds the value of the "user_id" field.
 	UserID int64 `json:"user_id"`
-	// Pass holds the value of the "pass" field.
+	// 是否赞同目前小队出征
 	Pass bool `json:"pass"`
+	// 是否已投票
+	Voted bool `json:"voted"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VoteQuery when eager-loading is set.
 	Edges VoteEdges `json:"edges"`
@@ -67,7 +69,7 @@ func (*Vote) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case vote.FieldPass:
+		case vote.FieldPass, vote.FieldVoted:
 			values[i] = new(sql.NullBool)
 		case vote.FieldID, vote.FieldCreatedBy, vote.FieldUpdatedBy, vote.FieldMissionID, vote.FieldUserID:
 			values[i] = new(sql.NullInt64)
@@ -142,6 +144,12 @@ func (v *Vote) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.Pass = value.Bool
 			}
+		case vote.FieldVoted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field voted", values[i])
+			} else if value.Valid {
+				v.Voted = value.Bool
+			}
 		}
 	}
 	return nil
@@ -198,6 +206,9 @@ func (v *Vote) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("pass=")
 	builder.WriteString(fmt.Sprintf("%v", v.Pass))
+	builder.WriteString(", ")
+	builder.WriteString("voted=")
+	builder.WriteString(fmt.Sprintf("%v", v.Voted))
 	builder.WriteByte(')')
 	return builder.String()
 }
