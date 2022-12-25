@@ -405,7 +405,7 @@ func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInp
 
 // PickSquads is the resolver for the pickSquads field.
 func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
-	// 队长选任务小队人数，选好后任务进去投票阶段，并且为其他人创建 Vote
+	// 队长选任务小队人数，选好后任务进去投票阶段，并且为大家创建 Vote
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -465,16 +465,16 @@ func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSqua
 		logrus.Errorf("error at creating squads: %v", err)
 		return nil, err
 	}
-	// 获取不是小队中的游戏其他人员 id，用来创建 Vote
-	var notPickedUserIDs []struct {
+	// 创建 Vote
+	var allUserIDs []struct {
 		UserID int64 `json:"user_id"`
 	}
 	err = tx.GameUser.Query().
-		Where(gameuser.GameID(_mission.GameID), gameuser.UserIDNotIn(userIDs...)).
+		Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
 		Select(gameuser.FieldUserID).
-		Scan(ctx, &notPickedUserIDs)
-	voteCreates := make([]*ent.VoteCreate, len(notPickedUserIDs))
-	for i, v := range notPickedUserIDs {
+		Scan(ctx, &allUserIDs)
+	voteCreates := make([]*ent.VoteCreate, len(allUserIDs))
+	for i, v := range allUserIDs {
 		// 如果用户是该任务的 leader，那么该 Vote 已经决定且通过
 		if v.UserID == _mission.LeaderID {
 			voteCreates[i] = tx.Vote.
@@ -526,7 +526,7 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 	notPassCount := 0
 	for _, v := range votes {
 		if !v.Voted {
-			allVoted = true
+			allVoted = false
 			break
 		}
 		if v.Pass {
@@ -738,7 +738,7 @@ func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereI
 	if userID == nil || missionID == nil {
 		return nil, errors.New("userID and missionID can't be null")
 	}
-	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID)).First(ctx)
+	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID), vote.Voted(false)).First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
@@ -756,7 +756,7 @@ func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWher
 	if userID == nil || missionID == nil {
 		return nil, errors.New("userID and missionID can't be null")
 	}
-	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID)).First(ctx)
+	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID), squad.Acted(false)).First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
@@ -805,16 +805,12 @@ func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest)
 	_game, err := tx.Game.Query().
 		Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
 		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
-			query.WithCard()
+			query.Where(gameuser.HasGameWith(game.EndByNEQ(game.EndByNone))).WithCard()
 		}).
 		First(ctx)
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
-	}
-	// 如果游戏还没结束，不返回游戏玩家，前端开始刺杀阶段
-	if _game.EndBy == game.EndByNone {
-		_game.Edges.GameUsers = make([]*ent.GameUser, 0)
 	}
 	return _game, nil
 }
