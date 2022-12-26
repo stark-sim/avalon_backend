@@ -1,9 +1,21 @@
 type Subscription {
     GetRoomUser: RoomUser
+    # 实时获取房间人数
     getRoomUsers(req: RoomRequest): [RoomUser]
+    # 实时检测房间有没有开始游戏
     getRoomOngoingGame(req: RoomRequest!): Game
+    # 实时获取游戏中的各任务状态
     getMissionsByGame(req: GameRequest!): [Mission!]!
+    # 实时获取刺客刀人环节信息，没到刺杀环节返回空
+    getAssassinationByGame(req: GameRequest!): AssassinInfo
+}
 
+# 刺杀环节信息
+type AssassinInfo {
+    # 最终刺杀目标
+    theAssassinatedID: ID!
+    # 暂时选中目标
+    tempPickedID: ID!
 }
 
 input RoomRequest {

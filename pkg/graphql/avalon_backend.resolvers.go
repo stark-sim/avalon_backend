@@ -652,6 +652,51 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 	return _squad, err
 }
 
+// Assassinate is the resolver for the assassinate field.
+func (r *mutationResolver) Assassinate(ctx context.Context, req model.AssassinateRequest) (*ent.Game, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.GameID)), game.DeletedAt(tools.ZeroTime), game.TheAssassinatedID(0)).First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 把刺杀的游戏玩家找到
+	theAssassinatedID := tools.StringToInt64(req.TheAssassinatedID)
+	gameUser, err := tx.GameUser.Query().
+		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserID(theAssassinatedID)).
+		WithGame().
+		First(ctx)
+	if err != nil {
+		logrus.Errorf("error at query target gameUser when assassinate: %v", err)
+		return nil, err
+	}
+	// 看看是不是梅林
+	if gameUser.Edges.Card.Name == card.NameMerlin {
+		// 游戏结束，红方胜利，结束方式为刺杀成功
+		_game, err = tx.Game.UpdateOne(_game).
+			SetEndBy(game.EndBySlayer).
+			SetTheAssassinatedID(theAssassinatedID).
+			Save(ctx)
+	} else {
+		// 游戏结束，蓝方获胜
+		_game, err = tx.Game.UpdateOne(_game).
+			SetEndBy(game.EndByBlue).
+			SetTheAssassinatedID(theAssassinatedID).
+			Save(ctx)
+	}
+	if err != nil {
+		logrus.Errorf("error at update game when assassinate: %v", err)
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _game, nil
+}
+
 // JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
 func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error) {
 	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
@@ -813,6 +858,20 @@ func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest)
 		return nil, err
 	}
 	return _game, nil
+}
+
+// GetVagueGameUsers is the resolver for the getVagueGameUsers field.
+func (r *queryResolver) GetVagueGameUsers(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
+	gameUsers, err := r.client.GameUser.Query().
+		Where(gameuser.GameID(tools.StringToInt64(req.ID)), gameuser.DeletedAt(tools.ZeroTime)).
+		WithCard().
+		Order(ent.Asc(gameuser.FieldNumber)).
+		All(ctx)
+	if err != nil {
+		logrus.Errorf("error at query gameUsers when getVagueGameUsers: %v", err)
+		return nil, err
+	}
+	return gameUsers, nil
 }
 
 // ID is the resolver for the id field.

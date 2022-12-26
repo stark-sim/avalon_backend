@@ -1495,7 +1495,7 @@ type Mutation {
   pickSquads(req: [CreateSquadInput!]!): [Squad!]
   vote(req: VoteRequest!): Vote
   act(req: ActRequest!): Squad
-
+  assassinate(req: AssassinateRequest!): Game
   joinRoomByShortCode(req: JoinRoomInput!): RoomUser
 }
 
@@ -1509,6 +1509,11 @@ input ActRequest {
   rat: Boolean!
 }
 
+input AssassinateRequest {
+  gameID: ID!
+  theAssassinatedID: ID!
+}
+
 extend type Query {
   """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
   getVoteInMission(req: VoteWhereInput!): Vote
@@ -1516,6 +1521,8 @@ extend type Query {
   getSquadInMission(req: SquadWhereInput!): Squad
   """任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空"""
   getEndedGame(req: GameRequest!): Game
+  """获取刺杀环节信息盘，红方亮身份，蓝色不亮身份"""
+  getVagueGameUsers(req: GameRequest!): [GameUser!]!
 }
 
 input JoinRoomInput {

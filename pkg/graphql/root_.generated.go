@@ -79,6 +79,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AssassinInfo struct {
+		TempPickedID      func(childComplexity int) int
+		TheAssassinatedID func(childComplexity int) int
+	}
+
 	Card struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
@@ -148,6 +153,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		Act                 func(childComplexity int, req model.ActRequest) int
+		Assassinate         func(childComplexity int, req model.AssassinateRequest) int
 		CloseRoom           func(childComplexity int, req model.RoomRequest) int
 		CreateCard          func(childComplexity int, req ent.CreateCardInput) int
 		CreateGame          func(childComplexity int, req model.RoomRequest) int
@@ -172,6 +178,7 @@ type ComplexityRoot struct {
 		Games              func(childComplexity int) int
 		GetEndedGame       func(childComplexity int, req model.GameRequest) int
 		GetSquadInMission  func(childComplexity int, req ent.SquadWhereInput) int
+		GetVagueGameUsers  func(childComplexity int, req model.GameRequest) int
 		GetVoteInMission   func(childComplexity int, req ent.VoteWhereInput) int
 		Missions           func(childComplexity int) int
 		Node               func(childComplexity int, id string) int
@@ -243,10 +250,11 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		GetMissionsByGame  func(childComplexity int, req model.GameRequest) int
-		GetRoomOngoingGame func(childComplexity int, req model.RoomRequest) int
-		GetRoomUser        func(childComplexity int) int
-		GetRoomUsers       func(childComplexity int, req *model.RoomRequest) int
+		GetAssassinationByGame func(childComplexity int, req model.GameRequest) int
+		GetMissionsByGame      func(childComplexity int, req model.GameRequest) int
+		GetRoomOngoingGame     func(childComplexity int, req model.RoomRequest) int
+		GetRoomUser            func(childComplexity int) int
+		GetRoomUsers           func(childComplexity int, req *model.RoomRequest) int
 	}
 
 	User struct {
@@ -289,6 +297,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "AssassinInfo.tempPickedID":
+		if e.complexity.AssassinInfo.TempPickedID == nil {
+			break
+		}
+
+		return e.complexity.AssassinInfo.TempPickedID(childComplexity), true
+
+	case "AssassinInfo.theAssassinatedID":
+		if e.complexity.AssassinInfo.TheAssassinatedID == nil {
+			break
+		}
+
+		return e.complexity.AssassinInfo.TheAssassinatedID(childComplexity), true
 
 	case "Card.createdAt":
 		if e.complexity.Card.CreatedAt == nil {
@@ -671,6 +693,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Act(childComplexity, args["req"].(model.ActRequest)), true
 
+	case "Mutation.assassinate":
+		if e.complexity.Mutation.Assassinate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_assassinate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Assassinate(childComplexity, args["req"].(model.AssassinateRequest)), true
+
 	case "Mutation.closeRoom":
 		if e.complexity.Mutation.CloseRoom == nil {
 			break
@@ -851,6 +885,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetSquadInMission(childComplexity, args["req"].(ent.SquadWhereInput)), true
+
+	case "Query.getVagueGameUsers":
+		if e.complexity.Query.GetVagueGameUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getVagueGameUsers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetVagueGameUsers(childComplexity, args["req"].(model.GameRequest)), true
 
 	case "Query.getVoteInMission":
 		if e.complexity.Query.GetVoteInMission == nil {
@@ -1264,6 +1310,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Squad.UserID(childComplexity), true
 
+	case "Subscription.getAssassinationByGame":
+		if e.complexity.Subscription.GetAssassinationByGame == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_getAssassinationByGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.GetAssassinationByGame(childComplexity, args["req"].(model.GameRequest)), true
+
 	case "Subscription.getMissionsByGame":
 		if e.complexity.Subscription.GetMissionsByGame == nil {
 			break
@@ -1428,6 +1486,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputActRequest,
+		ec.unmarshalInputAssassinateRequest,
 		ec.unmarshalInputCardOrder,
 		ec.unmarshalInputCardWhereInput,
 		ec.unmarshalInputCreateCardInput,

@@ -7,6 +7,16 @@ type ActRequest struct {
 	Rat     bool   `json:"rat"`
 }
 
+type AssassinInfo struct {
+	TheAssassinatedID string `json:"theAssassinatedID"`
+	TempPickedID      string `json:"tempPickedID"`
+}
+
+type AssassinateRequest struct {
+	GameID            string `json:"gameID"`
+	TheAssassinatedID string `json:"theAssassinatedID"`
+}
+
 type GameRequest struct {
 	ID string `json:"id"`
 }

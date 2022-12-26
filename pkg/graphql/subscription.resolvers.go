@@ -5,6 +5,7 @@ package graphql
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -141,6 +142,33 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 			}
 			select {
 			case ch <- missions:
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+	return ch, nil
+}
+
+// GetAssassinationByGame is the resolver for the getAssassinationByGame field.
+func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req model.GameRequest) (<-chan *model.AssassinInfo, error) {
+	ch := make(chan *model.AssassinInfo)
+	go func() {
+		for {
+			_game, err := r.client.Game.Query().
+				Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
+				First(ctx)
+			if err != nil {
+				return
+			}
+			res := model.AssassinInfo{}
+			if _game.TheAssassinatedID != 0 {
+				res.TheAssassinatedID = strconv.FormatInt(_game.TheAssassinatedID, 10)
+				res.TempPickedID = res.TheAssassinatedID
+			} else {
+				// 从 redis 中获取 刺客暂时选定的 人
+			}
+			select {
+			case ch <- &res:
 				time.Sleep(time.Second)
 			}
 		}
