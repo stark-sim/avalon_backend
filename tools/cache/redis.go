@@ -15,6 +15,8 @@ import (
 const RedisUserKey = "avalon:graphql:user:%s:json"
 const RedisRoomIDShortCodeKey = "avalon:short_code:room:%s:int64"
 const RedisRoomIDMutex = "avalon:mutex:room:%s:int64"
+const RedisTempAssassinKey = "avalon:cache:assassin:%s:string"
+const RedisTempPickKey = "avalon:cache:pick:%s:json"
 
 type RedisClient struct {
 	rdb *redis.Client
@@ -104,6 +106,78 @@ func (rc *RedisClient) WaitRoomMutex(ctx context.Context, roomID int64) error {
 func (rc *RedisClient) ReleaseRoomMutex(ctx context.Context, roomID int64) error {
 	_, err := rc.rdb.Del(ctx, fmt.Sprintf(RedisRoomIDMutex, strconv.FormatInt(roomID, 10))).Result()
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClient) SetGameTempAssassinatedID(ctx context.Context, gameID, userID string) error {
+	err := rc.rdb.Set(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID), userID, 0).Err()
+	if err != nil {
+		logrus.Errorf("error at redis set gameTempAssassinatedID: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClient) GetGameTempAssassinatedID(ctx context.Context, gameID string) (string, error) {
+	res, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID)).Result()
+	if err == redis.Nil {
+		return "", nil
+	} else if err != nil {
+		logrus.Errorf("error at get gameTempAssassinatedID: %v", err)
+		return "", err
+	} else {
+		return res, nil
+	}
+}
+
+func (rc *RedisClient) DeleteGameTempAssassinatedID(ctx context.Context, gameID string) error {
+	// 真正决定刺杀后，就不需要这个值了
+	err := rc.rdb.Del(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID)).Err()
+	if err != nil {
+		logrus.Errorf("error at delete gameTempAssassinatedID: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClient) SetMissionTempPickUserIDs(ctx context.Context, missionID string, userIDs []string) error {
+	val, err := json.Marshal(userIDs)
+	if err != nil {
+		logrus.Errorf("error at json dump userIDs to bytes: %v", err)
+		return err
+	}
+	err = rc.rdb.Set(ctx, fmt.Sprintf(RedisTempPickKey, missionID), val, 0).Err()
+	if err != nil {
+		logrus.Errorf("error at redis set tempPickUserIDs: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClient) GetMissionTempPickUserIDs(ctx context.Context, missionID string) ([]string, error) {
+	val, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisTempPickKey, missionID)).Bytes()
+	if err == redis.Nil {
+		return []string{}, nil
+	} else if err != nil {
+		logrus.Errorf("error at redis get pick userIDs: %v", err)
+		return nil, err
+	} else {
+		res := make([]string, 0)
+		err = json.Unmarshal(val, &res)
+		if err != nil {
+			logrus.Errorf("error at json load redis temp pick userIDs: %v", err)
+			return nil, err
+		}
+		return res, nil
+	}
+}
+
+func (rc *RedisClient) DeleteMissionTempPickUserIDs(ctx context.Context, missionID string) error {
+	err := rc.rdb.Del(ctx, fmt.Sprintf(RedisTempPickKey, missionID)).Err()
+	if err != nil {
+		logrus.Errorf("error at delete missionTempPickUserIDs: %v", err)
 		return err
 	}
 	return nil

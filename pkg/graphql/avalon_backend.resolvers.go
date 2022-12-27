@@ -403,6 +403,32 @@ func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInp
 	return r.client.Card.Create().SetName(*req.Name).SetRole(req.Role).SetTale(tale).Save(ctx)
 }
 
+// TempPickSquads is the resolver for the tempPickSquads field.
+func (r *mutationResolver) TempPickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]string, error) {
+	missionID := ""
+	userIDs := make([]string, len(req))
+	for i, v := range req {
+		if missionID == "" {
+			missionID = strconv.FormatInt(v.MissionID, 10)
+		} else {
+			if strconv.FormatInt(v.MissionID, 10) != missionID {
+				return nil, errors.New("missionID not the same")
+			}
+		}
+		userIDs[i] = strconv.FormatInt(v.UserID, 10)
+	}
+	if missionID == "0" {
+		return nil, errors.New("missionID cannot be 0")
+	}
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	err := cacheClient.SetMissionTempPickUserIDs(ctx, missionID, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	return userIDs, nil
+}
+
 // PickSquads is the resolver for the pickSquads field.
 func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
 	// 队长选任务小队人数，选好后任务进去投票阶段，并且为大家创建 Vote
@@ -652,8 +678,28 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 	return _squad, err
 }
 
+// TempAssassinate is the resolver for the tempAssassinate field.
+func (r *mutationResolver) TempAssassinate(ctx context.Context, req model.AssassinateRequest) (*string, error) {
+	// 缓存临时刺杀目标
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	err := cacheClient.SetGameTempAssassinatedID(ctx, req.GameID, req.TheAssassinatedID)
+	if err != nil {
+		return nil, err
+	}
+	return &req.TheAssassinatedID, nil
+}
+
 // Assassinate is the resolver for the assassinate field.
 func (r *mutationResolver) Assassinate(ctx context.Context, req model.AssassinateRequest) (*ent.Game, error) {
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	// 刺杀时可以删除游戏的暂时刺杀目标缓存
+	err := cacheClient.DeleteGameTempAssassinatedID(ctx, req.GameID)
+	if err != nil {
+		return nil, err
+	}
+	// 进行事务
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err

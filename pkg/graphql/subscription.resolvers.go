@@ -16,6 +16,7 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/tools"
+	"github.com/stark-sim/avalon_backend/tools/cache"
 )
 
 // GetRoomUser is the resolver for the GetRoomUser field.
@@ -153,6 +154,13 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req model.GameRequest) (<-chan *model.AssassinInfo, error) {
 	ch := make(chan *model.AssassinInfo)
 	go func() {
+		cacheClient, ok := ctx.Value(cache.DefaultClient).(cache.Client)
+		if !ok {
+			logrus.Errorf("error at get cacheClient when get AssassinationInfo")
+			return
+		}
+		defer cacheClient.Close()
+		res := model.AssassinInfo{}
 		for {
 			_game, err := r.client.Game.Query().
 				Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
@@ -160,12 +168,17 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 			if err != nil {
 				return
 			}
-			res := model.AssassinInfo{}
 			if _game.TheAssassinatedID != 0 {
 				res.TheAssassinatedID = strconv.FormatInt(_game.TheAssassinatedID, 10)
 				res.TempPickedID = res.TheAssassinatedID
 			} else {
 				// 从 redis 中获取 刺客暂时选定的 人
+				tempAssassinatedID, err := cacheClient.GetGameTempAssassinatedID(ctx, req.ID)
+				if err != nil {
+					return
+				}
+				res.TheAssassinatedID = ""
+				res.TempPickedID = tempAssassinatedID
 			}
 			select {
 			case ch <- &res:

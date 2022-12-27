@@ -1492,9 +1492,11 @@ type Mutation {
   closeRoom(req: RoomRequest!): Room
   createGame(req: RoomRequest!): Game
   createCard(req: CreateCardInput!): Card
+  tempPickSquads(req: [CreateSquadInput!]): [ID!]
   pickSquads(req: [CreateSquadInput!]!): [Squad!]
   vote(req: VoteRequest!): Vote
   act(req: ActRequest!): Squad
+  tempAssassinate(req: AssassinateRequest!): ID
   assassinate(req: AssassinateRequest!): Game
   joinRoomByShortCode(req: JoinRoomInput!): RoomUser
 }

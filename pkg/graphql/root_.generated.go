@@ -162,6 +162,8 @@ type ComplexityRoot struct {
 		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
 		LeaveRoom           func(childComplexity int, req ent.CreateRoomUserInput) int
 		PickSquads          func(childComplexity int, req []*ent.CreateSquadInput) int
+		TempAssassinate     func(childComplexity int, req model.AssassinateRequest) int
+		TempPickSquads      func(childComplexity int, req []*ent.CreateSquadInput) int
 		Vote                func(childComplexity int, req model.VoteRequest) int
 	}
 
@@ -800,6 +802,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
+
+	case "Mutation.tempAssassinate":
+		if e.complexity.Mutation.TempAssassinate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_tempAssassinate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TempAssassinate(childComplexity, args["req"].(model.AssassinateRequest)), true
+
+	case "Mutation.tempPickSquads":
+		if e.complexity.Mutation.TempPickSquads == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_tempPickSquads_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TempPickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
 
 	case "Mutation.vote":
 		if e.complexity.Mutation.Vote == nil {
