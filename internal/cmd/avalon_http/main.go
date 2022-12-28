@@ -61,6 +61,7 @@ func graphqlHandler() gin.HandlerFunc {
 	// 接上 cookie 校验中间件
 	//srv.Use(middlewares.NewAuthenticationMiddleware())
 	srv.Use(middlewares.SubscriptionCacheClientLoader{})
+	srv.Use(middlewares.BlueCardVaguer{})
 	return func(c *gin.Context) {
 		c.Writer.Header().Add("Access-Control-Allow-Headers", "Content-Type, Access-Token, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Hello")
 		c.Writer.Header().Set("Content-Type", "application/json")
