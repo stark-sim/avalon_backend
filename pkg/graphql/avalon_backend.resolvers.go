@@ -711,7 +711,7 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 	theAssassinatedID := tools.StringToInt64(req.TheAssassinatedID)
 	gameUser, err := tx.GameUser.Query().
 		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserID(theAssassinatedID)).
-		WithGame().
+		WithCard().
 		First(ctx)
 	if err != nil {
 		logrus.Errorf("error at query target gameUser when assassinate: %v", err)
