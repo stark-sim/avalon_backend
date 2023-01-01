@@ -1534,6 +1534,6 @@ input JoinRoomInput {
 
 type User @key(fields: "id", resolvable: false) {
   id: ID!
-  name: String!
-  phone: String!
+  name: String! @external
+  phone: String! @external
 }
