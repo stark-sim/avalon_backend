@@ -5,7 +5,7 @@ go 1.19
 require (
 	entgo.io/contrib v0.3.4
 	entgo.io/ent v0.11.5-0.20221031135557-521f9b57bc3d
-	github.com/99designs/gqlgen v0.17.20
+	github.com/99designs/gqlgen v0.17.22
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/fsnotify/fsnotify v1.6.0
@@ -13,6 +13,7 @@ require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/graphql-go/graphql v0.8.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lib/pq v1.10.7
@@ -41,7 +42,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

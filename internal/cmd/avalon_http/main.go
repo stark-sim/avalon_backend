@@ -10,12 +10,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/stark-sim/avalon_backend/configs"
 	"github.com/stark-sim/avalon_backend/internal/db"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/graphql"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/middlewares"
 	"github.com/stark-sim/avalon_backend/tools"
+	"net/http"
 )
 
 func main() {
@@ -43,9 +45,18 @@ func graphqlHandler() gin.HandlerFunc {
 	// 创建数据库链接
 	client := db.NewDBClient()
 	// 初始化 graphql server
-	srv := handler.NewDefaultServer(graphql.NewSchema(client))
+	srv := handler.New(graphql.NewSchema(client))
 	// 加上 ws 服务
-	srv.AddTransport(&transport.Websocket{})
+	srv.AddTransport(&transport.Websocket{
+		Upgrader: websocket.Upgrader{
+			//ReadBufferSize:  1024,
+			//WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				// ws 检查请求来源
+				return true
+			},
+		},
+	})
 	// 自定义事务隔离等级
 	srv.Use(entgql.Transactioner{
 		TxOpener: entgql.TxOpenerFunc(func(ctx context.Context) (context.Context, driver.Tx, error) {
