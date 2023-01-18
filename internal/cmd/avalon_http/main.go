@@ -7,6 +7,8 @@ import (
 	"entgo.io/contrib/entgql"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
@@ -18,6 +20,7 @@ import (
 	"github.com/stark-sim/avalon_backend/pkg/graphql/middlewares"
 	"github.com/stark-sim/avalon_backend/tools"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -46,6 +49,15 @@ func graphqlHandler() gin.HandlerFunc {
 	client := db.NewDBClient()
 	// 初始化 graphql server
 	srv := handler.New(graphql.NewSchema(client))
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+	srv.SetQueryCache(lru.New(1000))
+	srv.Use(extension.Introspection{})
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New(100),
+	})
 	// 加上 ws 服务
 	srv.AddTransport(&transport.Websocket{
 		Upgrader: websocket.Upgrader{
@@ -56,6 +68,7 @@ func graphqlHandler() gin.HandlerFunc {
 				return true
 			},
 		},
+		KeepAlivePingInterval: 10 * time.Second,
 	})
 	// 自定义事务隔离等级
 	srv.Use(entgql.Transactioner{
