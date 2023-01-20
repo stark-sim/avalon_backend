@@ -38,6 +38,10 @@ type User struct {
 
 func (User) IsEntity() {}
 
+type UserRequest struct {
+	ID string `json:"id"`
+}
+
 type VoteRequest struct {
 	VoteID string `json:"voteID"`
 	Pass   bool   `json:"pass"`

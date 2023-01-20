@@ -34,7 +34,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Card() CardResolver
-	Entity() EntityResolver
 	Game() GameResolver
 	GameUser() GameUserResolver
 	Mission() MissionResolver
@@ -95,10 +94,6 @@ type ComplexityRoot struct {
 		Tale      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
-	}
-
-	Entity struct {
-		FindUserByID func(childComplexity int, id string) int
 	}
 
 	Game struct {
@@ -179,6 +174,7 @@ type ComplexityRoot struct {
 		GameUsers          func(childComplexity int) int
 		Games              func(childComplexity int) int
 		GetEndedGame       func(childComplexity int, req model.GameRequest) int
+		GetJoinedRoom      func(childComplexity int, req model.UserRequest) int
 		GetSquadInMission  func(childComplexity int, req ent.SquadWhereInput) int
 		GetVagueGameUsers  func(childComplexity int, req model.GameRequest) int
 		GetVoteInMission   func(childComplexity int, req ent.VoteWhereInput) int
@@ -383,18 +379,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Card.UpdatedBy(childComplexity), true
-
-	case "Entity.findUserByID":
-		if e.complexity.Entity.FindUserByID == nil {
-			break
-		}
-
-		args, err := ec.field_Entity_findUserByID_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Entity.FindUserByID(childComplexity, args["id"].(string)), true
 
 	case "Game.capacity":
 		if e.complexity.Game.Capacity == nil {
@@ -899,6 +883,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetEndedGame(childComplexity, args["req"].(model.GameRequest)), true
+
+	case "Query.getJoinedRoom":
+		if e.complexity.Query.GetJoinedRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getJoinedRoom_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetJoinedRoom(childComplexity, args["req"].(model.UserRequest)), true
 
 	case "Query.getSquadInMission":
 		if e.complexity.Query.GetSquadInMission == nil {
@@ -1550,6 +1546,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateRoomUserInput,
 		ec.unmarshalInputUpdateSquadInput,
 		ec.unmarshalInputUpdateVoteInput,
+		ec.unmarshalInputUserRequest,
 		ec.unmarshalInputVoteOrder,
 		ec.unmarshalInputVoteRequest,
 		ec.unmarshalInputVoteWhereInput,
@@ -1662,12 +1659,6 @@ var sources = []*ast.Source{
 	{Name: "federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
 union _Entity = User
-
-# fake type to build resolver interfaces for users to implement
-type Entity {
-		findUserByID(id: ID!,): User!
-
-}
 
 type _Service {
   sdl: String

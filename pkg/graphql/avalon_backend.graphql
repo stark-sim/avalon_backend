@@ -1517,6 +1517,8 @@ input AssassinateRequest {
 }
 
 extend type Query {
+  """查询自己是否在某个未关闭的房间中，不在返回空"""
+  getJoinedRoom(req: UserRequest!): Room
   """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
   getVoteInMission(req: VoteWhereInput!): Vote
   """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
@@ -1525,6 +1527,10 @@ extend type Query {
   getEndedGame(req: GameRequest!): Game
   """获取刺杀环节信息盘，红方亮身份，蓝色不亮身份"""
   getVagueGameUsers(req: GameRequest!): [GameUser!]!
+}
+
+input UserRequest {
+  id: String!
 }
 
 input JoinRoomInput {
