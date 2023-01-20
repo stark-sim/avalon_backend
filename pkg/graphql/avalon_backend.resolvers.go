@@ -829,6 +829,7 @@ func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest
 	_room, err := r.client.Room.Query().
 		Where(
 			room.DeletedAt(tools.ZeroTime),
+			room.Closed(false),
 			room.HasRoomUsersWith(
 				roomuser.DeletedAt(tools.ZeroTime),
 				roomuser.UserID(userID),
@@ -837,7 +838,7 @@ func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, err
+			return nil, nil
 		} else {
 			logrus.Errorf("error at query user joined room: %v", err)
 			return nil, err
