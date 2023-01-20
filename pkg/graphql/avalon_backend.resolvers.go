@@ -181,6 +181,11 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 	} else if err != nil {
 		return nil, err
 	}
+	// 加入前检查 自己 是否在 其他房间
+	_, err = tx.RoomUser.Query().Where(roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime), roomuser.RoomIDNEQ(req.RoomID)).First(ctx)
+	if !ent.IsNotFound(err) {
+		return nil, errors.New("user be in another room")
+	}
 	// 中间表调整软删除字段来代替创建和删除
 	// 需要在 tx Commit 之前把之后有可能会拿的 Room 先拿出来
 	roomUser, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).WithRoom().First(ctx)
