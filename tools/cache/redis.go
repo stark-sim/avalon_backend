@@ -111,8 +111,13 @@ func (rc *RedisClient) ReleaseRoomMutex(ctx context.Context, roomID int64) error
 	return nil
 }
 
-func (rc *RedisClient) SetGameTempAssassinatedID(ctx context.Context, gameID, userID string) error {
-	err := rc.rdb.Set(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID), userID, 0).Err()
+func (rc *RedisClient) SetGameTempAssassinatedIDs(ctx context.Context, gameID string, userIDs []string) error {
+	val, err := json.Marshal(userIDs)
+	if err != nil {
+		logrus.Errorf("error at json dump userIDs to bytes: %v", err)
+		return err
+	}
+	err = rc.rdb.Set(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID), val, 0).Err()
 	if err != nil {
 		logrus.Errorf("error at redis set gameTempAssassinatedID: %v", err)
 		return err
@@ -120,19 +125,25 @@ func (rc *RedisClient) SetGameTempAssassinatedID(ctx context.Context, gameID, us
 	return nil
 }
 
-func (rc *RedisClient) GetGameTempAssassinatedID(ctx context.Context, gameID string) (string, error) {
-	res, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID)).Result()
+func (rc *RedisClient) GetGameTempAssassinatedIDs(ctx context.Context, gameID string) ([]string, error) {
+	val, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID)).Bytes()
 	if err == redis.Nil {
-		return "", nil
+		return []string{}, nil
 	} else if err != nil {
 		logrus.Errorf("error at get gameTempAssassinatedID: %v", err)
-		return "", err
+		return nil, err
 	} else {
+		res := make([]string, 0)
+		err = json.Unmarshal(val, &res)
+		if err != nil {
+			logrus.Errorf("error at json load redis temp assassin userIDs: %v", err)
+			return nil, err
+		}
 		return res, nil
 	}
 }
 
-func (rc *RedisClient) DeleteGameTempAssassinatedID(ctx context.Context, gameID string) error {
+func (rc *RedisClient) DeleteGameTempAssassinatedIDs(ctx context.Context, gameID string) error {
 	// 真正决定刺杀后，就不需要这个值了
 	err := rc.rdb.Del(ctx, fmt.Sprintf(RedisTempAssassinKey, gameID)).Err()
 	if err != nil {

@@ -79,8 +79,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AssassinInfo struct {
-		TempPickedID      func(childComplexity int) int
-		TheAssassinatedID func(childComplexity int) int
+		TempPickedIDs      func(childComplexity int) int
+		TheAssassinatedIDs func(childComplexity int) int
 	}
 
 	Card struct {
@@ -253,7 +253,6 @@ type ComplexityRoot struct {
 		GetAssassinationByGame func(childComplexity int, req model.GameRequest) int
 		GetMissionsByGame      func(childComplexity int, req model.GameRequest) int
 		GetRoomOngoingGame     func(childComplexity int, req model.RoomRequest) int
-		GetRoomUser            func(childComplexity int) int
 		GetRoomUsers           func(childComplexity int, req *model.RoomRequest) int
 	}
 
@@ -298,19 +297,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AssassinInfo.tempPickedID":
-		if e.complexity.AssassinInfo.TempPickedID == nil {
+	case "AssassinInfo.tempPickedIDs":
+		if e.complexity.AssassinInfo.TempPickedIDs == nil {
 			break
 		}
 
-		return e.complexity.AssassinInfo.TempPickedID(childComplexity), true
+		return e.complexity.AssassinInfo.TempPickedIDs(childComplexity), true
 
-	case "AssassinInfo.theAssassinatedID":
-		if e.complexity.AssassinInfo.TheAssassinatedID == nil {
+	case "AssassinInfo.theAssassinatedIDs":
+		if e.complexity.AssassinInfo.TheAssassinatedIDs == nil {
 			break
 		}
 
-		return e.complexity.AssassinInfo.TheAssassinatedID(childComplexity), true
+		return e.complexity.AssassinInfo.TheAssassinatedIDs(childComplexity), true
 
 	case "Card.createdAt":
 		if e.complexity.Card.CreatedAt == nil {
@@ -1384,13 +1383,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Subscription.GetRoomOngoingGame(childComplexity, args["req"].(model.RoomRequest)), true
 
-	case "Subscription.GetRoomUser":
-		if e.complexity.Subscription.GetRoomUser == nil {
-			break
-		}
-
-		return e.complexity.Subscription.GetRoomUser(childComplexity), true
-
 	case "Subscription.getRoomUsers":
 		if e.complexity.Subscription.GetRoomUsers == nil {
 			break
@@ -1529,6 +1521,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCardWhereInput,
 		ec.unmarshalInputCreateCardInput,
 		ec.unmarshalInputCreateGameInput,
+		ec.unmarshalInputCreateGameRequest,
 		ec.unmarshalInputCreateGameUserInput,
 		ec.unmarshalInputCreateMissionInput,
 		ec.unmarshalInputCreateRecordInput,
@@ -1542,6 +1535,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGameUserWhereInput,
 		ec.unmarshalInputGameWhereInput,
 		ec.unmarshalInputJoinRoomInput,
+		ec.unmarshalInputMissionOption,
 		ec.unmarshalInputMissionOrder,
 		ec.unmarshalInputMissionWhereInput,
 		ec.unmarshalInputRecordOrder,

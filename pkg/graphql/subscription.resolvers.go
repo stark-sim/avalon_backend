@@ -569,15 +569,15 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 }
 
 // TempAssassinate is the resolver for the tempAssassinate field.
-func (r *mutationResolver) TempAssassinate(ctx context.Context, req model.AssassinateRequest) (*string, error) {
+func (r *mutationResolver) TempAssassinate(ctx context.Context, req model.AssassinateRequest) ([]string, error) {
 	// 缓存临时刺杀目标
 	cacheClient := cache.NewRedisClient()
 	defer cacheClient.Close()
-	err := cacheClient.SetGameTempAssassinatedID(ctx, req.GameID, req.TheAssassinatedID)
+	err := cacheClient.SetGameTempAssassinatedIDs(ctx, req.GameID, req.TheAssassinatedIDs)
 	if err != nil {
 		return nil, err
 	}
-	return &req.TheAssassinatedID, nil
+	return req.TheAssassinatedIDs, nil
 }
 
 // Assassinate is the resolver for the assassinate field.
@@ -585,7 +585,7 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 	cacheClient := cache.NewRedisClient()
 	defer cacheClient.Close()
 	// 刺杀时可以删除游戏的暂时刺杀目标缓存
-	err := cacheClient.DeleteGameTempAssassinatedID(ctx, req.GameID)
+	err := cacheClient.DeleteGameTempAssassinatedIDs(ctx, req.GameID)
 	if err != nil {
 		return nil, err
 	}
@@ -599,32 +599,52 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 		return nil, err
 	}
 	// 把刺杀的游戏玩家找到
-	theAssassinatedID := tools.StringToInt64(req.TheAssassinatedID)
-	gameUser, err := tx.GameUser.Query().
-		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserID(theAssassinatedID)).
+	theAssassinatedIDs := make([]int64, len(req.TheAssassinatedIDs))
+	for i, theAssassinatedID := range req.TheAssassinatedIDs {
+		theAssassinatedIDs[i] = tools.StringToInt64(theAssassinatedID)
+	}
+	gameUsers, err := tx.GameUser.Query().
+		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserIDIn(theAssassinatedIDs...)).
 		WithCard().
-		First(ctx)
+		All(ctx)
 	if err != nil {
 		logrus.Errorf("error at query target gameUser when assassinate: %v", err)
 		return nil, err
 	}
-	// 看看是不是梅林
-	if gameUser.Edges.Card.Name == card.NameMerlin {
-		// 游戏结束，红方胜利，结束方式为刺杀成功
-		_game, err = tx.Game.UpdateOne(_game).
-			SetEndBy(game.EndByAssassination).
-			SetTheAssassinatedIds([]string{strconv.FormatInt(theAssassinatedID, 10)}).
-			Save(ctx)
-	} else {
+	// 看看杀没杀到梅林
+	merlinDead := false
+	for _, gameUser := range gameUsers {
+		tempCard, err := gameUser.Card(ctx)
+		if err != nil {
+			logrus.Errorf("error at query gameUsers with card: %v", err)
+			return nil, err
+		}
+		if tempCard.Name == card.NameMerlin {
+			// 游戏结束，红方胜利，结束方式为刺杀成功
+			_game, err = tx.Game.UpdateOne(_game).
+				SetEndBy(game.EndByAssassination).
+				SetTheAssassinatedIds(req.TheAssassinatedIDs).
+				Save(ctx)
+			if err != nil {
+				logrus.Errorf("error at update game when assassinate: %v", err)
+				return nil, err
+			}
+			// 梅林阵亡
+			merlinDead = true
+			break
+		}
+	}
+	// 梅林没死
+	if !merlinDead {
 		// 游戏结束，蓝方获胜
 		_game, err = tx.Game.UpdateOne(_game).
 			SetEndBy(game.EndByBlue).
-			SetTheAssassinatedIds([]string{strconv.FormatInt(theAssassinatedID, 10)}).
+			SetTheAssassinatedIds(req.TheAssassinatedIDs).
 			Save(ctx)
-	}
-	if err != nil {
-		logrus.Errorf("error at update game when assassinate: %v", err)
-		return nil, err
+		if err != nil {
+			logrus.Errorf("error at update game when assassinate: %v", err)
+			return nil, err
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -779,27 +799,6 @@ func (r *squadResolver) User(ctx context.Context, obj *ent.Squad) (*model.User, 
 	}, nil
 }
 
-// GetRoomUser is the resolver for the GetRoomUser field.
-func (r *subscriptionResolver) GetRoomUser(ctx context.Context) (<-chan *ent.RoomUser, error) {
-	ch := make(chan *ent.RoomUser)
-	go func() {
-		roomUsers, err := r.client.RoomUser.Query().All(ctx)
-		if err != nil {
-			return
-		}
-		for _, roomUser := range roomUsers {
-			select {
-			case ch <- roomUser:
-				// pass one
-			default:
-				return
-			}
-			time.Sleep(2 * time.Second)
-		}
-	}()
-	return ch, nil
-}
-
 // GetRoomUsers is the resolver for the getRoomUsers field.
 func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.RoomRequest) (<-chan []*ent.RoomUser, error) {
 	roomID := tools.StringToInt64(req.ID)
@@ -929,16 +928,16 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 				return
 			}
 			if len(_game.TheAssassinatedIds) != 0 {
-				res.TheAssassinatedID = _game.TheAssassinatedIds[0]
-				res.TempPickedID = res.TheAssassinatedID
+				res.TheAssassinatedIDs = _game.TheAssassinatedIds
+				res.TempPickedIDs = res.TheAssassinatedIDs
 			} else {
 				// 从 redis 中获取 刺客暂时选定的 人
-				tempAssassinatedID, err := cacheClient.GetGameTempAssassinatedID(ctx, req.ID)
+				tempAssassinatedIDs, err := cacheClient.GetGameTempAssassinatedIDs(ctx, req.ID)
 				if err != nil {
 					return
 				}
-				res.TheAssassinatedID = ""
-				res.TempPickedID = tempAssassinatedID
+				res.TheAssassinatedIDs = []string{}
+				res.TempPickedIDs = tempAssassinatedIDs
 			}
 			select {
 			case ch <- &res:

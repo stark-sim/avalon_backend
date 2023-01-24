@@ -8,13 +8,21 @@ type ActRequest struct {
 }
 
 type AssassinInfo struct {
-	TheAssassinatedID string `json:"theAssassinatedID"`
-	TempPickedID      string `json:"tempPickedID"`
+	TheAssassinatedIDs []string `json:"theAssassinatedIDs"`
+	TempPickedIDs      []string `json:"tempPickedIDs"`
 }
 
 type AssassinateRequest struct {
-	GameID            string `json:"gameID"`
-	TheAssassinatedID string `json:"theAssassinatedID"`
+	GameID             string   `json:"gameID"`
+	TheAssassinatedIDs []string `json:"theAssassinatedIDs"`
+}
+
+type CreateGameRequest struct {
+	RoomID         string           `json:"roomID"`
+	AssassinChance *int             `json:"assassinChance"`
+	CardIDs        []string         `json:"cardIDs"`
+	MissionOptions []*MissionOption `json:"missionOptions"`
+	RandomLeader   *bool            `json:"randomLeader"`
 }
 
 type GameRequest struct {
@@ -24,6 +32,12 @@ type GameRequest struct {
 type JoinRoomInput struct {
 	ShortCode string `json:"shortCode"`
 	UserID    string `json:"userID"`
+}
+
+type MissionOption struct {
+	Sequence  int  `json:"sequence"`
+	Capacity  int  `json:"capacity"`
+	Protected bool `json:"protected"`
 }
 
 type RoomRequest struct {

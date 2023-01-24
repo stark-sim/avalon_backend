@@ -1,21 +1,54 @@
 type Subscription {
-    GetRoomUser: RoomUser
-    # 实时获取房间人数
+    """ 实时获取房间人数 """
     getRoomUsers(req: RoomRequest): [RoomUser]
-    # 实时检测房间有没有开始游戏
+    """ 实时检测房间有没有开始游戏，不展示游戏的进一步数据 """
     getRoomOngoingGame(req: RoomRequest!): Game
-    # 实时获取游戏中的各任务状态
+    """ 实时获取游戏中的各任务状态，只获取任务状态，不能拿进一步数据 """
     getMissionsByGame(req: GameRequest!): [Mission!]!
-    # 实时获取刺客刀人环节信息，没到刺杀环节返回空
+    """ 实时获取刺客刀人环节信息，没到刺杀环节返回空 """
     getAssassinationByGame(req: GameRequest!): AssassinInfo
 }
 
-# 刺杀环节信息
-type AssassinInfo {
-    # 最终刺杀目标
-    theAssassinatedID: ID!
-    # 暂时选中目标
-    tempPickedID: ID!
+type Mutation {
+    """ 创建房间 """
+    createRoom(req: CreateRoomInput!): Room
+    """ 加入房间 """
+    joinRoom(req: CreateRoomUserInput!): RoomUser
+    """ 离开房间 """
+    leaveRoom(req: CreateRoomUserInput!): RoomUser
+    """ 关闭房间，暂不使用 Deprecated """
+    closeRoom(req: RoomRequest!): Room
+    """ 创建游戏 """
+    createGame(req: RoomRequest!): Game
+    """ 创建卡牌 """
+    createCard(req: CreateCardInput!): Card
+    """ 临时选择出征队伍 """
+    tempPickSquads(req: [CreateSquadInput!]): [ID!]
+    """ 选择出征队伍 """
+    pickSquads(req: [CreateSquadInput!]!): [Squad!]
+    """ 投票 """
+    vote(req: VoteRequest!): Vote
+    """ 行动/执行 """
+    act(req: ActRequest!): Squad
+    """ 暂时选择刺杀目标 """
+    tempAssassinate(req: AssassinateRequest!): [ID!]
+    """ 刺杀 """
+    assassinate(req: AssassinateRequest!): Game
+    """ 通过短号加入房间 """
+    joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+}
+
+extend type Query {
+    """ 查询自己是否在某个未关闭的房间中，不在返回空 """
+    getJoinedRoom(req: UserRequest!): Room
+    """ 查询自己在某个 Mission 的 Vote，不用投票的返回空 """
+    getVoteInMission(req: VoteWhereInput!): Vote
+    """ 查询自己在某个 Mission 的 Squad，不用行动的返回空 """
+    getSquadInMission(req: SquadWhereInput!): Squad
+    """ 任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空 """
+    getEndedGame(req: GameRequest!): Game
+    """ 获取刺杀环节信息盘，红方亮身份，蓝方不亮身份 """
+    getVagueGameUsers(req: GameRequest!): [GameUser!]!
 }
 
 input RoomRequest {
@@ -24,23 +57,6 @@ input RoomRequest {
 
 input GameRequest {
     id: String!
-}
-
-
-type Mutation {
-    createRoom(req: CreateRoomInput!): Room
-    joinRoom(req: CreateRoomUserInput!): RoomUser
-    leaveRoom(req: CreateRoomUserInput!): RoomUser
-    closeRoom(req: RoomRequest!): Room
-    createGame(req: RoomRequest!): Game
-    createCard(req: CreateCardInput!): Card
-    tempPickSquads(req: [CreateSquadInput!]): [ID!]
-    pickSquads(req: [CreateSquadInput!]!): [Squad!]
-    vote(req: VoteRequest!): Vote
-    act(req: ActRequest!): Squad
-    tempAssassinate(req: AssassinateRequest!): ID
-    assassinate(req: AssassinateRequest!): Game
-    joinRoomByShortCode(req: JoinRoomInput!): RoomUser
 }
 
 input VoteRequest {
@@ -55,20 +71,7 @@ input ActRequest {
 
 input AssassinateRequest {
     gameID: ID!
-    theAssassinatedID: ID!
-}
-
-extend type Query {
-    """查询自己是否在某个未关闭的房间中，不在返回空"""
-    getJoinedRoom(req: UserRequest!): Room
-    """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
-    getVoteInMission(req: VoteWhereInput!): Vote
-    """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
-    getSquadInMission(req: SquadWhereInput!): Squad
-    """任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空"""
-    getEndedGame(req: GameRequest!): Game
-    """获取刺杀环节信息盘，红方亮身份，蓝色不亮身份"""
-    getVagueGameUsers(req: GameRequest!): [GameUser!]!
+    theAssassinatedIDs: [ID!]
 }
 
 input UserRequest {
@@ -100,4 +103,35 @@ extend type RoomUser {
 
 extend type Squad {
     user: User!
+}
+
+# 刺杀环节信息
+type AssassinInfo {
+    # 最终刺杀目标[们]
+    theAssassinatedIDs: [ID!]
+    # 暂时选中目标[们]
+    tempPickedIDs: [ID!]
+}
+
+# 游戏创建请求体
+input CreateGameRequest {
+    roomID: String!
+    # 自定义刺杀人数，默认 1 人
+    assassinChance: Int
+    # 自定义角色牌
+    cardIDs: [String!]
+    # 任务配置
+    missionOptions: [MissionOption!]
+    # 是否随机队长
+    randomLeader: Boolean
+}
+
+# 任务配置，游戏创建时决定
+input MissionOption {
+    # 轮次
+    sequence: Int!
+    # 出征所需人数
+    capacity: Int!
+    # 是否保护轮
+    protected: Boolean!
 }
