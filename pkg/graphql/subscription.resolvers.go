@@ -186,20 +186,20 @@ func (r *mutationResolver) CloseRoom(ctx context.Context, req model.RoomRequest)
 }
 
 // CreateGame is the resolver for the createGame field.
-func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error) {
+func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameRequest) (*ent.Game, error) {
 	// 将房间中现有的人加入到一局新游戏里
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
 	}
-	roomID := tools.StringToInt64(req.ID)
+	roomID := tools.StringToInt64(req.RoomID)
 	// 先检查房间没有在进行游戏
 	_room, err := r.client.Room.
 		Query().
 		Where(room.ID(roomID), room.DeletedAt(tools.ZeroTime), room.GameOn(false)).
 		First(ctx)
 	if err != nil {
-		logrus.Errorf("room %s not exist or gameOn, can't create game", req.ID)
+		logrus.Errorf("room %s not exist or gameOn, can't create game", req.RoomID)
 		return nil, err
 	}
 	err = tx.Room.UpdateOne(_room).SetGameOn(true).Exec(ctx)

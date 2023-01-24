@@ -153,7 +153,7 @@ type ComplexityRoot struct {
 		Assassinate         func(childComplexity int, req model.AssassinateRequest) int
 		CloseRoom           func(childComplexity int, req model.RoomRequest) int
 		CreateCard          func(childComplexity int, req ent.CreateCardInput) int
-		CreateGame          func(childComplexity int, req model.RoomRequest) int
+		CreateGame          func(childComplexity int, req model.CreateGameRequest) int
 		CreateRoom          func(childComplexity int, req ent.CreateRoomInput) int
 		JoinRoom            func(childComplexity int, req ent.CreateRoomUserInput) int
 		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
@@ -740,7 +740,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateGame(childComplexity, args["req"].(model.RoomRequest)), true
+		return e.complexity.Mutation.CreateGame(childComplexity, args["req"].(model.CreateGameRequest)), true
 
 	case "Mutation.createRoom":
 		if e.complexity.Mutation.CreateRoom == nil {

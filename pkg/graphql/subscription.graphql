@@ -19,7 +19,7 @@ type Mutation {
     """ 关闭房间，暂不使用 Deprecated """
     closeRoom(req: RoomRequest!): Room
     """ 创建游戏 """
-    createGame(req: RoomRequest!): Game
+    createGame(req: CreateGameRequest!): Game
     """ 创建卡牌 """
     createCard(req: CreateCardInput!): Card
     """ 临时选择出征队伍 """

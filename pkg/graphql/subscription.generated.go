@@ -22,7 +22,7 @@ type MutationResolver interface {
 	JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
 	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
 	CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error)
-	CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error)
+	CreateGame(ctx context.Context, req model.CreateGameRequest) (*ent.Game, error)
 	CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error)
 	TempPickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]string, error)
 	PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error)
@@ -106,10 +106,10 @@ func (ec *executionContext) field_Mutation_createCard_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_createGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.RoomRequest
+	var arg0 model.CreateGameRequest
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateGameRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐCreateGameRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -710,7 +710,7 @@ func (ec *executionContext) _Mutation_createGame(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGame(rctx, fc.Args["req"].(model.RoomRequest))
+		return ec.resolvers.Mutation().CreateGame(rctx, fc.Args["req"].(model.CreateGameRequest))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2401,6 +2401,11 @@ func (ec *executionContext) unmarshalNActRequest2githubᚗcomᚋstarkᚑsimᚋav
 
 func (ec *executionContext) unmarshalNAssassinateRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐAssassinateRequest(ctx context.Context, v interface{}) (model.AssassinateRequest, error) {
 	res, err := ec.unmarshalInputAssassinateRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateGameRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐCreateGameRequest(ctx context.Context, v interface{}) (model.CreateGameRequest, error) {
+	res, err := ec.unmarshalInputCreateGameRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
