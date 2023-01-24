@@ -182,6 +182,20 @@ func (mu *MissionUpdate) AddLeaderID(i int64) *MissionUpdate {
 	return mu
 }
 
+// SetProtected sets the "protected" field.
+func (mu *MissionUpdate) SetProtected(b bool) *MissionUpdate {
+	mu.mutation.SetProtected(b)
+	return mu
+}
+
+// SetNillableProtected sets the "protected" field if the given value is not nil.
+func (mu *MissionUpdate) SetNillableProtected(b *bool) *MissionUpdate {
+	if b != nil {
+		mu.SetProtected(*b)
+	}
+	return mu
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (mu *MissionUpdate) SetGame(g *Game) *MissionUpdate {
 	return mu.SetGameID(g.ID)
@@ -416,6 +430,9 @@ func (mu *MissionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.AddedLeaderID(); ok {
 		_spec.AddField(mission.FieldLeaderID, field.TypeInt64, value)
+	}
+	if value, ok := mu.mutation.Protected(); ok {
+		_spec.SetField(mission.FieldProtected, field.TypeBool, value)
 	}
 	if mu.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -730,6 +747,20 @@ func (muo *MissionUpdateOne) AddLeaderID(i int64) *MissionUpdateOne {
 	return muo
 }
 
+// SetProtected sets the "protected" field.
+func (muo *MissionUpdateOne) SetProtected(b bool) *MissionUpdateOne {
+	muo.mutation.SetProtected(b)
+	return muo
+}
+
+// SetNillableProtected sets the "protected" field if the given value is not nil.
+func (muo *MissionUpdateOne) SetNillableProtected(b *bool) *MissionUpdateOne {
+	if b != nil {
+		muo.SetProtected(*b)
+	}
+	return muo
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (muo *MissionUpdateOne) SetGame(g *Game) *MissionUpdateOne {
 	return muo.SetGameID(g.ID)
@@ -994,6 +1025,9 @@ func (muo *MissionUpdateOne) sqlSave(ctx context.Context) (_node *Mission, err e
 	}
 	if value, ok := muo.mutation.AddedLeaderID(); ok {
 		_spec.AddField(mission.FieldLeaderID, field.TypeInt64, value)
+	}
+	if value, ok := muo.mutation.Protected(); ok {
+		_spec.SetField(mission.FieldProtected, field.TypeBool, value)
 	}
 	if muo.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{

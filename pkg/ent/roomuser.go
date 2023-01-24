@@ -27,10 +27,12 @@ type RoomUser struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// UserID holds the value of the "user_id" field.
+	// 用户 ID
 	UserID int64 `json:"user_id"`
-	// RoomID holds the value of the "room_id" field.
+	// 房间 ID
 	RoomID int64 `json:"room_id"`
+	// 是否为房主
+	Host bool `json:"host"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomUserQuery when eager-loading is set.
 	Edges RoomUserEdges `json:"edges"`
@@ -65,6 +67,8 @@ func (*RoomUser) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case roomuser.FieldHost:
+			values[i] = new(sql.NullBool)
 		case roomuser.FieldID, roomuser.FieldCreatedBy, roomuser.FieldUpdatedBy, roomuser.FieldUserID, roomuser.FieldRoomID:
 			values[i] = new(sql.NullInt64)
 		case roomuser.FieldCreatedAt, roomuser.FieldUpdatedAt, roomuser.FieldDeletedAt:
@@ -132,6 +136,12 @@ func (ru *RoomUser) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ru.RoomID = value.Int64
 			}
+		case roomuser.FieldHost:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field host", values[i])
+			} else if value.Valid {
+				ru.Host = value.Bool
+			}
 		}
 	}
 	return nil
@@ -185,6 +195,9 @@ func (ru *RoomUser) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("room_id=")
 	builder.WriteString(fmt.Sprintf("%v", ru.RoomID))
+	builder.WriteString(", ")
+	builder.WriteString("host=")
+	builder.WriteString(fmt.Sprintf("%v", ru.Host))
 	builder.WriteByte(')')
 	return builder.String()
 }

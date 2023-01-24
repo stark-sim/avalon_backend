@@ -25,6 +25,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldRoomID holds the string denoting the room_id field in the database.
 	FieldRoomID = "room_id"
+	// FieldHost holds the string denoting the host field in the database.
+	FieldHost = "host"
 	// EdgeRoom holds the string denoting the room edge name in mutations.
 	EdgeRoom = "room"
 	// Table holds the table name of the roomuser in the database.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldUserID,
 	FieldRoomID,
+	FieldHost,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -73,6 +76,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultDeletedAt holds the default value on creation for the "deleted_at" field.
 	DefaultDeletedAt time.Time
+	// DefaultHost holds the default value on creation for the "host" field.
+	DefaultHost bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

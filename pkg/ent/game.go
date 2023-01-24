@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -27,14 +28,16 @@ type Game struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// RoomID holds the value of the "room_id" field.
+	// 所属房间 ID
 	RoomID int64 `json:"room_id"`
-	// EndBy holds the value of the "end_by" field.
+	// 游戏结束方式
 	EndBy game.EndBy `json:"end_by"`
 	// 游戏人数
 	Capacity uint8 `json:"capacity"`
-	// 被刺杀者
-	TheAssassinatedID int64 `json:"the_assassinated_id"`
+	// 被刺杀者[们] ID
+	TheAssassinatedIds []string `json:"the_assassinated_ids"`
+	// 刺杀机会，默认为 1 次
+	AssassinChance uint8 `json:"assassin_chance"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameQuery when eager-loading is set.
 	Edges GameEdges `json:"edges"`
@@ -94,7 +97,9 @@ func (*Game) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity, game.FieldTheAssassinatedID:
+		case game.FieldTheAssassinatedIds:
+			values[i] = new([]byte)
+		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity, game.FieldAssassinChance:
 			values[i] = new(sql.NullInt64)
 		case game.FieldEndBy:
 			values[i] = new(sql.NullString)
@@ -169,11 +174,19 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ga.Capacity = uint8(value.Int64)
 			}
-		case game.FieldTheAssassinatedID:
+		case game.FieldTheAssassinatedIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field the_assassinated_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &ga.TheAssassinatedIds); err != nil {
+					return fmt.Errorf("unmarshal field the_assassinated_ids: %w", err)
+				}
+			}
+		case game.FieldAssassinChance:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field the_assassinated_id", values[i])
+				return fmt.Errorf("unexpected type %T for field assassin_chance", values[i])
 			} else if value.Valid {
-				ga.TheAssassinatedID = value.Int64
+				ga.AssassinChance = uint8(value.Int64)
 			}
 		}
 	}
@@ -242,8 +255,11 @@ func (ga *Game) String() string {
 	builder.WriteString("capacity=")
 	builder.WriteString(fmt.Sprintf("%v", ga.Capacity))
 	builder.WriteString(", ")
-	builder.WriteString("the_assassinated_id=")
-	builder.WriteString(fmt.Sprintf("%v", ga.TheAssassinatedID))
+	builder.WriteString("the_assassinated_ids=")
+	builder.WriteString(fmt.Sprintf("%v", ga.TheAssassinatedIds))
+	builder.WriteString(", ")
+	builder.WriteString("assassin_chance=")
+	builder.WriteString(fmt.Sprintf("%v", ga.AssassinChance))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -97,19 +97,20 @@ type ComplexityRoot struct {
 	}
 
 	Game struct {
-		Capacity          func(childComplexity int) int
-		CreatedAt         func(childComplexity int) int
-		CreatedBy         func(childComplexity int) int
-		DeletedAt         func(childComplexity int) int
-		EndBy             func(childComplexity int) int
-		GameUsers         func(childComplexity int) int
-		ID                func(childComplexity int) int
-		Missions          func(childComplexity int) int
-		Room              func(childComplexity int) int
-		RoomID            func(childComplexity int) int
-		TheAssassinatedID func(childComplexity int) int
-		UpdatedAt         func(childComplexity int) int
-		UpdatedBy         func(childComplexity int) int
+		AssassinChance     func(childComplexity int) int
+		Capacity           func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
+		DeletedAt          func(childComplexity int) int
+		EndBy              func(childComplexity int) int
+		GameUsers          func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Missions           func(childComplexity int) int
+		Room               func(childComplexity int) int
+		RoomID             func(childComplexity int) int
+		TheAssassinatedIds func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		UpdatedBy          func(childComplexity int) int
 	}
 
 	GameUser struct {
@@ -138,6 +139,7 @@ type ComplexityRoot struct {
 		GameID    func(childComplexity int) int
 		ID        func(childComplexity int) int
 		LeaderID  func(childComplexity int) int
+		Protected func(childComplexity int) int
 		Sequence  func(childComplexity int) int
 		Squads    func(childComplexity int) int
 		Status    func(childComplexity int) int
@@ -200,7 +202,6 @@ type ComplexityRoot struct {
 		Score     func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 		UpdatedBy func(childComplexity int) int
-		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -223,6 +224,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		Host      func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Room      func(childComplexity int) int
 		RoomID    func(childComplexity int) int
@@ -380,6 +382,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Card.UpdatedBy(childComplexity), true
 
+	case "Game.assassinChance":
+		if e.complexity.Game.AssassinChance == nil {
+			break
+		}
+
+		return e.complexity.Game.AssassinChance(childComplexity), true
+
 	case "Game.capacity":
 		if e.complexity.Game.Capacity == nil {
 			break
@@ -450,12 +459,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Game.RoomID(childComplexity), true
 
-	case "Game.theAssassinatedID":
-		if e.complexity.Game.TheAssassinatedID == nil {
+	case "Game.theAssassinatedIds":
+		if e.complexity.Game.TheAssassinatedIds == nil {
 			break
 		}
 
-		return e.complexity.Game.TheAssassinatedID(childComplexity), true
+		return e.complexity.Game.TheAssassinatedIds(childComplexity), true
 
 	case "Game.updatedAt":
 		if e.complexity.Game.UpdatedAt == nil {
@@ -624,6 +633,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mission.LeaderID(childComplexity), true
+
+	case "Mission.protected":
+		if e.complexity.Mission.Protected == nil {
+			break
+		}
+
+		return e.complexity.Mission.Protected(childComplexity), true
 
 	case "Mission.sequence":
 		if e.complexity.Mission.Sequence == nil {
@@ -1080,13 +1096,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Record.UpdatedBy(childComplexity), true
 
-	case "Record.user":
-		if e.complexity.Record.User == nil {
-			break
-		}
-
-		return e.complexity.Record.User(childComplexity), true
-
 	case "Record.userID":
 		if e.complexity.Record.UserID == nil {
 			break
@@ -1198,6 +1207,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoomUser.DeletedAt(childComplexity), true
+
+	case "RoomUser.host":
+		if e.complexity.RoomUser.Host == nil {
+			break
+		}
+
+		return e.complexity.RoomUser.Host(childComplexity), true
 
 	case "RoomUser.id":
 		if e.complexity.RoomUser.ID == nil {

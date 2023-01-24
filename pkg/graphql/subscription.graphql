@@ -25,3 +25,79 @@ input RoomRequest {
 input GameRequest {
     id: String!
 }
+
+
+type Mutation {
+    createRoom(req: CreateRoomInput!): Room
+    joinRoom(req: CreateRoomUserInput!): RoomUser
+    leaveRoom(req: CreateRoomUserInput!): RoomUser
+    closeRoom(req: RoomRequest!): Room
+    createGame(req: RoomRequest!): Game
+    createCard(req: CreateCardInput!): Card
+    tempPickSquads(req: [CreateSquadInput!]): [ID!]
+    pickSquads(req: [CreateSquadInput!]!): [Squad!]
+    vote(req: VoteRequest!): Vote
+    act(req: ActRequest!): Squad
+    tempAssassinate(req: AssassinateRequest!): ID
+    assassinate(req: AssassinateRequest!): Game
+    joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+}
+
+input VoteRequest {
+    voteID: ID!
+    pass: Boolean!
+}
+
+input ActRequest {
+    squadID: ID!
+    rat: Boolean!
+}
+
+input AssassinateRequest {
+    gameID: ID!
+    theAssassinatedID: ID!
+}
+
+extend type Query {
+    """查询自己是否在某个未关闭的房间中，不在返回空"""
+    getJoinedRoom(req: UserRequest!): Room
+    """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
+    getVoteInMission(req: VoteWhereInput!): Vote
+    """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
+    getSquadInMission(req: SquadWhereInput!): Squad
+    """任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空"""
+    getEndedGame(req: GameRequest!): Game
+    """获取刺杀环节信息盘，红方亮身份，蓝色不亮身份"""
+    getVagueGameUsers(req: GameRequest!): [GameUser!]!
+}
+
+input UserRequest {
+    id: String!
+}
+
+input JoinRoomInput {
+    shortCode: String!
+    userID: ID!
+}
+
+type User @key(fields: "id", resolvable: false) {
+    id: ID!
+    name: String! @external
+    phone: String! @external
+}
+
+extend type Vote {
+    user: User!
+}
+
+extend type GameUser {
+    user: User!
+}
+
+extend type RoomUser {
+    user: User!
+}
+
+extend type Squad {
+    user: User!
+}

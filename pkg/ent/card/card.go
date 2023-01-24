@@ -99,11 +99,16 @@ const (
 	NameBors     Name = "Bors"
 	NameBedivere Name = "Bedivere"
 	NameGawain   Name = "Gawain"
+	NameKay      Name = "Kay"
+	NameEctor    Name = "Ector"
 	NameMordred  Name = "Mordred"
 	NameMorgana  Name = "Morgana"
 	NameOberon   Name = "Oberon"
-	NameAssassin Name = "Assassin"
+	NameAgravain Name = "Agravain"
 	NameLancelot Name = "Lancelot"
+	NameKevin    Name = "Kevin"
+	NameStuart   Name = "Stuart"
+	NameBob      Name = "Bob"
 )
 
 func (n Name) String() string {
@@ -113,7 +118,7 @@ func (n Name) String() string {
 // NameValidator is a validator for the "name" field enum values. It is called by the builders before save.
 func NameValidator(n Name) error {
 	switch n {
-	case NameMerlin, NamePercival, NameGalahad, NameBors, NameBedivere, NameGawain, NameMordred, NameMorgana, NameOberon, NameAssassin, NameLancelot:
+	case NameMerlin, NamePercival, NameGalahad, NameBors, NameBedivere, NameGawain, NameKay, NameEctor, NameMordred, NameMorgana, NameOberon, NameAgravain, NameLancelot, NameKevin, NameStuart, NameBob:
 		return nil
 	default:
 		return fmt.Errorf("card: invalid enum value for name field: %q", n)
@@ -132,9 +137,9 @@ const (
 	RoleEnchantress Role = "Enchantress"
 	RoleAssassin    Role = "Assassin"
 	RoleErlking     Role = "Erlking"
-	RoleVassal      Role = "Vassal"
 	RoleAce         Role = "Ace"
 	RoleSinner      Role = "Sinner"
+	RoleMinion      Role = "Minion"
 )
 
 func (r Role) String() string {
@@ -144,7 +149,7 @@ func (r Role) String() string {
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RoleProphet, RoleKnight, RoleLoyal, RoleUsurper, RoleEnchantress, RoleAssassin, RoleErlking, RoleVassal, RoleAce, RoleSinner:
+	case RoleProphet, RoleKnight, RoleLoyal, RoleUsurper, RoleEnchantress, RoleAssassin, RoleErlking, RoleAce, RoleSinner, RoleMinion:
 		return nil
 	default:
 		return fmt.Errorf("card: invalid enum value for role field: %q", r)

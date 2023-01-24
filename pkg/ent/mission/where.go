@@ -151,6 +151,13 @@ func LeaderID(v int64) predicate.Mission {
 	})
 }
 
+// Protected applies equality check predicate on the "protected" field. It's identical to ProtectedEQ.
+func Protected(v bool) predicate.Mission {
+	return predicate.Mission(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldProtected), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
@@ -746,6 +753,20 @@ func LeaderIDLT(v int64) predicate.Mission {
 func LeaderIDLTE(v int64) predicate.Mission {
 	return predicate.Mission(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldLeaderID), v))
+	})
+}
+
+// ProtectedEQ applies the EQ predicate on the "protected" field.
+func ProtectedEQ(v bool) predicate.Mission {
+	return predicate.Mission(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldProtected), v))
+	})
+}
+
+// ProtectedNEQ applies the NEQ predicate on the "protected" field.
+func ProtectedNEQ(v bool) predicate.Mission {
+	return predicate.Mission(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldProtected), v))
 	})
 }
 

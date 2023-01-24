@@ -6,19 +6,778 @@ package graphql
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/internal/logic"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
+	"github.com/stark-sim/avalon_backend/pkg/ent/card"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
+	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
 	"github.com/stark-sim/avalon_backend/pkg/ent/mission"
 	"github.com/stark-sim/avalon_backend/pkg/ent/room"
 	"github.com/stark-sim/avalon_backend/pkg/ent/roomuser"
+	"github.com/stark-sim/avalon_backend/pkg/ent/squad"
+	"github.com/stark-sim/avalon_backend/pkg/ent/vote"
 	"github.com/stark-sim/avalon_backend/pkg/graphql/model"
 	"github.com/stark-sim/avalon_backend/tools"
 	"github.com/stark-sim/avalon_backend/tools/cache"
 )
+
+// User is the resolver for the user field.
+func (r *gameUserResolver) User(ctx context.Context, obj *ent.GameUser) (*model.User, error) {
+	user, err := GetUserAtResolver(ctx, obj.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// CreateRoom is the resolver for the createRoom field.
+func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error) {
+	_room, err := r.client.Room.Create().SetInput(req).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 在 redis 中设置 房间快捷码
+	redisClient := cache.NewRedisClient()
+	_, err = redisClient.SetRoomIDByShortCode(ctx, _room.ID)
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
+	return _room, nil
+}
+
+// JoinRoom is the resolver for the joinRoom field.
+func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
+	// 加入前检查 房间 是否关闭
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.Room.Query().Where(room.ID(req.RoomID), room.DeletedAt(tools.ZeroTime), room.Closed(false)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, errors.New("room no exist")
+	} else if err != nil {
+		return nil, err
+	}
+	// 加入前检查 自己 是否在 其他房间
+	_, err = tx.RoomUser.Query().Where(roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime), roomuser.RoomIDNEQ(req.RoomID)).First(ctx)
+	if !ent.IsNotFound(err) {
+		return nil, errors.New("user be in another room")
+	}
+	// 中间表调整软删除字段来代替创建和删除
+	// 需要在 tx Commit 之前把之后有可能会拿的 Room 先拿出来
+	roomUser, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).WithRoom().First(ctx)
+	if ent.IsNotFound(err) {
+		// 要插入 RoomUser 的话需要 Room 信号量
+		redisClient := cache.NewRedisClient()
+		err = redisClient.WaitRoomMutex(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+		newRoomUser, err := tx.RoomUser.
+			Create().
+			SetUserID(req.UserID).
+			SetRoomID(req.RoomID).
+			Save(ctx)
+		newRoomUser, err = tx.RoomUser.Query().Where(roomuser.ID(newRoomUser.ID)).WithRoom().First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = redisClient.ReleaseRoomMutex(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+		err = tx.Commit()
+		if err != nil {
+			return nil, err
+		}
+		redisClient.Close()
+		return newRoomUser, nil
+	} else {
+		roomUser, err = tx.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = tx.Commit()
+		if err != nil {
+			return nil, err
+		}
+		return roomUser, nil
+	}
+}
+
+// LeaveRoom is the resolver for the leaveRoom field.
+func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
+	redisClient := cache.NewRedisClient()
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 离开前查看房间剩余人数，要抢信号量锁住 RoomUser 表新增
+	err = redisClient.WaitRoomMutex(ctx, req.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	count, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.DeletedAt(tools.ZeroTime)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 查找后就可以释放信号量，因为加入房间时检查 Room.Closed 依赖 ReadCommitted 就足够，不需要信号量
+	err = redisClient.ReleaseRoomMutex(ctx, req.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	// 自己退出，由于需要返回，先查询出来
+	roomUser, err := tx.RoomUser.
+		Query().
+		Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime)).
+		WithRoom().
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = tx.RoomUser.
+		UpdateOne(roomUser).
+		SetDeletedAt(time.Now()).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+	if count == 1 {
+		// 如果只剩自己一个人，还需要关闭房间，并清除 shortCode
+		_, err = tx.Room.UpdateOneID(req.RoomID).SetClosed(true).Save(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = redisClient.DeleteRoomIDWithShortCode(ctx, req.RoomID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
+	return roomUser, nil
+}
+
+// CloseRoom is the resolver for the closeRoom field.
+func (r *mutationResolver) CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error) {
+	roomID := tools.StringToInt64(req.ID)
+	_room, err := r.client.Room.UpdateOneID(roomID).SetClosed(true).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 将 redis 中的 房间快捷码 清除
+	redisClient := cache.NewRedisClient()
+	err = redisClient.DeleteRoomIDWithShortCode(ctx, _room.ID)
+	if err != nil {
+		return nil, err
+	}
+	redisClient.Close()
+	return _room, nil
+}
+
+// CreateGame is the resolver for the createGame field.
+func (r *mutationResolver) CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error) {
+	// 将房间中现有的人加入到一局新游戏里
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roomID := tools.StringToInt64(req.ID)
+	// 先检查房间没有在进行游戏
+	_room, err := r.client.Room.
+		Query().
+		Where(room.ID(roomID), room.DeletedAt(tools.ZeroTime), room.GameOn(false)).
+		First(ctx)
+	if err != nil {
+		logrus.Errorf("room %s not exist or gameOn, can't create game", req.ID)
+		return nil, err
+	}
+	err = tx.Room.UpdateOne(_room).SetGameOn(true).Exec(ctx)
+	if err != nil {
+		logrus.Errorf("error at room update: %v", err)
+		return nil, err
+	}
+	// 不锁了，开了后进来的不管，用户离开房间前查一下有没有在游戏里就好，离开和这里的查人会制衡
+	roomUsers, err := tx.RoomUser.Query().Where(roomuser.RoomID(roomID), roomuser.DeletedAt(tools.ZeroTime)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	playerNum := uint8(len(roomUsers))
+	// 创建游戏
+	_game, err := tx.Game.
+		Create().
+		SetRoomID(roomID).
+		SetEndBy(game.EndByNone).
+		SetCapacity(playerNum).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 随机排序房间内用户和洗牌，然后创建 GameUser
+	userIDs := make([]int64, playerNum)
+	for i, roomUser := range roomUsers {
+		userIDs[i] = roomUser.UserID
+	}
+	for i, v := range tools.Shuffle(userIDs) {
+		userIDs[i] = v.(int64)
+	}
+	// 按人数拿牌，拿的时候已经洗好了
+	cards, err := logic.GetShuffledCardsByNum(ctx, playerNum, nil)
+	if err != nil {
+		return nil, err
+	}
+	// 创建 GameUser，分牌分号
+	gameUserCreates := make([]*ent.GameUserCreate, playerNum)
+	for i := 0; i < len(roomUsers); i++ {
+		gameUserCreates[i] = tx.GameUser.
+			Create().
+			SetGameID(_game.ID).
+			SetUserID(userIDs[i]).
+			SetCardID(cards[i].ID).
+			SetNumber(uint8(i + 1))
+	}
+	_, err = tx.GameUser.CreateBulk(gameUserCreates...).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 创建 5 个 Mission，初始队长为 1-5 号玩家
+	missionCreates := make([]*ent.MissionCreate, 5)
+	for i := 0; i < 5; i++ {
+		missionCreates[i] = tx.Mission.
+			Create().
+			SetGameID(_game.ID).
+			SetLeaderID(userIDs[i]).
+			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i+1)).
+			SetSequence(uint8(i + 1))
+	}
+	_, err = tx.Mission.CreateBulk(missionCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating missions: %v", err)
+		return nil, err
+	}
+	// 创建完毕，现在准备返回，把有可能需要的 EagerLoad 上
+	_game, err = tx.Game.
+		Query().
+		Where(game.ID(_game.ID)).
+		WithNamedMissions("missions").
+		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
+			query.WithCard()
+		}).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _game, nil
+}
+
+// CreateCard is the resolver for the createCard field.
+func (r *mutationResolver) CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error) {
+	var tale string
+	if req.Tale != nil {
+		tale = *req.Tale
+	}
+	return r.client.Card.Create().SetName(*req.Name).SetRole(req.Role).SetTale(tale).Save(ctx)
+}
+
+// TempPickSquads is the resolver for the tempPickSquads field.
+func (r *mutationResolver) TempPickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]string, error) {
+	missionID := ""
+	userIDs := make([]string, len(req))
+	for i, v := range req {
+		if missionID == "" {
+			missionID = strconv.FormatInt(v.MissionID, 10)
+		} else {
+			if strconv.FormatInt(v.MissionID, 10) != missionID {
+				return nil, errors.New("missionID not the same")
+			}
+		}
+		userIDs[i] = strconv.FormatInt(v.UserID, 10)
+	}
+	if missionID == "0" {
+		return nil, errors.New("missionID cannot be 0")
+	}
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	err := cacheClient.SetMissionTempPickUserIDs(ctx, missionID, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	return userIDs, nil
+}
+
+// PickSquads is the resolver for the pickSquads field.
+func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
+	// 队长选任务小队人数，选好后任务进去投票阶段，并且为大家创建 Vote
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 检查 1. 小队任务的是同一个 2. 小队人数和任务任务相等 3. 小队人员在任务所属游戏中
+	missionID := int64(0)
+	userIDs := make([]int64, len(req))
+	for i, v := range req {
+		if missionID == 0 {
+			missionID = v.MissionID
+		} else if missionID != v.MissionID {
+			return nil, errors.New("squads' mission_id not the same")
+		}
+		userIDs[i] = req[i].UserID
+	}
+	if missionID == 0 {
+		return nil, errors.New("squads' mission_id is 0")
+	}
+	_mission, err := tx.Mission.
+		Query().
+		Where(
+			mission.ID(missionID),
+			mission.DeletedAt(tools.ZeroTime),
+			mission.StatusEQ(mission.StatusPicking),
+		).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _mission.Capacity != uint8(len(userIDs)) {
+		return nil, errors.New("squad number doesn't match mission's capacity")
+	}
+	// 通过查目标玩家和这局游戏中的玩家数量和 id 对得上来判断是不是属于这局游戏
+	count, err := tx.GameUser.
+		Query().
+		Where(
+			gameuser.GameID(_mission.GameID),
+			gameuser.UserIDIn(userIDs...),
+			gameuser.DeletedAt(tools.ZeroTime),
+		).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if count != len(userIDs) {
+		return nil, errors.New("squad users not in squad's game")
+	}
+	// 检查完毕，开始创建 Squad
+	squadCreates := make([]*ent.SquadCreate, len(userIDs))
+	for i, v := range userIDs {
+		squadCreates[i] = tx.Squad.
+			Create().
+			SetMissionID(missionID).
+			SetUserID(v)
+	}
+	squads, err := tx.Squad.CreateBulk(squadCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating squads: %v", err)
+		return nil, err
+	}
+	// 创建 Vote
+	var allUserIDs []struct {
+		UserID int64 `json:"user_id"`
+	}
+	err = tx.GameUser.Query().
+		Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
+		Select(gameuser.FieldUserID).
+		Scan(ctx, &allUserIDs)
+	voteCreates := make([]*ent.VoteCreate, len(allUserIDs))
+	for i, v := range allUserIDs {
+		// 如果用户是该任务的 leader，那么该 Vote 已经决定且通过
+		if v.UserID == _mission.LeaderID {
+			voteCreates[i] = tx.Vote.
+				Create().
+				SetUserID(v.UserID).
+				SetMissionID(_mission.ID).
+				SetPass(true).
+				SetVoted(true)
+		} else {
+			voteCreates[i] = tx.Vote.
+				Create().
+				SetUserID(v.UserID).
+				SetMissionID(_mission.ID)
+		}
+	}
+	_, err = tx.Vote.CreateBulk(voteCreates...).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at creating votes: %v", err)
+		return nil, err
+	}
+	// 新增 Squad 和 Vote 后别忘了修改 Mission 状态为 voting
+	_, err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusVoting).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at updating mission's status to voting: %v", err)
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		err = tx.Rollback()
+		if err != nil {
+			return nil, err
+		}
+		return nil, err
+	}
+	return squads, nil
+}
+
+// Vote is the resolver for the vote field.
+func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*ent.Vote, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_vote, err := tx.Vote.UpdateOneID(tools.StringToInt64(req.VoteID)).SetPass(req.Pass).SetVoted(true).Save(ctx)
+	// 如果大家都投票完了，那么更改 Mission 的状态
+	votes, err := tx.Vote.Query().Where(vote.MissionID(_vote.MissionID), vote.DeletedAt(tools.ZeroTime)).All(ctx)
+	allVoted := true
+	passCount := 0
+	notPassCount := 0
+	for _, v := range votes {
+		if !v.Voted {
+			allVoted = false
+			break
+		}
+		if v.Pass {
+			passCount += 1
+		} else {
+			notPassCount += 1
+		}
+	}
+	if allVoted {
+		_mission, err := tx.Mission.Query().Where(mission.ID(_vote.MissionID), mission.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			logrus.Errorf("error at querying mission by vote: %v", err)
+			return nil, err
+		}
+		// 判断流局还是继续进行
+		if notPassCount >= passCount {
+			err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusDelayed).Exec(ctx)
+			if err != nil {
+				logrus.Errorf("error at update mission to status delayed: %v", err)
+				return nil, err
+			}
+			// 流局要创建新的任务，并且后续任务的 Leader 都往后延一人
+			// 先把后面的 Mission 找出来
+			postMissions, err := tx.Mission.Query().Where(mission.SequenceGT(_mission.Sequence), mission.DeletedAt(tools.ZeroTime)).All(ctx)
+			if err != nil {
+				return nil, err
+			}
+			// 再把 GameUser 中的 userID 按 number 找出来
+			var inGameUserIDs []struct {
+				UserID int64 `json:"user_id"`
+			}
+			err = tx.GameUser.Query().
+				Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
+				Order(ent.Asc(gameuser.FieldNumber)).
+				Select(gameuser.FieldUserID).
+				Scan(ctx, &inGameUserIDs)
+			if err != nil {
+				return nil, err
+			}
+			// 之后的任务的 leader 往后盐，第一个 leader 作为流局重开局的 leader
+			newMissionLeaderID := postMissions[0].LeaderID
+			for _, postMission := range postMissions {
+				for i, v := range inGameUserIDs {
+					if postMission.LeaderID == v.UserID {
+						err = tx.Mission.UpdateOne(postMission).SetLeaderID(inGameUserIDs[i+1].UserID).Exec(ctx)
+						return nil, err
+					}
+				}
+			}
+			err = tx.Mission.Create().
+				SetGameID(_mission.GameID).
+				SetSequence(_mission.Sequence).
+				SetLeaderID(newMissionLeaderID).
+				SetCapacity(_mission.Capacity).
+				Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			// 没有流局，进入任务执行阶段
+			err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusActing).Exec(ctx)
+			if err != nil {
+				logrus.Errorf("error at update mission to status closed: %v", err)
+				return nil, err
+			}
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _vote, nil
+}
+
+// Act is the resolver for the act field.
+func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.Squad, error) {
+	// 执行任务是否破坏
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_squad, err := tx.Squad.UpdateOneID(tools.StringToInt64(req.SquadID)).SetRat(req.Rat).SetActed(true).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 执行后判断是不是小队成员都执行完了
+	allActed := true
+	squads, err := tx.Squad.Query().Where(squad.MissionID(_squad.MissionID), squad.DeletedAt(tools.ZeroTime)).All(ctx)
+	ratCount := 0
+	for _, v := range squads {
+		if !v.Acted {
+			allActed = false
+			break
+		}
+		if v.Rat {
+			ratCount += 1
+		}
+	}
+	// 全部执行完毕，任务结束，判断任务成功与否
+	if allActed {
+		_mission, err := tx.Mission.Query().Where(mission.ID(_squad.MissionID), mission.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			return nil, err
+		}
+		missionFailed := false
+		if ratCount > 0 {
+			// 保护轮
+			if _mission.Sequence == 4 && ratCount <= 1 {
+				missionFailed = false
+			} else {
+				missionFailed = true
+			}
+		}
+		err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusClosed).SetFailed(missionFailed).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _squad, err
+}
+
+// TempAssassinate is the resolver for the tempAssassinate field.
+func (r *mutationResolver) TempAssassinate(ctx context.Context, req model.AssassinateRequest) (*string, error) {
+	// 缓存临时刺杀目标
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	err := cacheClient.SetGameTempAssassinatedID(ctx, req.GameID, req.TheAssassinatedID)
+	if err != nil {
+		return nil, err
+	}
+	return &req.TheAssassinatedID, nil
+}
+
+// Assassinate is the resolver for the assassinate field.
+func (r *mutationResolver) Assassinate(ctx context.Context, req model.AssassinateRequest) (*ent.Game, error) {
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	// 刺杀时可以删除游戏的暂时刺杀目标缓存
+	err := cacheClient.DeleteGameTempAssassinatedID(ctx, req.GameID)
+	if err != nil {
+		return nil, err
+	}
+	// 进行事务
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.GameID)), game.DeletedAt(tools.ZeroTime)).First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 把刺杀的游戏玩家找到
+	theAssassinatedID := tools.StringToInt64(req.TheAssassinatedID)
+	gameUser, err := tx.GameUser.Query().
+		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserID(theAssassinatedID)).
+		WithCard().
+		First(ctx)
+	if err != nil {
+		logrus.Errorf("error at query target gameUser when assassinate: %v", err)
+		return nil, err
+	}
+	// 看看是不是梅林
+	if gameUser.Edges.Card.Name == card.NameMerlin {
+		// 游戏结束，红方胜利，结束方式为刺杀成功
+		_game, err = tx.Game.UpdateOne(_game).
+			SetEndBy(game.EndByAssassination).
+			SetTheAssassinatedIds([]string{strconv.FormatInt(theAssassinatedID, 10)}).
+			Save(ctx)
+	} else {
+		// 游戏结束，蓝方获胜
+		_game, err = tx.Game.UpdateOne(_game).
+			SetEndBy(game.EndByBlue).
+			SetTheAssassinatedIds([]string{strconv.FormatInt(theAssassinatedID, 10)}).
+			Save(ctx)
+	}
+	if err != nil {
+		logrus.Errorf("error at update game when assassinate: %v", err)
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _game, nil
+}
+
+// JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
+func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error) {
+	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
+}
+
+// GetJoinedRoom is the resolver for the getJoinedRoom field.
+func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest) (*ent.Room, error) {
+	// 查询 room 没有关闭的，且具有 roomUser 的
+	userID := tools.StringToInt64(req.ID)
+	_room, err := r.client.Room.Query().
+		Where(
+			room.DeletedAt(tools.ZeroTime),
+			room.Closed(false),
+			room.HasRoomUsersWith(
+				roomuser.DeletedAt(tools.ZeroTime),
+				roomuser.UserID(userID),
+			),
+		).
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		} else {
+			logrus.Errorf("error at query user joined room: %v", err)
+			return nil, err
+		}
+	}
+	return _room, nil
+}
+
+// GetVoteInMission is the resolver for the getVoteInMission field.
+func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereInput) (*ent.Vote, error) {
+	userID := req.UserID
+	missionID := req.MissionID
+	if userID == nil || missionID == nil {
+		return nil, errors.New("userID and missionID can't be null")
+	}
+	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID), vote.Voted(false)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		logrus.Errorf("error at query vote in mission: %v", err)
+		return nil, err
+	} else {
+		return _vote, nil
+	}
+}
+
+// GetSquadInMission is the resolver for the getSquadInMission field.
+func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWhereInput) (*ent.Squad, error) {
+	userID := req.UserID
+	missionID := req.MissionID
+	if userID == nil || missionID == nil {
+		return nil, errors.New("userID and missionID can't be null")
+	}
+	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID), squad.Acted(false)).First(ctx)
+	if ent.IsNotFound(err) {
+		return nil, nil
+	} else if err != nil {
+		logrus.Errorf("error at query vote in mission: %v", err)
+		return nil, err
+	} else {
+		return _squad, nil
+	}
+}
+
+// GetEndedGame is the resolver for the getEndedGame field.
+func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest) (*ent.Game, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 先看看 Game 的 Missions 是不是分出结果了
+	missions, err := tx.Mission.Query().
+		Where(
+			mission.GameID(tools.StringToInt64(req.ID)),
+			mission.DeletedAt(tools.ZeroTime),
+			mission.StatusNEQ(mission.StatusDelayed),
+		).
+		All(ctx)
+	closedCount := 0
+	failedCount := 0
+	for _, v := range missions {
+		if v.Status == mission.StatusClosed {
+			closedCount += 1
+			if v.Failed {
+				failedCount += 1
+			}
+		}
+	}
+	// 还没结束的话，返回空
+	if failedCount != 3 && closedCount-failedCount < 3 {
+		return nil, nil
+	}
+	// 如果失败达到 3 次，游戏状态直接变成 end_by red
+	if failedCount == 3 {
+		err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetEndBy(game.EndByRed).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_game, err := tx.Game.Query().
+		Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
+		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
+			query.Where(gameuser.HasGameWith(game.EndByNEQ(game.EndByNone))).WithCard()
+		}).
+		First(ctx)
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return _game, nil
+}
+
+// GetVagueGameUsers is the resolver for the getVagueGameUsers field.
+func (r *queryResolver) GetVagueGameUsers(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
+	gameUsers, err := r.client.GameUser.Query().
+		Where(gameuser.GameID(tools.StringToInt64(req.ID)), gameuser.DeletedAt(tools.ZeroTime)).
+		WithCard().
+		Order(ent.Asc(gameuser.FieldNumber)).
+		All(ctx)
+	if err != nil {
+		logrus.Errorf("error at query gameUsers when getVagueGameUsers: %v", err)
+		return nil, err
+	}
+	return gameUsers, nil
+}
+
+// User is the resolver for the user field.
+func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
+	user, err := GetUserAtResolver(ctx, obj.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// User is the resolver for the user field.
+func (r *squadResolver) User(ctx context.Context, obj *ent.Squad) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
+	return &model.User{
+		ID: strconv.FormatInt(obj.UserID, 10),
+	}, nil
+}
 
 // GetRoomUser is the resolver for the GetRoomUser field.
 func (r *subscriptionResolver) GetRoomUser(ctx context.Context) (<-chan *ent.RoomUser, error) {
@@ -169,8 +928,8 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 			if err != nil {
 				return
 			}
-			if _game.TheAssassinatedID != 0 {
-				res.TheAssassinatedID = strconv.FormatInt(_game.TheAssassinatedID, 10)
+			if len(_game.TheAssassinatedIds) != 0 {
+				res.TheAssassinatedID = _game.TheAssassinatedIds[0]
 				res.TempPickedID = res.TheAssassinatedID
 			} else {
 				// 从 redis 中获取 刺客暂时选定的 人
@@ -190,7 +949,20 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 	return ch, nil
 }
 
+// User is the resolver for the user field.
+func (r *voteResolver) User(ctx context.Context, obj *ent.Vote) (*model.User, error) {
+	fc := graphql.GetFieldContext(ctx)
+	logrus.Infof("%s\n", fc.Object)
+	return &model.User{
+		ID: strconv.FormatInt(obj.UserID, 10),
+	}, nil
+}
+
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
 // Subscription returns SubscriptionResolver implementation.
 func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/stark-sim/avalon_backend/pkg/ent/game"
 	"github.com/stark-sim/avalon_backend/pkg/ent/gameuser"
@@ -134,24 +135,36 @@ func (gu *GameUpdate) AddCapacity(u int8) *GameUpdate {
 	return gu
 }
 
-// SetTheAssassinatedID sets the "the_assassinated_id" field.
-func (gu *GameUpdate) SetTheAssassinatedID(i int64) *GameUpdate {
-	gu.mutation.ResetTheAssassinatedID()
-	gu.mutation.SetTheAssassinatedID(i)
+// SetTheAssassinatedIds sets the "the_assassinated_ids" field.
+func (gu *GameUpdate) SetTheAssassinatedIds(s []string) *GameUpdate {
+	gu.mutation.SetTheAssassinatedIds(s)
 	return gu
 }
 
-// SetNillableTheAssassinatedID sets the "the_assassinated_id" field if the given value is not nil.
-func (gu *GameUpdate) SetNillableTheAssassinatedID(i *int64) *GameUpdate {
-	if i != nil {
-		gu.SetTheAssassinatedID(*i)
+// AppendTheAssassinatedIds appends s to the "the_assassinated_ids" field.
+func (gu *GameUpdate) AppendTheAssassinatedIds(s []string) *GameUpdate {
+	gu.mutation.AppendTheAssassinatedIds(s)
+	return gu
+}
+
+// SetAssassinChance sets the "assassin_chance" field.
+func (gu *GameUpdate) SetAssassinChance(u uint8) *GameUpdate {
+	gu.mutation.ResetAssassinChance()
+	gu.mutation.SetAssassinChance(u)
+	return gu
+}
+
+// SetNillableAssassinChance sets the "assassin_chance" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableAssassinChance(u *uint8) *GameUpdate {
+	if u != nil {
+		gu.SetAssassinChance(*u)
 	}
 	return gu
 }
 
-// AddTheAssassinatedID adds i to the "the_assassinated_id" field.
-func (gu *GameUpdate) AddTheAssassinatedID(i int64) *GameUpdate {
-	gu.mutation.AddTheAssassinatedID(i)
+// AddAssassinChance adds u to the "assassin_chance" field.
+func (gu *GameUpdate) AddAssassinChance(u int8) *GameUpdate {
+	gu.mutation.AddAssassinChance(u)
 	return gu
 }
 
@@ -370,11 +383,19 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.AddedCapacity(); ok {
 		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
 	}
-	if value, ok := gu.mutation.TheAssassinatedID(); ok {
-		_spec.SetField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	if value, ok := gu.mutation.TheAssassinatedIds(); ok {
+		_spec.SetField(game.FieldTheAssassinatedIds, field.TypeJSON, value)
 	}
-	if value, ok := gu.mutation.AddedTheAssassinatedID(); ok {
-		_spec.AddField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	if value, ok := gu.mutation.AppendedTheAssassinatedIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, game.FieldTheAssassinatedIds, value)
+		})
+	}
+	if value, ok := gu.mutation.AssassinChance(); ok {
+		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)
+	}
+	if value, ok := gu.mutation.AddedAssassinChance(); ok {
+		_spec.AddField(game.FieldAssassinChance, field.TypeUint8, value)
 	}
 	if gu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -641,24 +662,36 @@ func (guo *GameUpdateOne) AddCapacity(u int8) *GameUpdateOne {
 	return guo
 }
 
-// SetTheAssassinatedID sets the "the_assassinated_id" field.
-func (guo *GameUpdateOne) SetTheAssassinatedID(i int64) *GameUpdateOne {
-	guo.mutation.ResetTheAssassinatedID()
-	guo.mutation.SetTheAssassinatedID(i)
+// SetTheAssassinatedIds sets the "the_assassinated_ids" field.
+func (guo *GameUpdateOne) SetTheAssassinatedIds(s []string) *GameUpdateOne {
+	guo.mutation.SetTheAssassinatedIds(s)
 	return guo
 }
 
-// SetNillableTheAssassinatedID sets the "the_assassinated_id" field if the given value is not nil.
-func (guo *GameUpdateOne) SetNillableTheAssassinatedID(i *int64) *GameUpdateOne {
-	if i != nil {
-		guo.SetTheAssassinatedID(*i)
+// AppendTheAssassinatedIds appends s to the "the_assassinated_ids" field.
+func (guo *GameUpdateOne) AppendTheAssassinatedIds(s []string) *GameUpdateOne {
+	guo.mutation.AppendTheAssassinatedIds(s)
+	return guo
+}
+
+// SetAssassinChance sets the "assassin_chance" field.
+func (guo *GameUpdateOne) SetAssassinChance(u uint8) *GameUpdateOne {
+	guo.mutation.ResetAssassinChance()
+	guo.mutation.SetAssassinChance(u)
+	return guo
+}
+
+// SetNillableAssassinChance sets the "assassin_chance" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableAssassinChance(u *uint8) *GameUpdateOne {
+	if u != nil {
+		guo.SetAssassinChance(*u)
 	}
 	return guo
 }
 
-// AddTheAssassinatedID adds i to the "the_assassinated_id" field.
-func (guo *GameUpdateOne) AddTheAssassinatedID(i int64) *GameUpdateOne {
-	guo.mutation.AddTheAssassinatedID(i)
+// AddAssassinChance adds u to the "assassin_chance" field.
+func (guo *GameUpdateOne) AddAssassinChance(u int8) *GameUpdateOne {
+	guo.mutation.AddAssassinChance(u)
 	return guo
 }
 
@@ -907,11 +940,19 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 	if value, ok := guo.mutation.AddedCapacity(); ok {
 		_spec.AddField(game.FieldCapacity, field.TypeUint8, value)
 	}
-	if value, ok := guo.mutation.TheAssassinatedID(); ok {
-		_spec.SetField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	if value, ok := guo.mutation.TheAssassinatedIds(); ok {
+		_spec.SetField(game.FieldTheAssassinatedIds, field.TypeJSON, value)
 	}
-	if value, ok := guo.mutation.AddedTheAssassinatedID(); ok {
-		_spec.AddField(game.FieldTheAssassinatedID, field.TypeInt64, value)
+	if value, ok := guo.mutation.AppendedTheAssassinatedIds(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, game.FieldTheAssassinatedIds, value)
+		})
+	}
+	if value, ok := guo.mutation.AssassinChance(); ok {
+		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)
+	}
+	if value, ok := guo.mutation.AddedAssassinChance(); ok {
+		_spec.AddField(game.FieldAssassinChance, field.TypeUint8, value)
 	}
 	if guo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

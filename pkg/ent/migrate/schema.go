@@ -16,8 +16,8 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeEnum, Enums: []string{"Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Mordred", "Morgana", "Oberon", "Assassin", "Lancelot"}, Default: "Merlin"},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Vassal", "Ace", "Sinner"}},
+		{Name: "name", Type: field.TypeEnum, Enums: []string{"Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Kay", "Ector", "Mordred", "Morgana", "Oberon", "Agravain", "Lancelot", "Kevin", "Stuart", "Bob"}, Default: "Merlin"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Ace", "Sinner", "Minion"}},
 		{Name: "tale", Type: field.TypeString, Default: ""},
 	}
 	// CardsTable holds the schema information for the "cards" table.
@@ -34,9 +34,10 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
-		{Name: "end_by", Type: field.TypeEnum, Enums: []string{"none", "blue", "red", "slayer"}, Default: "none"},
+		{Name: "end_by", Type: field.TypeEnum, Enums: []string{"none", "blue", "red", "assassination"}, Default: "none"},
 		{Name: "capacity", Type: field.TypeUint8, Default: 0},
-		{Name: "the_assassinated_id", Type: field.TypeInt64, Default: 0},
+		{Name: "the_assassinated_ids", Type: field.TypeJSON},
+		{Name: "assassin_chance", Type: field.TypeUint8, Default: 1},
 		{Name: "room_id", Type: field.TypeInt64},
 	}
 	// GamesTable holds the schema information for the "games" table.
@@ -47,7 +48,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "games_rooms_games",
-				Columns:    []*schema.Column{GamesColumns[9]},
+				Columns:    []*schema.Column{GamesColumns[10]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -99,6 +100,7 @@ var (
 		{Name: "failed", Type: field.TypeBool, Default: false},
 		{Name: "capacity", Type: field.TypeUint8, Default: 0},
 		{Name: "leader_id", Type: field.TypeInt64, Default: 0},
+		{Name: "protected", Type: field.TypeBool, Default: false},
 		{Name: "game_id", Type: field.TypeInt64},
 	}
 	// MissionsTable holds the schema information for the "missions" table.
@@ -109,7 +111,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "missions_games_missions",
-				Columns:    []*schema.Column{MissionsColumns[11]},
+				Columns:    []*schema.Column{MissionsColumns[12]},
 				RefColumns: []*schema.Column{GamesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -168,6 +170,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "host", Type: field.TypeBool, Default: false},
 		{Name: "room_id", Type: field.TypeInt64},
 	}
 	// RoomUsersTable holds the schema information for the "room_users" table.
@@ -178,7 +181,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "room_users_rooms_room_users",
-				Columns:    []*schema.Column{RoomUsersColumns[7]},
+				Columns:    []*schema.Column{RoomUsersColumns[8]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

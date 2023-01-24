@@ -514,15 +514,15 @@ type GameWhereInput struct {
 	CapacityLT    *uint8  `json:"capacityLT,omitempty"`
 	CapacityLTE   *uint8  `json:"capacityLTE,omitempty"`
 
-	// "the_assassinated_id" field predicates.
-	TheAssassinatedID      *int64  `json:"theAssassinatedID,omitempty"`
-	TheAssassinatedIDNEQ   *int64  `json:"theAssassinatedIDNEQ,omitempty"`
-	TheAssassinatedIDIn    []int64 `json:"theAssassinatedIDIn,omitempty"`
-	TheAssassinatedIDNotIn []int64 `json:"theAssassinatedIDNotIn,omitempty"`
-	TheAssassinatedIDGT    *int64  `json:"theAssassinatedIDGT,omitempty"`
-	TheAssassinatedIDGTE   *int64  `json:"theAssassinatedIDGTE,omitempty"`
-	TheAssassinatedIDLT    *int64  `json:"theAssassinatedIDLT,omitempty"`
-	TheAssassinatedIDLTE   *int64  `json:"theAssassinatedIDLTE,omitempty"`
+	// "assassin_chance" field predicates.
+	AssassinChance      *uint8  `json:"assassinChance,omitempty"`
+	AssassinChanceNEQ   *uint8  `json:"assassinChanceNEQ,omitempty"`
+	AssassinChanceIn    []uint8 `json:"assassinChanceIn,omitempty"`
+	AssassinChanceNotIn []uint8 `json:"assassinChanceNotIn,omitempty"`
+	AssassinChanceGT    *uint8  `json:"assassinChanceGT,omitempty"`
+	AssassinChanceGTE   *uint8  `json:"assassinChanceGTE,omitempty"`
+	AssassinChanceLT    *uint8  `json:"assassinChanceLT,omitempty"`
+	AssassinChanceLTE   *uint8  `json:"assassinChanceLTE,omitempty"`
 
 	// "game_users" edge predicates.
 	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
@@ -800,29 +800,29 @@ func (i *GameWhereInput) P() (predicate.Game, error) {
 	if i.CapacityLTE != nil {
 		predicates = append(predicates, game.CapacityLTE(*i.CapacityLTE))
 	}
-	if i.TheAssassinatedID != nil {
-		predicates = append(predicates, game.TheAssassinatedIDEQ(*i.TheAssassinatedID))
+	if i.AssassinChance != nil {
+		predicates = append(predicates, game.AssassinChanceEQ(*i.AssassinChance))
 	}
-	if i.TheAssassinatedIDNEQ != nil {
-		predicates = append(predicates, game.TheAssassinatedIDNEQ(*i.TheAssassinatedIDNEQ))
+	if i.AssassinChanceNEQ != nil {
+		predicates = append(predicates, game.AssassinChanceNEQ(*i.AssassinChanceNEQ))
 	}
-	if len(i.TheAssassinatedIDIn) > 0 {
-		predicates = append(predicates, game.TheAssassinatedIDIn(i.TheAssassinatedIDIn...))
+	if len(i.AssassinChanceIn) > 0 {
+		predicates = append(predicates, game.AssassinChanceIn(i.AssassinChanceIn...))
 	}
-	if len(i.TheAssassinatedIDNotIn) > 0 {
-		predicates = append(predicates, game.TheAssassinatedIDNotIn(i.TheAssassinatedIDNotIn...))
+	if len(i.AssassinChanceNotIn) > 0 {
+		predicates = append(predicates, game.AssassinChanceNotIn(i.AssassinChanceNotIn...))
 	}
-	if i.TheAssassinatedIDGT != nil {
-		predicates = append(predicates, game.TheAssassinatedIDGT(*i.TheAssassinatedIDGT))
+	if i.AssassinChanceGT != nil {
+		predicates = append(predicates, game.AssassinChanceGT(*i.AssassinChanceGT))
 	}
-	if i.TheAssassinatedIDGTE != nil {
-		predicates = append(predicates, game.TheAssassinatedIDGTE(*i.TheAssassinatedIDGTE))
+	if i.AssassinChanceGTE != nil {
+		predicates = append(predicates, game.AssassinChanceGTE(*i.AssassinChanceGTE))
 	}
-	if i.TheAssassinatedIDLT != nil {
-		predicates = append(predicates, game.TheAssassinatedIDLT(*i.TheAssassinatedIDLT))
+	if i.AssassinChanceLT != nil {
+		predicates = append(predicates, game.AssassinChanceLT(*i.AssassinChanceLT))
 	}
-	if i.TheAssassinatedIDLTE != nil {
-		predicates = append(predicates, game.TheAssassinatedIDLTE(*i.TheAssassinatedIDLTE))
+	if i.AssassinChanceLTE != nil {
+		predicates = append(predicates, game.AssassinChanceLTE(*i.AssassinChanceLTE))
 	}
 
 	if i.HasGameUsers != nil {
@@ -1444,6 +1444,10 @@ type MissionWhereInput struct {
 	LeaderIDLT    *int64  `json:"leaderIDLT,omitempty"`
 	LeaderIDLTE   *int64  `json:"leaderIDLTE,omitempty"`
 
+	// "protected" field predicates.
+	Protected    *bool `json:"protected,omitempty"`
+	ProtectedNEQ *bool `json:"protectedNEQ,omitempty"`
+
 	// "game" edge predicates.
 	HasGame     *bool             `json:"hasGame,omitempty"`
 	HasGameWith []*GameWhereInput `json:"hasGameWith,omitempty"`
@@ -1773,6 +1777,12 @@ func (i *MissionWhereInput) P() (predicate.Mission, error) {
 	}
 	if i.LeaderIDLTE != nil {
 		predicates = append(predicates, mission.LeaderIDLTE(*i.LeaderIDLTE))
+	}
+	if i.Protected != nil {
+		predicates = append(predicates, mission.ProtectedEQ(*i.Protected))
+	}
+	if i.ProtectedNEQ != nil {
+		predicates = append(predicates, mission.ProtectedNEQ(*i.ProtectedNEQ))
 	}
 
 	if i.HasGame != nil {
@@ -2758,6 +2768,10 @@ type RoomUserWhereInput struct {
 	RoomIDIn    []int64 `json:"roomIDIn,omitempty"`
 	RoomIDNotIn []int64 `json:"roomIDNotIn,omitempty"`
 
+	// "host" field predicates.
+	Host    *bool `json:"host,omitempty"`
+	HostNEQ *bool `json:"hostNEQ,omitempty"`
+
 	// "room" edge predicates.
 	HasRoom     *bool             `json:"hasRoom,omitempty"`
 	HasRoomWith []*RoomWhereInput `json:"hasRoomWith,omitempty"`
@@ -3013,6 +3027,12 @@ func (i *RoomUserWhereInput) P() (predicate.RoomUser, error) {
 	}
 	if len(i.RoomIDNotIn) > 0 {
 		predicates = append(predicates, roomuser.RoomIDNotIn(i.RoomIDNotIn...))
+	}
+	if i.Host != nil {
+		predicates = append(predicates, roomuser.HostEQ(*i.Host))
+	}
+	if i.HostNEQ != nil {
+		predicates = append(predicates, roomuser.HostNEQ(*i.HostNEQ))
 	}
 
 	if i.HasRoom != nil {

@@ -103,6 +103,20 @@ func (ruc *RoomUserCreate) SetRoomID(i int64) *RoomUserCreate {
 	return ruc
 }
 
+// SetHost sets the "host" field.
+func (ruc *RoomUserCreate) SetHost(b bool) *RoomUserCreate {
+	ruc.mutation.SetHost(b)
+	return ruc
+}
+
+// SetNillableHost sets the "host" field if the given value is not nil.
+func (ruc *RoomUserCreate) SetNillableHost(b *bool) *RoomUserCreate {
+	if b != nil {
+		ruc.SetHost(*b)
+	}
+	return ruc
+}
+
 // SetID sets the "id" field.
 func (ruc *RoomUserCreate) SetID(i int64) *RoomUserCreate {
 	ruc.mutation.SetID(i)
@@ -219,6 +233,10 @@ func (ruc *RoomUserCreate) defaults() {
 		v := roomuser.DefaultDeletedAt
 		ruc.mutation.SetDeletedAt(v)
 	}
+	if _, ok := ruc.mutation.Host(); !ok {
+		v := roomuser.DefaultHost
+		ruc.mutation.SetHost(v)
+	}
 	if _, ok := ruc.mutation.ID(); !ok {
 		v := roomuser.DefaultID()
 		ruc.mutation.SetID(v)
@@ -247,6 +265,9 @@ func (ruc *RoomUserCreate) check() error {
 	}
 	if _, ok := ruc.mutation.RoomID(); !ok {
 		return &ValidationError{Name: "room_id", err: errors.New(`ent: missing required field "RoomUser.room_id"`)}
+	}
+	if _, ok := ruc.mutation.Host(); !ok {
+		return &ValidationError{Name: "host", err: errors.New(`ent: missing required field "RoomUser.host"`)}
 	}
 	if _, ok := ruc.mutation.RoomID(); !ok {
 		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "RoomUser.room"`)}
@@ -307,6 +328,10 @@ func (ruc *RoomUserCreate) createSpec() (*RoomUser, *sqlgraph.CreateSpec) {
 	if value, ok := ruc.mutation.UserID(); ok {
 		_spec.SetField(roomuser.FieldUserID, field.TypeInt64, value)
 		_node.UserID = value
+	}
+	if value, ok := ruc.mutation.Host(); ok {
+		_spec.SetField(roomuser.FieldHost, field.TypeBool, value)
+		_node.Host = value
 	}
 	if nodes := ruc.mutation.RoomIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

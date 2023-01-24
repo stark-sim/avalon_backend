@@ -34,28 +34,28 @@ func GetShuffledCardsByNum(ctx context.Context, num uint8, selection []*ent.Card
 		// 不传 selection，则根据人数给出对应卡牌
 		switch num {
 		case 5:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameMorgana, card.NameAssassin}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameMorgana, card.NameAgravain}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin}
 		case 6:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameMorgana, card.NameAssassin}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameMorgana, card.NameAgravain}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin}
 		case 7:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameMorgana, card.NameAssassin, card.NameOberon}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameMorgana, card.NameAgravain, card.NameOberon}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin}
 		case 8:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameMorgana, card.NameBedivere, card.NameAssassin, card.NameOberon}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameMorgana, card.NameBedivere, card.NameAgravain, card.NameOberon}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin, card.RoleErlking}
 		case 9:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAssassin, card.NameMordred}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAgravain, card.NameMordred}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin, card.RoleUsurper}
 		case 10:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAssassin, card.NameMordred, card.NameOberon}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAgravain, card.NameMordred, card.NameOberon}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin, card.RoleUsurper, card.RoleErlking}
 		case 11:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAssassin, card.NameMordred, card.NameLancelot}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAgravain, card.NameMordred, card.NameLancelot}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin, card.RoleUsurper, card.RoleAce, card.RoleSinner}
 		case 12:
-			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAssassin, card.NameMordred, card.NameOberon, card.NameLancelot}
+			nameList = []card.Name{card.NameMerlin, card.NamePercival, card.NameGalahad, card.NameBors, card.NameGawain, card.NameBedivere, card.NameMorgana, card.NameAgravain, card.NameMordred, card.NameOberon, card.NameLancelot}
 			roleList = []card.Role{card.RoleProphet, card.RoleKnight, card.RoleLoyal, card.RoleEnchantress, card.RoleAssassin, card.RoleUsurper, card.RoleErlking, card.RoleAce, card.RoleSinner}
 		}
 	}

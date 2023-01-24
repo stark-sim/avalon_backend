@@ -27,9 +27,9 @@ type Vote struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// MissionID holds the value of the "mission_id" field.
+	// 所属任务 ID
 	MissionID int64 `json:"mission_id"`
-	// UserID holds the value of the "user_id" field.
+	// 用户 ID
 	UserID int64 `json:"user_id"`
 	// 是否赞同目前小队出征
 	Pass bool `json:"pass"`

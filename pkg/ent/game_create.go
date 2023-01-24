@@ -127,16 +127,22 @@ func (gc *GameCreate) SetNillableCapacity(u *uint8) *GameCreate {
 	return gc
 }
 
-// SetTheAssassinatedID sets the "the_assassinated_id" field.
-func (gc *GameCreate) SetTheAssassinatedID(i int64) *GameCreate {
-	gc.mutation.SetTheAssassinatedID(i)
+// SetTheAssassinatedIds sets the "the_assassinated_ids" field.
+func (gc *GameCreate) SetTheAssassinatedIds(s []string) *GameCreate {
+	gc.mutation.SetTheAssassinatedIds(s)
 	return gc
 }
 
-// SetNillableTheAssassinatedID sets the "the_assassinated_id" field if the given value is not nil.
-func (gc *GameCreate) SetNillableTheAssassinatedID(i *int64) *GameCreate {
-	if i != nil {
-		gc.SetTheAssassinatedID(*i)
+// SetAssassinChance sets the "assassin_chance" field.
+func (gc *GameCreate) SetAssassinChance(u uint8) *GameCreate {
+	gc.mutation.SetAssassinChance(u)
+	return gc
+}
+
+// SetNillableAssassinChance sets the "assassin_chance" field if the given value is not nil.
+func (gc *GameCreate) SetNillableAssassinChance(u *uint8) *GameCreate {
+	if u != nil {
+		gc.SetAssassinChance(*u)
 	}
 	return gc
 }
@@ -295,9 +301,9 @@ func (gc *GameCreate) defaults() {
 		v := game.DefaultCapacity
 		gc.mutation.SetCapacity(v)
 	}
-	if _, ok := gc.mutation.TheAssassinatedID(); !ok {
-		v := game.DefaultTheAssassinatedID
-		gc.mutation.SetTheAssassinatedID(v)
+	if _, ok := gc.mutation.AssassinChance(); !ok {
+		v := game.DefaultAssassinChance
+		gc.mutation.SetAssassinChance(v)
 	}
 	if _, ok := gc.mutation.ID(); !ok {
 		v := game.DefaultID()
@@ -336,8 +342,11 @@ func (gc *GameCreate) check() error {
 	if _, ok := gc.mutation.Capacity(); !ok {
 		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "Game.capacity"`)}
 	}
-	if _, ok := gc.mutation.TheAssassinatedID(); !ok {
-		return &ValidationError{Name: "the_assassinated_id", err: errors.New(`ent: missing required field "Game.the_assassinated_id"`)}
+	if _, ok := gc.mutation.TheAssassinatedIds(); !ok {
+		return &ValidationError{Name: "the_assassinated_ids", err: errors.New(`ent: missing required field "Game.the_assassinated_ids"`)}
+	}
+	if _, ok := gc.mutation.AssassinChance(); !ok {
+		return &ValidationError{Name: "assassin_chance", err: errors.New(`ent: missing required field "Game.assassin_chance"`)}
 	}
 	if _, ok := gc.mutation.RoomID(); !ok {
 		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "Game.room"`)}
@@ -403,9 +412,13 @@ func (gc *GameCreate) createSpec() (*Game, *sqlgraph.CreateSpec) {
 		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
 		_node.Capacity = value
 	}
-	if value, ok := gc.mutation.TheAssassinatedID(); ok {
-		_spec.SetField(game.FieldTheAssassinatedID, field.TypeInt64, value)
-		_node.TheAssassinatedID = value
+	if value, ok := gc.mutation.TheAssassinatedIds(); ok {
+		_spec.SetField(game.FieldTheAssassinatedIds, field.TypeJSON, value)
+		_node.TheAssassinatedIds = value
+	}
+	if value, ok := gc.mutation.AssassinChance(); ok {
+		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)
+		_node.AssassinChance = value
 	}
 	if nodes := gc.mutation.GameUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

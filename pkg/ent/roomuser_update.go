@@ -110,6 +110,20 @@ func (ruu *RoomUserUpdate) SetRoomID(i int64) *RoomUserUpdate {
 	return ruu
 }
 
+// SetHost sets the "host" field.
+func (ruu *RoomUserUpdate) SetHost(b bool) *RoomUserUpdate {
+	ruu.mutation.SetHost(b)
+	return ruu
+}
+
+// SetNillableHost sets the "host" field if the given value is not nil.
+func (ruu *RoomUserUpdate) SetNillableHost(b *bool) *RoomUserUpdate {
+	if b != nil {
+		ruu.SetHost(*b)
+	}
+	return ruu
+}
+
 // SetRoom sets the "room" edge to the Room entity.
 func (ruu *RoomUserUpdate) SetRoom(r *Room) *RoomUserUpdate {
 	return ruu.SetRoomID(r.ID)
@@ -245,6 +259,9 @@ func (ruu *RoomUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ruu.mutation.AddedUserID(); ok {
 		_spec.AddField(roomuser.FieldUserID, field.TypeInt64, value)
 	}
+	if value, ok := ruu.mutation.Host(); ok {
+		_spec.SetField(roomuser.FieldHost, field.TypeBool, value)
+	}
 	if ruu.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -377,6 +394,20 @@ func (ruuo *RoomUserUpdateOne) AddUserID(i int64) *RoomUserUpdateOne {
 // SetRoomID sets the "room_id" field.
 func (ruuo *RoomUserUpdateOne) SetRoomID(i int64) *RoomUserUpdateOne {
 	ruuo.mutation.SetRoomID(i)
+	return ruuo
+}
+
+// SetHost sets the "host" field.
+func (ruuo *RoomUserUpdateOne) SetHost(b bool) *RoomUserUpdateOne {
+	ruuo.mutation.SetHost(b)
+	return ruuo
+}
+
+// SetNillableHost sets the "host" field if the given value is not nil.
+func (ruuo *RoomUserUpdateOne) SetNillableHost(b *bool) *RoomUserUpdateOne {
+	if b != nil {
+		ruuo.SetHost(*b)
+	}
 	return ruuo
 }
 
@@ -544,6 +575,9 @@ func (ruuo *RoomUserUpdateOne) sqlSave(ctx context.Context) (_node *RoomUser, er
 	}
 	if value, ok := ruuo.mutation.AddedUserID(); ok {
 		_spec.AddField(roomuser.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := ruuo.mutation.Host(); ok {
+		_spec.SetField(roomuser.FieldHost, field.TypeBool, value)
 	}
 	if ruuo.mutation.RoomCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -130,6 +130,13 @@ func RoomID(v int64) predicate.RoomUser {
 	})
 }
 
+// Host applies equality check predicate on the "host" field. It's identical to HostEQ.
+func Host(v bool) predicate.RoomUser {
+	return predicate.RoomUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHost), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.RoomUser {
 	return predicate.RoomUser(func(s *sql.Selector) {
@@ -547,6 +554,20 @@ func RoomIDNotIn(vs ...int64) predicate.RoomUser {
 	}
 	return predicate.RoomUser(func(s *sql.Selector) {
 		s.Where(sql.NotIn(s.C(FieldRoomID), v...))
+	})
+}
+
+// HostEQ applies the EQ predicate on the "host" field.
+func HostEQ(v bool) predicate.RoomUser {
+	return predicate.RoomUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldHost), v))
+	})
+}
+
+// HostNEQ applies the NEQ predicate on the "host" field.
+func HostNEQ(v bool) predicate.RoomUser {
+	return predicate.RoomUser(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldHost), v))
 	})
 }
 

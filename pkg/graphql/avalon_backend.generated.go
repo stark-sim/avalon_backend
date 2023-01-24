@@ -37,7 +37,8 @@ type GameResolver interface {
 	RoomID(ctx context.Context, obj *ent.Game) (string, error)
 
 	Capacity(ctx context.Context, obj *ent.Game) (int, error)
-	TheAssassinatedID(ctx context.Context, obj *ent.Game) (string, error)
+
+	AssassinChance(ctx context.Context, obj *ent.Game) (int, error)
 }
 type GameUserResolver interface {
 	ID(ctx context.Context, obj *ent.GameUser) (string, error)
@@ -61,21 +62,6 @@ type MissionResolver interface {
 	GameID(ctx context.Context, obj *ent.Mission) (string, error)
 	Capacity(ctx context.Context, obj *ent.Mission) (int, error)
 	LeaderID(ctx context.Context, obj *ent.Mission) (string, error)
-}
-type MutationResolver interface {
-	CreateRoom(ctx context.Context, req ent.CreateRoomInput) (*ent.Room, error)
-	JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
-	LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error)
-	CloseRoom(ctx context.Context, req model.RoomRequest) (*ent.Room, error)
-	CreateGame(ctx context.Context, req model.RoomRequest) (*ent.Game, error)
-	CreateCard(ctx context.Context, req ent.CreateCardInput) (*ent.Card, error)
-	TempPickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]string, error)
-	PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error)
-	Vote(ctx context.Context, req model.VoteRequest) (*ent.Vote, error)
-	Act(ctx context.Context, req model.ActRequest) (*ent.Squad, error)
-	TempAssassinate(ctx context.Context, req model.AssassinateRequest) (*string, error)
-	Assassinate(ctx context.Context, req model.AssassinateRequest) (*ent.Game, error)
-	JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
@@ -102,8 +88,6 @@ type RecordResolver interface {
 
 	UserID(ctx context.Context, obj *ent.Record) (string, error)
 	RoomID(ctx context.Context, obj *ent.Record) (string, error)
-
-	User(ctx context.Context, obj *ent.Record) (*model.User, error)
 }
 type RoomResolver interface {
 	ID(ctx context.Context, obj *ent.Room) (string, error)
@@ -178,7 +162,8 @@ type CreateGameInputResolver interface {
 	UpdatedBy(ctx context.Context, obj *ent.CreateGameInput, data *string) error
 
 	Capacity(ctx context.Context, obj *ent.CreateGameInput, data *int) error
-	TheAssassinatedID(ctx context.Context, obj *ent.CreateGameInput, data *string) error
+
+	AssassinChance(ctx context.Context, obj *ent.CreateGameInput, data *int) error
 	GameUserIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 	MissionIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 	RoomID(ctx context.Context, obj *ent.CreateGameInput, data string) error
@@ -200,6 +185,7 @@ type CreateMissionInputResolver interface {
 
 	Capacity(ctx context.Context, obj *ent.CreateMissionInput, data *int) error
 	LeaderID(ctx context.Context, obj *ent.CreateMissionInput, data *string) error
+
 	GameID(ctx context.Context, obj *ent.CreateMissionInput, data string) error
 	SquadIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error
 	VoteIDs(ctx context.Context, obj *ent.CreateMissionInput, data []string) error
@@ -225,6 +211,7 @@ type CreateRoomUserInputResolver interface {
 	UpdatedBy(ctx context.Context, obj *ent.CreateRoomUserInput, data *string) error
 
 	UserID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
+
 	RoomID(ctx context.Context, obj *ent.CreateRoomUserInput, data string) error
 }
 type CreateSquadInputResolver interface {
@@ -333,14 +320,14 @@ type GameWhereInputResolver interface {
 	CapacityGte(ctx context.Context, obj *ent.GameWhereInput, data *int) error
 	CapacityLt(ctx context.Context, obj *ent.GameWhereInput, data *int) error
 	CapacityLte(ctx context.Context, obj *ent.GameWhereInput, data *int) error
-	TheAssassinatedID(ctx context.Context, obj *ent.GameWhereInput, data *string) error
-	TheAssassinatedIDNeq(ctx context.Context, obj *ent.GameWhereInput, data *string) error
-	TheAssassinatedIDIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
-	TheAssassinatedIDNotIn(ctx context.Context, obj *ent.GameWhereInput, data []string) error
-	TheAssassinatedIDGt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
-	TheAssassinatedIDGte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
-	TheAssassinatedIDLt(ctx context.Context, obj *ent.GameWhereInput, data *string) error
-	TheAssassinatedIDLte(ctx context.Context, obj *ent.GameWhereInput, data *string) error
+	AssassinChance(ctx context.Context, obj *ent.GameWhereInput, data *int) error
+	AssassinChanceNeq(ctx context.Context, obj *ent.GameWhereInput, data *int) error
+	AssassinChanceIn(ctx context.Context, obj *ent.GameWhereInput, data []int) error
+	AssassinChanceNotIn(ctx context.Context, obj *ent.GameWhereInput, data []int) error
+	AssassinChanceGt(ctx context.Context, obj *ent.GameWhereInput, data *int) error
+	AssassinChanceGte(ctx context.Context, obj *ent.GameWhereInput, data *int) error
+	AssassinChanceLt(ctx context.Context, obj *ent.GameWhereInput, data *int) error
+	AssassinChanceLte(ctx context.Context, obj *ent.GameWhereInput, data *int) error
 }
 type MissionWhereInputResolver interface {
 	ID(ctx context.Context, obj *ent.MissionWhereInput, data *string) error
@@ -553,7 +540,8 @@ type UpdateGameInputResolver interface {
 	UpdatedBy(ctx context.Context, obj *ent.UpdateGameInput, data *string) error
 
 	Capacity(ctx context.Context, obj *ent.UpdateGameInput, data *int) error
-	TheAssassinatedID(ctx context.Context, obj *ent.UpdateGameInput, data *string) error
+
+	AssassinChance(ctx context.Context, obj *ent.UpdateGameInput, data *int) error
 	AddGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 	RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 	AddMissionIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
@@ -673,201 +661,6 @@ type VoteWhereInputResolver interface {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_act_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.ActRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNActRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐActRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_assassinate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.AssassinateRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNAssassinateRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐAssassinateRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_closeRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.RoomRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.CreateCardInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNCreateCardInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateCardInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.RoomRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.CreateRoomInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNCreateRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateRoomInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_joinRoomByShortCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.JoinRoomInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNJoinRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐJoinRoomInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_joinRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.CreateRoomUserInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNCreateRoomUserInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateRoomUserInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_leaveRoom_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ent.CreateRoomUserInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNCreateRoomUserInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateRoomUserInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_pickSquads_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []*ent.CreateSquadInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNCreateSquadInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateSquadInputᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_tempAssassinate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.AssassinateRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNAssassinateRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐAssassinateRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_tempPickSquads_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []*ent.CreateSquadInput
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalOCreateSquadInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateSquadInputᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_vote_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.VoteRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNVoteRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐVoteRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1873,8 +1666,8 @@ func (ec *executionContext) fieldContext_Game_capacity(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Game_theAssassinatedID(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Game_theAssassinatedID(ctx, field)
+func (ec *executionContext) _Game_theAssassinatedIds(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1887,7 +1680,7 @@ func (ec *executionContext) _Game_theAssassinatedID(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Game().TheAssassinatedID(rctx, obj)
+		return obj.TheAssassinatedIds, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1899,19 +1692,63 @@ func (ec *executionContext) _Game_theAssassinatedID(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Game_theAssassinatedID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Game_theAssassinatedIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Game",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Game_assassinChance(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Game_assassinChance(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Game().AssassinChance(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Game_assassinChance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Game",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2046,6 +1883,8 @@ func (ec *executionContext) fieldContext_Game_missions(ctx context.Context, fiel
 				return ec.fieldContext_Mission_capacity(ctx, field)
 			case "leaderID":
 				return ec.fieldContext_Mission_leaderID(ctx, field)
+			case "protected":
+				return ec.fieldContext_Mission_protected(ctx, field)
 			case "game":
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
@@ -2626,8 +2465,10 @@ func (ec *executionContext) fieldContext_GameUser_game(ctx context.Context, fiel
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
+			case "theAssassinatedIds":
+				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
+			case "assassinChance":
+				return ec.fieldContext_Game_assassinChance(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -3287,6 +3128,50 @@ func (ec *executionContext) fieldContext_Mission_leaderID(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Mission_protected(ctx context.Context, field graphql.CollectedField, obj *ent.Mission) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mission_protected(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Protected, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mission_protected(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mission",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mission_game(ctx context.Context, field graphql.CollectedField, obj *ent.Mission) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mission_game(ctx, field)
 	if err != nil {
@@ -3344,8 +3229,10 @@ func (ec *executionContext) fieldContext_Mission_game(ctx context.Context, field
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
+			case "theAssassinatedIds":
+				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
+			case "assassinChance":
+				return ec.fieldContext_Game_assassinChance(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -3489,956 +3376,6 @@ func (ec *executionContext) fieldContext_Mission_votes(ctx context.Context, fiel
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createRoom(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRoom(rctx, fc.Args["req"].(ent.CreateRoomInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Room)
-	fc.Result = res
-	return ec.marshalORoom2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoom(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Room_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Room_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Room_deletedAt(ctx, field)
-			case "name":
-				return ec.fieldContext_Room_name(ctx, field)
-			case "closed":
-				return ec.fieldContext_Room_closed(ctx, field)
-			case "gameOn":
-				return ec.fieldContext_Room_gameOn(ctx, field)
-			case "roomUsers":
-				return ec.fieldContext_Room_roomUsers(ctx, field)
-			case "games":
-				return ec.fieldContext_Room_games(ctx, field)
-			case "records":
-				return ec.fieldContext_Room_records(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_joinRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_joinRoom(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().JoinRoom(rctx, fc.Args["req"].(ent.CreateRoomUserInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.RoomUser)
-	fc.Result = res
-	return ec.marshalORoomUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoomUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_joinRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomUser_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_RoomUser_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_RoomUser_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_RoomUser_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_RoomUser_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_RoomUser_deletedAt(ctx, field)
-			case "userID":
-				return ec.fieldContext_RoomUser_userID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_RoomUser_roomID(ctx, field)
-			case "room":
-				return ec.fieldContext_RoomUser_room(ctx, field)
-			case "user":
-				return ec.fieldContext_RoomUser_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomUser", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_joinRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_leaveRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_leaveRoom(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().LeaveRoom(rctx, fc.Args["req"].(ent.CreateRoomUserInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.RoomUser)
-	fc.Result = res
-	return ec.marshalORoomUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoomUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_leaveRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomUser_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_RoomUser_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_RoomUser_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_RoomUser_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_RoomUser_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_RoomUser_deletedAt(ctx, field)
-			case "userID":
-				return ec.fieldContext_RoomUser_userID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_RoomUser_roomID(ctx, field)
-			case "room":
-				return ec.fieldContext_RoomUser_room(ctx, field)
-			case "user":
-				return ec.fieldContext_RoomUser_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomUser", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_leaveRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_closeRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_closeRoom(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CloseRoom(rctx, fc.Args["req"].(model.RoomRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Room)
-	fc.Result = res
-	return ec.marshalORoom2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoom(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_closeRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Room_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Room_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Room_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Room_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Room_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Room_deletedAt(ctx, field)
-			case "name":
-				return ec.fieldContext_Room_name(ctx, field)
-			case "closed":
-				return ec.fieldContext_Room_closed(ctx, field)
-			case "gameOn":
-				return ec.fieldContext_Room_gameOn(ctx, field)
-			case "roomUsers":
-				return ec.fieldContext_Room_roomUsers(ctx, field)
-			case "games":
-				return ec.fieldContext_Room_games(ctx, field)
-			case "records":
-				return ec.fieldContext_Room_records(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_closeRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createGame(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGame(rctx, fc.Args["req"].(model.RoomRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Game)
-	fc.Result = res
-	return ec.marshalOGame2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGame(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Game_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Game_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Game_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Game_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Game_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Game_deletedAt(ctx, field)
-			case "roomID":
-				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
-			case "capacity":
-				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
-			case "gameUsers":
-				return ec.fieldContext_Game_gameUsers(ctx, field)
-			case "missions":
-				return ec.fieldContext_Game_missions(ctx, field)
-			case "room":
-				return ec.fieldContext_Game_room(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Game", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createCard(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCard(rctx, fc.Args["req"].(ent.CreateCardInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Card)
-	fc.Result = res
-	return ec.marshalOCard2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCard(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Card_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Card_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Card_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Card_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Card_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Card_deletedAt(ctx, field)
-			case "name":
-				return ec.fieldContext_Card_name(ctx, field)
-			case "role":
-				return ec.fieldContext_Card_role(ctx, field)
-			case "tale":
-				return ec.fieldContext_Card_tale(ctx, field)
-			case "gameUsers":
-				return ec.fieldContext_Card_gameUsers(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Card", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_tempPickSquads(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_tempPickSquads(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TempPickSquads(rctx, fc.Args["req"].([]*ent.CreateSquadInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOID2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_tempPickSquads(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_tempPickSquads_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_pickSquads(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_pickSquads(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PickSquads(rctx, fc.Args["req"].([]*ent.CreateSquadInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.Squad)
-	fc.Result = res
-	return ec.marshalOSquad2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐSquadᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_pickSquads(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Squad_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Squad_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Squad_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Squad_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Squad_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Squad_deletedAt(ctx, field)
-			case "missionID":
-				return ec.fieldContext_Squad_missionID(ctx, field)
-			case "userID":
-				return ec.fieldContext_Squad_userID(ctx, field)
-			case "rat":
-				return ec.fieldContext_Squad_rat(ctx, field)
-			case "acted":
-				return ec.fieldContext_Squad_acted(ctx, field)
-			case "mission":
-				return ec.fieldContext_Squad_mission(ctx, field)
-			case "user":
-				return ec.fieldContext_Squad_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Squad", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_pickSquads_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_vote(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_vote(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Vote(rctx, fc.Args["req"].(model.VoteRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Vote)
-	fc.Result = res
-	return ec.marshalOVote2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVote(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_vote(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Vote_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Vote_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Vote_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Vote_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Vote_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Vote_deletedAt(ctx, field)
-			case "missionID":
-				return ec.fieldContext_Vote_missionID(ctx, field)
-			case "userID":
-				return ec.fieldContext_Vote_userID(ctx, field)
-			case "pass":
-				return ec.fieldContext_Vote_pass(ctx, field)
-			case "voted":
-				return ec.fieldContext_Vote_voted(ctx, field)
-			case "mission":
-				return ec.fieldContext_Vote_mission(ctx, field)
-			case "user":
-				return ec.fieldContext_Vote_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_vote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_act(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_act(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Act(rctx, fc.Args["req"].(model.ActRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Squad)
-	fc.Result = res
-	return ec.marshalOSquad2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐSquad(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_act(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Squad_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Squad_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Squad_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Squad_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Squad_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Squad_deletedAt(ctx, field)
-			case "missionID":
-				return ec.fieldContext_Squad_missionID(ctx, field)
-			case "userID":
-				return ec.fieldContext_Squad_userID(ctx, field)
-			case "rat":
-				return ec.fieldContext_Squad_rat(ctx, field)
-			case "acted":
-				return ec.fieldContext_Squad_acted(ctx, field)
-			case "mission":
-				return ec.fieldContext_Squad_mission(ctx, field)
-			case "user":
-				return ec.fieldContext_Squad_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Squad", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_act_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_tempAssassinate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_tempAssassinate(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TempAssassinate(rctx, fc.Args["req"].(model.AssassinateRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_tempAssassinate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_tempAssassinate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_assassinate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_assassinate(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Assassinate(rctx, fc.Args["req"].(model.AssassinateRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Game)
-	fc.Result = res
-	return ec.marshalOGame2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGame(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_assassinate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Game_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_Game_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_Game_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Game_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Game_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_Game_deletedAt(ctx, field)
-			case "roomID":
-				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
-			case "capacity":
-				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
-			case "gameUsers":
-				return ec.fieldContext_Game_gameUsers(ctx, field)
-			case "missions":
-				return ec.fieldContext_Game_missions(ctx, field)
-			case "room":
-				return ec.fieldContext_Game_room(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Game", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_assassinate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_joinRoomByShortCode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_joinRoomByShortCode(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().JoinRoomByShortCode(rctx, fc.Args["req"].(model.JoinRoomInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.RoomUser)
-	fc.Result = res
-	return ec.marshalORoomUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐRoomUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_joinRoomByShortCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoomUser_id(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_RoomUser_createdBy(ctx, field)
-			case "updatedBy":
-				return ec.fieldContext_RoomUser_updatedBy(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_RoomUser_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_RoomUser_updatedAt(ctx, field)
-			case "deletedAt":
-				return ec.fieldContext_RoomUser_deletedAt(ctx, field)
-			case "userID":
-				return ec.fieldContext_RoomUser_userID(ctx, field)
-			case "roomID":
-				return ec.fieldContext_RoomUser_roomID(ctx, field)
-			case "room":
-				return ec.fieldContext_RoomUser_room(ctx, field)
-			case "user":
-				return ec.fieldContext_RoomUser_user(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type RoomUser", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_joinRoomByShortCode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -4843,8 +3780,10 @@ func (ec *executionContext) fieldContext_Query_games(ctx context.Context, field 
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
+			case "theAssassinatedIds":
+				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
+			case "assassinChance":
+				return ec.fieldContext_Game_assassinChance(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -4993,6 +3932,8 @@ func (ec *executionContext) fieldContext_Query_missions(ctx context.Context, fie
 				return ec.fieldContext_Mission_capacity(ctx, field)
 			case "leaderID":
 				return ec.fieldContext_Mission_leaderID(ctx, field)
+			case "protected":
+				return ec.fieldContext_Mission_protected(ctx, field)
 			case "game":
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
@@ -5065,8 +4006,6 @@ func (ec *executionContext) fieldContext_Query_records(ctx context.Context, fiel
 				return ec.fieldContext_Record_score(ctx, field)
 			case "room":
 				return ec.fieldContext_Record_room(ctx, field)
-			case "user":
-				return ec.fieldContext_Record_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Record", field.Name)
 		},
@@ -5199,6 +4138,8 @@ func (ec *executionContext) fieldContext_Query_roomUsers(ctx context.Context, fi
 				return ec.fieldContext_RoomUser_userID(ctx, field)
 			case "roomID":
 				return ec.fieldContext_RoomUser_roomID(ctx, field)
+			case "host":
+				return ec.fieldContext_RoomUser_host(ctx, field)
 			case "room":
 				return ec.fieldContext_RoomUser_room(ctx, field)
 			case "user":
@@ -5638,8 +4579,10 @@ func (ec *executionContext) fieldContext_Query_getEndedGame(ctx context.Context,
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
+			case "theAssassinatedIds":
+				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
+			case "assassinChance":
+				return ec.fieldContext_Game_assassinChance(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -6445,58 +5388,6 @@ func (ec *executionContext) fieldContext_Record_room(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Record_user(ctx context.Context, field graphql.CollectedField, obj *ent.Record) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Record_user(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Record().User(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Record_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Record",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "phone":
-				return ec.fieldContext_User_phone(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Room_id(ctx context.Context, field graphql.CollectedField, obj *ent.Room) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Room_id(ctx, field)
 	if err != nil {
@@ -6945,6 +5836,8 @@ func (ec *executionContext) fieldContext_Room_roomUsers(ctx context.Context, fie
 				return ec.fieldContext_RoomUser_userID(ctx, field)
 			case "roomID":
 				return ec.fieldContext_RoomUser_roomID(ctx, field)
+			case "host":
+				return ec.fieldContext_RoomUser_host(ctx, field)
 			case "room":
 				return ec.fieldContext_RoomUser_room(ctx, field)
 			case "user":
@@ -7010,8 +5903,10 @@ func (ec *executionContext) fieldContext_Room_games(ctx context.Context, field g
 				return ec.fieldContext_Game_endBy(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
-			case "theAssassinatedID":
-				return ec.fieldContext_Game_theAssassinatedID(ctx, field)
+			case "theAssassinatedIds":
+				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
+			case "assassinChance":
+				return ec.fieldContext_Game_assassinChance(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -7081,8 +5976,6 @@ func (ec *executionContext) fieldContext_Room_records(ctx context.Context, field
 				return ec.fieldContext_Record_score(ctx, field)
 			case "room":
 				return ec.fieldContext_Record_room(ctx, field)
-			case "user":
-				return ec.fieldContext_Record_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Record", field.Name)
 		},
@@ -7437,6 +6330,50 @@ func (ec *executionContext) fieldContext_RoomUser_roomID(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoomUser_host(ctx context.Context, field graphql.CollectedField, obj *ent.RoomUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoomUser_host(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Host, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoomUser_host(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoomUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8067,6 +7004,8 @@ func (ec *executionContext) fieldContext_Squad_mission(ctx context.Context, fiel
 				return ec.fieldContext_Mission_capacity(ctx, field)
 			case "leaderID":
 				return ec.fieldContext_Mission_leaderID(ctx, field)
+			case "protected":
+				return ec.fieldContext_Mission_protected(ctx, field)
 			case "game":
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
@@ -8127,138 +7066,6 @@ func (ec *executionContext) fieldContext_Squad_user(ctx context.Context, field g
 				return ec.fieldContext_User_phone(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_phone(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_phone(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Phone, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8767,6 +7574,8 @@ func (ec *executionContext) fieldContext_Vote_mission(ctx context.Context, field
 				return ec.fieldContext_Mission_capacity(ctx, field)
 			case "leaderID":
 				return ec.fieldContext_Mission_leaderID(ctx, field)
+			case "protected":
+				return ec.fieldContext_Mission_protected(ctx, field)
 			case "game":
 				return ec.fieldContext_Mission_game(ctx, field)
 			case "squads":
@@ -8835,78 +7644,6 @@ func (ec *executionContext) fieldContext_Vote_user(ctx context.Context, field gr
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
-
-func (ec *executionContext) unmarshalInputActRequest(ctx context.Context, obj interface{}) (model.ActRequest, error) {
-	var it model.ActRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"squadID", "rat"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "squadID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("squadID"))
-			it.SquadID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "rat":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rat"))
-			it.Rat, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputAssassinateRequest(ctx context.Context, obj interface{}) (model.AssassinateRequest, error) {
-	var it model.AssassinateRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"gameID", "theAssassinatedID"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "gameID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameID"))
-			it.GameID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "theAssassinatedID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedID"))
-			it.TheAssassinatedID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
 
 func (ec *executionContext) unmarshalInputCardOrder(ctx context.Context, obj interface{}) (ent.CardOrder, error) {
 	var it ent.CardOrder
@@ -9740,7 +8477,7 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedID", "gameUserIDs", "missionIDs", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedIds", "assassinChance", "gameUserIDs", "missionIDs", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9812,15 +8549,23 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 			if err = ec.resolvers.CreateGameInput().Capacity(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedID":
+		case "theAssassinatedIds":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedID"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIds"))
+			it.TheAssassinatedIds, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.CreateGameInput().TheAssassinatedID(ctx, &it, data); err != nil {
+		case "assassinChance":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChance"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.CreateGameInput().AssassinChance(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "gameUserIDs":
@@ -9979,7 +8724,7 @@ func (ec *executionContext) unmarshalInputCreateMissionInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leaderID", "gameID", "squadIDs", "voteIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leaderID", "protected", "gameID", "squadIDs", "voteIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10079,6 +8824,14 @@ func (ec *executionContext) unmarshalInputCreateMissionInput(ctx context.Context
 				return it, err
 			}
 			if err = ec.resolvers.CreateMissionInput().LeaderID(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "protected":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protected"))
+			it.Protected, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "gameID":
@@ -10346,7 +9099,7 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "host", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10408,6 +9161,14 @@ func (ec *executionContext) unmarshalInputCreateRoomUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.CreateRoomUserInput().UserID(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "host":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			it.Host, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "roomID":
@@ -11518,7 +10279,7 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "endBy", "endByNEQ", "endByIn", "endByNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "theAssassinatedID", "theAssassinatedIDNEQ", "theAssassinatedIDIn", "theAssassinatedIDNotIn", "theAssassinatedIDGT", "theAssassinatedIDGTE", "theAssassinatedIDLT", "theAssassinatedIDLTE", "hasGameUsers", "hasGameUsersWith", "hasMissions", "hasMissionsWith", "hasRoom", "hasRoomWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "endBy", "endByNEQ", "endByIn", "endByNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "assassinChance", "assassinChanceNEQ", "assassinChanceIn", "assassinChanceNotIn", "assassinChanceGT", "assassinChanceGTE", "assassinChanceLT", "assassinChanceLTE", "hasGameUsers", "hasGameUsersWith", "hasMissions", "hasMissionsWith", "hasRoom", "hasRoomWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12169,92 +10930,92 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 			if err = ec.resolvers.GameWhereInput().CapacityLte(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedID":
+		case "assassinChance":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedID"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChance"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedID(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChance(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDNEQ":
+		case "assassinChanceNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDNEQ"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceNEQ"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDNeq(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceNeq(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDIn":
+		case "assassinChanceIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDIn"))
-			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDIn(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceIn(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDNotIn":
+		case "assassinChanceNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDNotIn"))
-			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceNotIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDNotIn(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDGT":
+		case "assassinChanceGT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDGT"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceGT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDGt(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceGt(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDGTE":
+		case "assassinChanceGTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDGTE"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceGTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDGte(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceGte(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDLT":
+		case "assassinChanceLT":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDLT"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceLT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDLt(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceLt(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedIDLTE":
+		case "assassinChanceLTE":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIDLTE"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChanceLTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.GameWhereInput().TheAssassinatedIDLte(ctx, &it, data); err != nil {
+			if err = ec.resolvers.GameWhereInput().AssassinChanceLte(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "hasGameUsers":
@@ -12311,42 +11072,6 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputJoinRoomInput(ctx context.Context, obj interface{}) (model.JoinRoomInput, error) {
-	var it model.JoinRoomInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"shortCode", "userID"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "shortCode":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shortCode"))
-			it.ShortCode, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "userID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputMissionOrder(ctx context.Context, obj interface{}) (ent.MissionOrder, error) {
 	var it ent.MissionOrder
 	asMap := map[string]interface{}{}
@@ -12394,7 +11119,7 @@ func (ec *executionContext) unmarshalInputMissionWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "sequence", "sequenceNEQ", "sequenceIn", "sequenceNotIn", "sequenceGT", "sequenceGTE", "sequenceLT", "sequenceLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "failed", "failedNEQ", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "leaderID", "leaderIDNEQ", "leaderIDIn", "leaderIDNotIn", "leaderIDGT", "leaderIDGTE", "leaderIDLT", "leaderIDLTE", "hasGame", "hasGameWith", "hasSquads", "hasSquadsWith", "hasVotes", "hasVotesWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "sequence", "sequenceNEQ", "sequenceIn", "sequenceNotIn", "sequenceGT", "sequenceGTE", "sequenceLT", "sequenceLTE", "status", "statusNEQ", "statusIn", "statusNotIn", "failed", "failedNEQ", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "leaderID", "leaderIDNEQ", "leaderIDIn", "leaderIDNotIn", "leaderIDGT", "leaderIDGTE", "leaderIDLT", "leaderIDLTE", "protected", "protectedNEQ", "hasGame", "hasGameWith", "hasSquads", "hasSquadsWith", "hasVotes", "hasVotesWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13235,6 +11960,22 @@ func (ec *executionContext) unmarshalInputMissionWhereInput(ctx context.Context,
 				return it, err
 			}
 			if err = ec.resolvers.MissionWhereInput().LeaderIDLte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "protected":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protected"))
+			it.Protected, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "protectedNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protectedNEQ"))
+			it.ProtectedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "hasGame":
@@ -14130,7 +12871,7 @@ func (ec *executionContext) unmarshalInputRoomUserWhereInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "hasRoom", "hasRoomWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "host", "hostNEQ", "hasRoom", "hasRoomWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -14747,6 +13488,22 @@ func (ec *executionContext) unmarshalInputRoomUserWhereInput(ctx context.Context
 				return it, err
 			}
 			if err = ec.resolvers.RoomUserWhereInput().RoomIDNotIn(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "host":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			it.Host, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hostNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hostNEQ"))
+			it.HostNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "hasRoom":
@@ -16286,7 +15043,7 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedID", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedIds", "appendTheAssassinatedIds", "assassinChance", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16350,15 +15107,31 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 			if err = ec.resolvers.UpdateGameInput().Capacity(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "theAssassinatedID":
+		case "theAssassinatedIds":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedID"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIds"))
+			it.TheAssassinatedIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			if err = ec.resolvers.UpdateGameInput().TheAssassinatedID(ctx, &it, data); err != nil {
+		case "appendTheAssassinatedIds":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appendTheAssassinatedIds"))
+			it.AppendTheAssassinatedIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "assassinChance":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assassinChance"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.UpdateGameInput().AssassinChance(ctx, &it, data); err != nil {
 				return it, err
 			}
 		case "addGameUserIDs":
@@ -16555,7 +15328,7 @@ func (ec *executionContext) unmarshalInputUpdateMissionInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leaderID", "clearGame", "gameID", "addSquadIDs", "removeSquadIDs", "addVoteIDs", "removeVoteIDs"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "sequence", "status", "failed", "capacity", "leaderID", "protected", "clearGame", "gameID", "addSquadIDs", "removeSquadIDs", "addVoteIDs", "removeVoteIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16647,6 +15420,14 @@ func (ec *executionContext) unmarshalInputUpdateMissionInput(ctx context.Context
 				return it, err
 			}
 			if err = ec.resolvers.UpdateMissionInput().LeaderID(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "protected":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("protected"))
+			it.Protected, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "clearGame":
@@ -16969,7 +15750,7 @@ func (ec *executionContext) unmarshalInputUpdateRoomUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "clearRoom", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "host", "clearRoom", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17023,6 +15804,14 @@ func (ec *executionContext) unmarshalInputUpdateRoomUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.UpdateRoomUserInput().UserID(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "host":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			it.Host, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "clearRoom":
@@ -17258,34 +16047,6 @@ func (ec *executionContext) unmarshalInputUpdateVoteInput(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserRequest(ctx context.Context, obj interface{}) (model.UserRequest, error) {
-	var it model.UserRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"id"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputVoteOrder(ctx context.Context, obj interface{}) (ent.VoteOrder, error) {
 	var it ent.VoteOrder
 	asMap := map[string]interface{}{}
@@ -17317,42 +16078,6 @@ func (ec *executionContext) unmarshalInputVoteOrder(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			it.Field, err = ec.unmarshalNVoteOrderField2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteOrderField(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputVoteRequest(ctx context.Context, obj interface{}) (model.VoteRequest, error) {
-	var it model.VoteRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"voteID", "pass"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "voteID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("voteID"))
-			it.VoteID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "pass":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pass"))
-			it.Pass, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -18382,7 +17107,14 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "theAssassinatedID":
+		case "theAssassinatedIds":
+
+			out.Values[i] = ec._Game_theAssassinatedIds(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "assassinChance":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -18391,7 +17123,7 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Game_theAssassinatedID(ctx, field, obj)
+				res = ec._Game_assassinChance(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -18894,6 +17626,13 @@ func (ec *executionContext) _Mission(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
+		case "protected":
+
+			out.Values[i] = ec._Mission_protected(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "game":
 			field := field
 
@@ -18948,114 +17687,6 @@ func (ec *executionContext) _Mission(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var mutationImplementors = []string{"Mutation"}
-
-func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Mutation",
-	})
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
-			Object: field.Name,
-			Field:  field,
-		})
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createRoom":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createRoom(ctx, field)
-			})
-
-		case "joinRoom":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_joinRoom(ctx, field)
-			})
-
-		case "leaveRoom":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_leaveRoom(ctx, field)
-			})
-
-		case "closeRoom":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_closeRoom(ctx, field)
-			})
-
-		case "createGame":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createGame(ctx, field)
-			})
-
-		case "createCard":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createCard(ctx, field)
-			})
-
-		case "tempPickSquads":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_tempPickSquads(ctx, field)
-			})
-
-		case "pickSquads":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_pickSquads(ctx, field)
-			})
-
-		case "vote":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_vote(ctx, field)
-			})
-
-		case "act":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_act(ctx, field)
-			})
-
-		case "tempAssassinate":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_tempAssassinate(ctx, field)
-			})
-
-		case "assassinate":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_assassinate(ctx, field)
-			})
-
-		case "joinRoomByShortCode":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_joinRoomByShortCode(ctx, field)
-			})
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19709,26 +18340,6 @@ func (ec *executionContext) _Record(ctx context.Context, sel ast.SelectionSet, o
 				return innerFunc(ctx)
 
 			})
-		case "user":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Record_user(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20045,6 +18656,13 @@ func (ec *executionContext) _RoomUser(ctx context.Context, sel ast.SelectionSet,
 				return innerFunc(ctx)
 
 			})
+		case "host":
+
+			out.Values[i] = ec._RoomUser_host(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "room":
 			field := field
 
@@ -20292,48 +18910,6 @@ func (ec *executionContext) _Squad(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
-var userImplementors = []string{"User", "_Entity"}
-
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("User")
-		case "id":
-
-			out.Values[i] = ec._User_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-
-			out.Values[i] = ec._User_name(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "phone":
-
-			out.Values[i] = ec._User_phone(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var voteImplementors = []string{"Vote", "Node"}
 
 func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj *ent.Vote) graphql.Marshaler {
@@ -20533,16 +19109,6 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
-
-func (ec *executionContext) unmarshalNActRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐActRequest(ctx context.Context, v interface{}) (model.ActRequest, error) {
-	res, err := ec.unmarshalInputActRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNAssassinateRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐAssassinateRequest(ctx context.Context, v interface{}) (model.AssassinateRequest, error) {
-	res, err := ec.unmarshalInputAssassinateRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
 
 func (ec *executionContext) marshalNCard2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCardᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Card) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
@@ -20834,11 +19400,6 @@ func (ec *executionContext) unmarshalNGameUserWhereInput2ᚖgithubᚗcomᚋstark
 func (ec *executionContext) unmarshalNGameWhereInput2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameWhereInput(ctx context.Context, v interface{}) (*ent.GameWhereInput, error) {
 	res, err := ec.unmarshalInputGameWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNJoinRoomInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐJoinRoomInput(ctx context.Context, v interface{}) (model.JoinRoomInput, error) {
-	res, err := ec.unmarshalInputJoinRoomInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNMission2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐMissionᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Mission) graphql.Marshaler {
@@ -21294,25 +19855,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUserRequest(ctx context.Context, v interface{}) (model.UserRequest, error) {
-	res, err := ec.unmarshalInputUserRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNVote2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Vote) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -21381,11 +19923,6 @@ func (ec *executionContext) marshalNVoteOrderField2ᚖgithubᚗcomᚋstarkᚑsim
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) unmarshalNVoteRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐVoteRequest(ctx context.Context, v interface{}) (model.VoteRequest, error) {
-	res, err := ec.unmarshalInputVoteRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNVoteWhereInput2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐVoteWhereInput(ctx context.Context, v interface{}) (ent.VoteWhereInput, error) {

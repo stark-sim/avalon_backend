@@ -45,8 +45,8 @@ func main() {
 		schema.WithDialect(dbConf.Driver),
 		// 移除外键约束
 		schema.WithForeignKeys(false),
-		// 不可删字段
-		schema.WithDropColumn(false),
+		// 可删字段
+		schema.WithDropColumn(true),
 		// 可删索引
 		schema.WithDropIndex(true),
 	}

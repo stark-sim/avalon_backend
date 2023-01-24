@@ -16,9 +16,9 @@ type Room struct {
 // Fields of the Card.
 func (Room) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").Default("").Annotations(entgql.OrderField("NAME")).StructTag(`json:"name"`),
-		field.Bool("closed").Default(false).StructTag(`json:"closed"`),
-		field.Bool("game_on").Default(false).StructTag(`json:"game_on"`),
+		field.String("name").Default("").Annotations(entgql.OrderField("NAME")).StructTag(`json:"name"`).Comment("房间名"),
+		field.Bool("closed").Default(false).StructTag(`json:"closed"`).Comment("房间是否已关闭"),
+		field.Bool("game_on").Default(false).StructTag(`json:"game_on"`).Comment("房间是否有游戏进行中"),
 	}
 }
 

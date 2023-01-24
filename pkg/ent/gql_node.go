@@ -143,7 +143,7 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ga.ID,
 		Type:   "Game",
-		Fields: make([]*Field, 9),
+		Fields: make([]*Field, 10),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -211,12 +211,20 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "capacity",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(ga.TheAssassinatedID); err != nil {
+	if buf, err = json.Marshal(ga.TheAssassinatedIds); err != nil {
 		return nil, err
 	}
 	node.Fields[8] = &Field{
-		Type:  "int64",
-		Name:  "the_assassinated_id",
+		Type:  "[]string",
+		Name:  "the_assassinated_ids",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ga.AssassinChance); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "uint8",
+		Name:  "assassin_chance",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -359,7 +367,7 @@ func (m *Mission) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     m.ID,
 		Type:   "Mission",
-		Fields: make([]*Field, 11),
+		Fields: make([]*Field, 12),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -449,6 +457,14 @@ func (m *Mission) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[10] = &Field{
 		Type:  "int64",
 		Name:  "leader_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(m.Protected); err != nil {
+		return nil, err
+	}
+	node.Fields[11] = &Field{
+		Type:  "bool",
+		Name:  "protected",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{
@@ -678,7 +694,7 @@ func (ru *RoomUser) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ru.ID,
 		Type:   "RoomUser",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 8),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -736,6 +752,14 @@ func (ru *RoomUser) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[6] = &Field{
 		Type:  "int64",
 		Name:  "room_id",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ru.Host); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "bool",
+		Name:  "host",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

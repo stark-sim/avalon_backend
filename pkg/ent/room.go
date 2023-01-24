@@ -26,11 +26,11 @@ type Room struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// Name holds the value of the "name" field.
+	// 房间名
 	Name string `json:"name"`
-	// Closed holds the value of the "closed" field.
+	// 房间是否已关闭
 	Closed bool `json:"closed"`
-	// GameOn holds the value of the "game_on" field.
+	// 房间是否有游戏进行中
 	GameOn bool `json:"game_on"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoomQuery when eager-loading is set.

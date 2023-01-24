@@ -16,10 +16,11 @@ type Game struct {
 // Fields of the Game.
 func (Game) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("room_id").StructTag(`json:"room_id"`),
-		field.Enum("end_by").Values("none", "blue", "red", "slayer").Default("none").StructTag(`json:"end_by"`),
+		field.Int64("room_id").StructTag(`json:"room_id"`).Comment("所属房间 ID"),
+		field.Enum("end_by").Values("none", "blue", "red", "assassination").Default("none").StructTag(`json:"end_by"`).Comment("游戏结束方式"),
 		field.Uint8("capacity").Default(0).StructTag(`json:"capacity"`).Comment("游戏人数"),
-		field.Int64("the_assassinated_id").Default(0).StructTag(`json:"the_assassinated_id"`).Comment("被刺杀者").Annotations(entgql.Type("ID")),
+		field.Strings("the_assassinated_ids").StructTag(`json:"the_assassinated_ids"`).Comment("被刺杀者[们] ID"),
+		field.Uint8("assassin_chance").StructTag(`json:"assassin_chance"`).Default(1).Comment("刺杀机会，默认为 1 次"),
 	}
 }
 

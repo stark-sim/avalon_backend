@@ -20,11 +20,16 @@ enum CardName @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/card.
   Bors
   Bedivere
   Gawain
+  Kay
+  Ector
   Mordred
   Morgana
   Oberon
-  Assassin
+  Agravain
   Lancelot
+  Kevin
+  Stuart
+  Bob
 }
 """Ordering options for Card connections"""
 input CardOrder {
@@ -49,9 +54,9 @@ enum CardRole @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/card.
   Enchantress
   Assassin
   Erlking
-  Vassal
   Ace
   Sinner
+  Minion
 }
 """
 CardWhereInput is used for filtering Card objects.
@@ -168,11 +173,14 @@ input CreateGameInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """游戏结束方式"""
   endBy: GameEndBy
   """游戏人数"""
   capacity: Int
-  """被刺杀者"""
-  theAssassinatedID: ID
+  """被刺杀者[们] ID"""
+  theAssassinatedIds: [String!]!
+  """刺杀机会，默认为 1 次"""
+  assassinChance: Int
   gameUserIDs: [ID!]
   missionIDs: [ID!]
   roomID: ID!
@@ -187,7 +195,9 @@ input CreateGameUserInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID!
+  """排序，号数"""
   number: Int!
   gameID: ID!
   cardID: ID!
@@ -202,12 +212,18 @@ input CreateMissionInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """排序"""
   sequence: Int!
+  """任务状态"""
   status: MissionStatus
+  """是否失败"""
   failed: Boolean
-  """任务人数"""
+  """需出征人数"""
   capacity: Int
+  """队长用户 ID"""
   leaderID: ID
+  """是否保护轮"""
+  protected: Boolean
   gameID: ID!
   squadIDs: [ID!]
   voteIDs: [ID!]
@@ -222,7 +238,9 @@ input CreateRecordInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID!
+  """分数"""
   score: Int
   roomID: ID!
 }
@@ -236,8 +254,11 @@ input CreateRoomInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """房间名"""
   name: String
+  """房间是否已关闭"""
   closed: Boolean
+  """房间是否有游戏进行中"""
   gameOn: Boolean
   roomUserIDs: [ID!]
   gameIDs: [ID!]
@@ -253,7 +274,10 @@ input CreateRoomUserInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID!
+  """是否为房主"""
+  host: Boolean
   roomID: ID!
 }
 """
@@ -266,6 +290,7 @@ input CreateSquadInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID!
   """是否破坏任务"""
   rat: Boolean
@@ -283,6 +308,7 @@ input CreateVoteInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID!
   """是否赞同目前小队出征"""
   pass: Boolean
@@ -302,12 +328,16 @@ type Game implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """所属房间 ID"""
   roomID: ID!
+  """游戏结束方式"""
   endBy: GameEndBy!
   """游戏人数"""
   capacity: Int!
-  """被刺杀者"""
-  theAssassinatedID: ID!
+  """被刺杀者[们] ID"""
+  theAssassinatedIds: [String!]!
+  """刺杀机会，默认为 1 次"""
+  assassinChance: Int!
   gameUsers: [GameUser!]
   missions: [Mission!]
   room: Room!
@@ -317,7 +347,7 @@ enum GameEndBy @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/game
   none
   blue
   red
-  slayer
+  assassination
 }
 """Ordering options for Game connections"""
 input GameOrder {
@@ -339,13 +369,16 @@ type GameUser implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """用户 ID"""
   userID: ID!
+  """游戏 ID"""
   gameID: ID!
+  """卡牌 ID"""
   cardID: ID!
+  """排序，号数"""
   number: Int!
   game: Game!
   card: Card!
-  user: User!
 }
 """Ordering options for GameUser connections"""
 input GameUserOrder {
@@ -538,15 +571,15 @@ input GameWhereInput {
   capacityGTE: Int
   capacityLT: Int
   capacityLTE: Int
-  """the_assassinated_id field predicates"""
-  theAssassinatedID: ID
-  theAssassinatedIDNEQ: ID
-  theAssassinatedIDIn: [ID!]
-  theAssassinatedIDNotIn: [ID!]
-  theAssassinatedIDGT: ID
-  theAssassinatedIDGTE: ID
-  theAssassinatedIDLT: ID
-  theAssassinatedIDLTE: ID
+  """assassin_chance field predicates"""
+  assassinChance: Int
+  assassinChanceNEQ: Int
+  assassinChanceIn: [Int!]
+  assassinChanceNotIn: [Int!]
+  assassinChanceGT: Int
+  assassinChanceGTE: Int
+  assassinChanceLT: Int
+  assassinChanceLTE: Int
   """game_users edge predicates"""
   hasGameUsers: Boolean
   hasGameUsersWith: [GameUserWhereInput!]
@@ -564,13 +597,20 @@ type Mission implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """排序"""
   sequence: Int!
+  """任务状态"""
   status: MissionStatus!
+  """是否失败"""
   failed: Boolean!
+  """所属游戏 ID"""
   gameID: ID!
-  """任务人数"""
+  """需出征人数"""
   capacity: Int!
+  """队长用户 ID"""
   leaderID: ID!
+  """是否保护轮"""
+  protected: Boolean!
   game: Game!
   squads: [Squad!]
   votes: [Vote!]
@@ -698,6 +738,9 @@ input MissionWhereInput {
   leaderIDGTE: ID
   leaderIDLT: ID
   leaderIDLTE: ID
+  """protected field predicates"""
+  protected: Boolean
+  protectedNEQ: Boolean
   """game edge predicates"""
   hasGame: Boolean
   hasGameWith: [GameWhereInput!]
@@ -765,11 +808,13 @@ type Record implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """用户 ID"""
   userID: ID!
+  """房间 ID"""
   roomID: ID!
+  """分数"""
   score: Int!
   room: Room!
-  user: User!
 }
 """Ordering options for Record connections"""
 input RecordOrder {
@@ -880,8 +925,11 @@ type Room implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """房间名"""
   name: String!
+  """房间是否已关闭"""
   closed: Boolean!
+  """房间是否有游戏进行中"""
   gameOn: Boolean!
   roomUsers: [RoomUser!]
   games: [Game!]
@@ -908,10 +956,13 @@ type RoomUser implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """用户 ID"""
   userID: ID!
+  """房间 ID"""
   roomID: ID!
+  """是否为房主"""
+  host: Boolean!
   room: Room!
-  user: User!
 }
 """Ordering options for RoomUser connections"""
 input RoomUserOrder {
@@ -1002,6 +1053,9 @@ input RoomUserWhereInput {
   roomIDNEQ: ID
   roomIDIn: [ID!]
   roomIDNotIn: [ID!]
+  """host field predicates"""
+  host: Boolean
+  hostNEQ: Boolean
   """room edge predicates"""
   hasRoom: Boolean
   hasRoomWith: [RoomWhereInput!]
@@ -1105,14 +1159,15 @@ type Squad implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """所属任务 ID"""
   missionID: ID!
+  """用户 ID"""
   userID: ID!
   """是否破坏任务"""
   rat: Boolean!
   """是否已经行动"""
   acted: Boolean!
   mission: Mission!
-  user: User!
 }
 """Ordering options for Squad connections"""
 input SquadOrder {
@@ -1239,11 +1294,15 @@ input UpdateGameInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """游戏结束方式"""
   endBy: GameEndBy
   """游戏人数"""
   capacity: Int
-  """被刺杀者"""
-  theAssassinatedID: ID
+  """被刺杀者[们] ID"""
+  theAssassinatedIds: [String!]
+  appendTheAssassinatedIds: [String!]
+  """刺杀机会，默认为 1 次"""
+  assassinChance: Int
   addGameUserIDs: [ID!]
   removeGameUserIDs: [ID!]
   addMissionIDs: [ID!]
@@ -1260,7 +1319,9 @@ input UpdateGameUserInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID
+  """排序，号数"""
   number: Int
   clearGame: Boolean
   gameID: ID
@@ -1276,12 +1337,18 @@ input UpdateMissionInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """排序"""
   sequence: Int
+  """任务状态"""
   status: MissionStatus
+  """是否失败"""
   failed: Boolean
-  """任务人数"""
+  """需出征人数"""
   capacity: Int
+  """队长用户 ID"""
   leaderID: ID
+  """是否保护轮"""
+  protected: Boolean
   clearGame: Boolean
   gameID: ID
   addSquadIDs: [ID!]
@@ -1298,7 +1365,9 @@ input UpdateRecordInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID
+  """分数"""
   score: Int
   clearRoom: Boolean
   roomID: ID
@@ -1312,8 +1381,11 @@ input UpdateRoomInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """房间名"""
   name: String
+  """房间是否已关闭"""
   closed: Boolean
+  """房间是否有游戏进行中"""
   gameOn: Boolean
   addRoomUserIDs: [ID!]
   removeRoomUserIDs: [ID!]
@@ -1331,7 +1403,10 @@ input UpdateRoomUserInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID
+  """是否为房主"""
+  host: Boolean
   clearRoom: Boolean
   roomID: ID
 }
@@ -1344,6 +1419,7 @@ input UpdateSquadInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID
   """是否破坏任务"""
   rat: Boolean
@@ -1361,6 +1437,7 @@ input UpdateVoteInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """用户 ID"""
   userID: ID
   """是否赞同目前小队出征"""
   pass: Boolean
@@ -1376,14 +1453,15 @@ type Vote implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """所属任务 ID"""
   missionID: ID!
+  """用户 ID"""
   userID: ID!
   """是否赞同目前小队出征"""
   pass: Boolean!
   """是否已投票"""
   voted: Boolean!
   mission: Mission!
-  user: User!
 }
 """Ordering options for Vote connections"""
 input VoteOrder {
@@ -1483,63 +1561,4 @@ input VoteWhereInput {
   """mission edge predicates"""
   hasMission: Boolean
   hasMissionWith: [MissionWhereInput!]
-}
-
-type Mutation {
-  createRoom(req: CreateRoomInput!): Room
-  joinRoom(req: CreateRoomUserInput!): RoomUser
-  leaveRoom(req: CreateRoomUserInput!): RoomUser
-  closeRoom(req: RoomRequest!): Room
-  createGame(req: RoomRequest!): Game
-  createCard(req: CreateCardInput!): Card
-  tempPickSquads(req: [CreateSquadInput!]): [ID!]
-  pickSquads(req: [CreateSquadInput!]!): [Squad!]
-  vote(req: VoteRequest!): Vote
-  act(req: ActRequest!): Squad
-  tempAssassinate(req: AssassinateRequest!): ID
-  assassinate(req: AssassinateRequest!): Game
-  joinRoomByShortCode(req: JoinRoomInput!): RoomUser
-}
-
-input VoteRequest {
-  voteID: ID!
-  pass: Boolean!
-}
-
-input ActRequest {
-  squadID: ID!
-  rat: Boolean!
-}
-
-input AssassinateRequest {
-  gameID: ID!
-  theAssassinatedID: ID!
-}
-
-extend type Query {
-  """查询自己是否在某个未关闭的房间中，不在返回空"""
-  getJoinedRoom(req: UserRequest!): Room
-  """查询自己在某个 Mission 的 Vote，不用投票的返回空"""
-  getVoteInMission(req: VoteWhereInput!): Vote
-  """查询自己在某个 Mission 的 Squad，不用行动的返回空"""
-  getSquadInMission(req: SquadWhereInput!): Squad
-  """任务们结束时，查询 Game 的结算状态，如果任务们没有结束，返回空"""
-  getEndedGame(req: GameRequest!): Game
-  """获取刺杀环节信息盘，红方亮身份，蓝色不亮身份"""
-  getVagueGameUsers(req: GameRequest!): [GameUser!]!
-}
-
-input UserRequest {
-  id: String!
-}
-
-input JoinRoomInput {
-  shortCode: String!
-  userID: ID!
-}
-
-type User @key(fields: "id", resolvable: false) {
-  id: ID!
-  name: String! @external
-  phone: String! @external
 }

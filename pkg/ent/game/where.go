@@ -130,10 +130,10 @@ func Capacity(v uint8) predicate.Game {
 	})
 }
 
-// TheAssassinatedID applies equality check predicate on the "the_assassinated_id" field. It's identical to TheAssassinatedIDEQ.
-func TheAssassinatedID(v int64) predicate.Game {
+// AssassinChance applies equality check predicate on the "assassin_chance" field. It's identical to AssassinChanceEQ.
+func AssassinChance(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.EQ(s.C(FieldAssassinChance), v))
 	})
 }
 
@@ -593,67 +593,67 @@ func CapacityLTE(v uint8) predicate.Game {
 	})
 }
 
-// TheAssassinatedIDEQ applies the EQ predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDEQ(v int64) predicate.Game {
+// AssassinChanceEQ applies the EQ predicate on the "assassin_chance" field.
+func AssassinChanceEQ(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.EQ(s.C(FieldAssassinChance), v))
 	})
 }
 
-// TheAssassinatedIDNEQ applies the NEQ predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDNEQ(v int64) predicate.Game {
+// AssassinChanceNEQ applies the NEQ predicate on the "assassin_chance" field.
+func AssassinChanceNEQ(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.NEQ(s.C(FieldAssassinChance), v))
 	})
 }
 
-// TheAssassinatedIDIn applies the In predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDIn(vs ...int64) predicate.Game {
+// AssassinChanceIn applies the In predicate on the "assassin_chance" field.
+func AssassinChanceIn(vs ...uint8) predicate.Game {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTheAssassinatedID), v...))
+		s.Where(sql.In(s.C(FieldAssassinChance), v...))
 	})
 }
 
-// TheAssassinatedIDNotIn applies the NotIn predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDNotIn(vs ...int64) predicate.Game {
+// AssassinChanceNotIn applies the NotIn predicate on the "assassin_chance" field.
+func AssassinChanceNotIn(vs ...uint8) predicate.Game {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTheAssassinatedID), v...))
+		s.Where(sql.NotIn(s.C(FieldAssassinChance), v...))
 	})
 }
 
-// TheAssassinatedIDGT applies the GT predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDGT(v int64) predicate.Game {
+// AssassinChanceGT applies the GT predicate on the "assassin_chance" field.
+func AssassinChanceGT(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.GT(s.C(FieldAssassinChance), v))
 	})
 }
 
-// TheAssassinatedIDGTE applies the GTE predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDGTE(v int64) predicate.Game {
+// AssassinChanceGTE applies the GTE predicate on the "assassin_chance" field.
+func AssassinChanceGTE(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.GTE(s.C(FieldAssassinChance), v))
 	})
 }
 
-// TheAssassinatedIDLT applies the LT predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDLT(v int64) predicate.Game {
+// AssassinChanceLT applies the LT predicate on the "assassin_chance" field.
+func AssassinChanceLT(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.LT(s.C(FieldAssassinChance), v))
 	})
 }
 
-// TheAssassinatedIDLTE applies the LTE predicate on the "the_assassinated_id" field.
-func TheAssassinatedIDLTE(v int64) predicate.Game {
+// AssassinChanceLTE applies the LTE predicate on the "assassin_chance" field.
+func AssassinChanceLTE(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTheAssassinatedID), v))
+		s.Where(sql.LTE(s.C(FieldAssassinChance), v))
 	})
 }
 

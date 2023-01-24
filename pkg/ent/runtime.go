@@ -87,10 +87,10 @@ func init() {
 	gameDescCapacity := gameFields[2].Descriptor()
 	// game.DefaultCapacity holds the default value on creation for the capacity field.
 	game.DefaultCapacity = gameDescCapacity.Default.(uint8)
-	// gameDescTheAssassinatedID is the schema descriptor for the_assassinated_id field.
-	gameDescTheAssassinatedID := gameFields[3].Descriptor()
-	// game.DefaultTheAssassinatedID holds the default value on creation for the the_assassinated_id field.
-	game.DefaultTheAssassinatedID = gameDescTheAssassinatedID.Default.(int64)
+	// gameDescAssassinChance is the schema descriptor for assassin_chance field.
+	gameDescAssassinChance := gameFields[4].Descriptor()
+	// game.DefaultAssassinChance holds the default value on creation for the assassin_chance field.
+	game.DefaultAssassinChance = gameDescAssassinChance.Default.(uint8)
 	// gameDescID is the schema descriptor for id field.
 	gameDescID := gameMixinFields0[0].Descriptor()
 	// game.DefaultID holds the default value on creation for the id field.
@@ -183,6 +183,10 @@ func init() {
 	missionDescLeaderID := missionFields[5].Descriptor()
 	// mission.DefaultLeaderID holds the default value on creation for the leader_id field.
 	mission.DefaultLeaderID = missionDescLeaderID.Default.(int64)
+	// missionDescProtected is the schema descriptor for protected field.
+	missionDescProtected := missionFields[6].Descriptor()
+	// mission.DefaultProtected holds the default value on creation for the protected field.
+	mission.DefaultProtected = missionDescProtected.Default.(bool)
 	// missionDescID is the schema descriptor for id field.
 	missionDescID := missionMixinFields0[0].Descriptor()
 	// mission.DefaultID holds the default value on creation for the id field.
@@ -292,6 +296,10 @@ func init() {
 	roomuserDescDeletedAt := roomuserMixinFields0[5].Descriptor()
 	// roomuser.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	roomuser.DefaultDeletedAt = roomuserDescDeletedAt.Default.(time.Time)
+	// roomuserDescHost is the schema descriptor for host field.
+	roomuserDescHost := roomuserFields[2].Descriptor()
+	// roomuser.DefaultHost holds the default value on creation for the host field.
+	roomuser.DefaultHost = roomuserDescHost.Default.(bool)
 	// roomuserDescID is the schema descriptor for id field.
 	roomuserDescID := roomuserMixinFields0[0].Descriptor()
 	// roomuser.DefaultID holds the default value on creation for the id field.

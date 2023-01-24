@@ -30,8 +30,10 @@ const (
 	FieldEndBy = "end_by"
 	// FieldCapacity holds the string denoting the capacity field in the database.
 	FieldCapacity = "capacity"
-	// FieldTheAssassinatedID holds the string denoting the the_assassinated_id field in the database.
-	FieldTheAssassinatedID = "the_assassinated_id"
+	// FieldTheAssassinatedIds holds the string denoting the the_assassinated_ids field in the database.
+	FieldTheAssassinatedIds = "the_assassinated_ids"
+	// FieldAssassinChance holds the string denoting the assassin_chance field in the database.
+	FieldAssassinChance = "assassin_chance"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
 	// EdgeMissions holds the string denoting the missions edge name in mutations.
@@ -74,7 +76,8 @@ var Columns = []string{
 	FieldRoomID,
 	FieldEndBy,
 	FieldCapacity,
-	FieldTheAssassinatedID,
+	FieldTheAssassinatedIds,
+	FieldAssassinChance,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -102,8 +105,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultCapacity holds the default value on creation for the "capacity" field.
 	DefaultCapacity uint8
-	// DefaultTheAssassinatedID holds the default value on creation for the "the_assassinated_id" field.
-	DefaultTheAssassinatedID int64
+	// DefaultAssassinChance holds the default value on creation for the "assassin_chance" field.
+	DefaultAssassinChance uint8
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )
@@ -116,10 +119,10 @@ const DefaultEndBy = EndByNone
 
 // EndBy values.
 const (
-	EndByNone   EndBy = "none"
-	EndByBlue   EndBy = "blue"
-	EndByRed    EndBy = "red"
-	EndBySlayer EndBy = "slayer"
+	EndByNone          EndBy = "none"
+	EndByBlue          EndBy = "blue"
+	EndByRed           EndBy = "red"
+	EndByAssassination EndBy = "assassination"
 )
 
 func (eb EndBy) String() string {
@@ -129,7 +132,7 @@ func (eb EndBy) String() string {
 // EndByValidator is a validator for the "end_by" field enum values. It is called by the builders before save.
 func EndByValidator(eb EndBy) error {
 	switch eb {
-	case EndByNone, EndByBlue, EndByRed, EndBySlayer:
+	case EndByNone, EndByBlue, EndByRed, EndByAssassination:
 		return nil
 	default:
 		return fmt.Errorf("game: invalid enum value for end_by field: %q", eb)

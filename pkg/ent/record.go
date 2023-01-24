@@ -27,11 +27,11 @@ type Record struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// UserID holds the value of the "user_id" field.
+	// 用户 ID
 	UserID int64 `json:"user_id"`
-	// RoomID holds the value of the "room_id" field.
+	// 房间 ID
 	RoomID int64 `json:"room_id"`
-	// Score holds the value of the "score" field.
+	// 分数
 	Score int32 `json:"score"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RecordQuery when eager-loading is set.

@@ -161,6 +161,20 @@ func (mc *MissionCreate) SetNillableLeaderID(i *int64) *MissionCreate {
 	return mc
 }
 
+// SetProtected sets the "protected" field.
+func (mc *MissionCreate) SetProtected(b bool) *MissionCreate {
+	mc.mutation.SetProtected(b)
+	return mc
+}
+
+// SetNillableProtected sets the "protected" field if the given value is not nil.
+func (mc *MissionCreate) SetNillableProtected(b *bool) *MissionCreate {
+	if b != nil {
+		mc.SetProtected(*b)
+	}
+	return mc
+}
+
 // SetID sets the "id" field.
 func (mc *MissionCreate) SetID(i int64) *MissionCreate {
 	mc.mutation.SetID(i)
@@ -323,6 +337,10 @@ func (mc *MissionCreate) defaults() {
 		v := mission.DefaultLeaderID
 		mc.mutation.SetLeaderID(v)
 	}
+	if _, ok := mc.mutation.Protected(); !ok {
+		v := mission.DefaultProtected
+		mc.mutation.SetProtected(v)
+	}
 	if _, ok := mc.mutation.ID(); !ok {
 		v := mission.DefaultID()
 		mc.mutation.SetID(v)
@@ -373,6 +391,9 @@ func (mc *MissionCreate) check() error {
 	}
 	if _, ok := mc.mutation.LeaderID(); !ok {
 		return &ValidationError{Name: "leader_id", err: errors.New(`ent: missing required field "Mission.leader_id"`)}
+	}
+	if _, ok := mc.mutation.Protected(); !ok {
+		return &ValidationError{Name: "protected", err: errors.New(`ent: missing required field "Mission.protected"`)}
 	}
 	if _, ok := mc.mutation.GameID(); !ok {
 		return &ValidationError{Name: "game", err: errors.New(`ent: missing required edge "Mission.game"`)}
@@ -449,6 +470,10 @@ func (mc *MissionCreate) createSpec() (*Mission, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.LeaderID(); ok {
 		_spec.SetField(mission.FieldLeaderID, field.TypeInt64, value)
 		_node.LeaderID = value
+	}
+	if value, ok := mc.mutation.Protected(); ok {
+		_spec.SetField(mission.FieldProtected, field.TypeBool, value)
+		_node.Protected = value
 	}
 	if nodes := mc.mutation.GameIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

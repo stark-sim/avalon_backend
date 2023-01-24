@@ -28,13 +28,13 @@ type GameUser struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// UserID holds the value of the "user_id" field.
+	// 用户 ID
 	UserID int64 `json:"user_id"`
-	// GameID holds the value of the "game_id" field.
+	// 游戏 ID
 	GameID int64 `json:"game_id"`
-	// CardID holds the value of the "card_id" field.
+	// 卡牌 ID
 	CardID int64 `json:"card_id"`
-	// Number holds the value of the "number" field.
+	// 排序，号数
 	Number uint8 `json:"number"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameUserQuery when eager-loading is set.

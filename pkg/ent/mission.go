@@ -27,18 +27,20 @@ type Mission struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// Sequence holds the value of the "sequence" field.
+	// 排序
 	Sequence uint8 `json:"sequence"`
-	// Status holds the value of the "status" field.
+	// 任务状态
 	Status mission.Status `json:"status"`
-	// Failed holds the value of the "failed" field.
+	// 是否失败
 	Failed bool `json:"failed"`
-	// GameID holds the value of the "game_id" field.
+	// 所属游戏 ID
 	GameID int64 `json:"game_id"`
-	// 任务人数
+	// 需出征人数
 	Capacity uint8 `json:"capacity"`
-	// LeaderID holds the value of the "leader_id" field.
+	// 队长用户 ID
 	LeaderID int64 `json:"leader_id"`
+	// 是否保护轮
+	Protected bool `json:"protected"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MissionQuery when eager-loading is set.
 	Edges MissionEdges `json:"edges"`
@@ -98,7 +100,7 @@ func (*Mission) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case mission.FieldFailed:
+		case mission.FieldFailed, mission.FieldProtected:
 			values[i] = new(sql.NullBool)
 		case mission.FieldID, mission.FieldCreatedBy, mission.FieldUpdatedBy, mission.FieldSequence, mission.FieldGameID, mission.FieldCapacity, mission.FieldLeaderID:
 			values[i] = new(sql.NullInt64)
@@ -193,6 +195,12 @@ func (m *Mission) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.LeaderID = value.Int64
 			}
+		case mission.FieldProtected:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field protected", values[i])
+			} else if value.Valid {
+				m.Protected = value.Bool
+			}
 		}
 	}
 	return nil
@@ -268,6 +276,9 @@ func (m *Mission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("leader_id=")
 	builder.WriteString(fmt.Sprintf("%v", m.LeaderID))
+	builder.WriteString(", ")
+	builder.WriteString("protected=")
+	builder.WriteString(fmt.Sprintf("%v", m.Protected))
 	builder.WriteByte(')')
 	return builder.String()
 }
