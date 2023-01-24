@@ -182,6 +182,7 @@ type UpdateGameInput struct {
 	DeletedAt                *time.Time
 	EndBy                    *game.EndBy
 	Capacity                 *uint8
+	ClearTheAssassinatedIds  bool
 	TheAssassinatedIds       []string
 	AppendTheAssassinatedIds []string
 	AssassinChance           *uint8
@@ -212,6 +213,9 @@ func (i *UpdateGameInput) Mutate(m *GameMutation) {
 	}
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
+	}
+	if i.ClearTheAssassinatedIds {
+		m.ClearTheAssassinatedIds()
 	}
 	if v := i.TheAssassinatedIds; v != nil {
 		m.SetTheAssassinatedIds(v)

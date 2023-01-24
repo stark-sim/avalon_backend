@@ -1687,14 +1687,11 @@ func (ec *executionContext) _Game_theAssassinatedIds(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Game_theAssassinatedIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8553,7 +8550,7 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("theAssassinatedIds"))
-			it.TheAssassinatedIds, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			it.TheAssassinatedIds, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15043,7 +15040,7 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedIds", "appendTheAssassinatedIds", "assassinChance", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "endBy", "capacity", "clearTheAssassinatedIds", "theAssassinatedIds", "appendTheAssassinatedIds", "assassinChance", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15105,6 +15102,14 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 				return it, err
 			}
 			if err = ec.resolvers.UpdateGameInput().Capacity(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "clearTheAssassinatedIds":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearTheAssassinatedIds"))
+			it.ClearTheAssassinatedIds, err = ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "theAssassinatedIds":
@@ -17111,9 +17116,6 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Game_theAssassinatedIds(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "assassinChance":
 			field := field
 

@@ -1431,10 +1431,24 @@ func (m *GameMutation) AppendedTheAssassinatedIds() ([]string, bool) {
 	return m.appendthe_assassinated_ids, true
 }
 
+// ClearTheAssassinatedIds clears the value of the "the_assassinated_ids" field.
+func (m *GameMutation) ClearTheAssassinatedIds() {
+	m.the_assassinated_ids = nil
+	m.appendthe_assassinated_ids = nil
+	m.clearedFields[game.FieldTheAssassinatedIds] = struct{}{}
+}
+
+// TheAssassinatedIdsCleared returns if the "the_assassinated_ids" field was cleared in this mutation.
+func (m *GameMutation) TheAssassinatedIdsCleared() bool {
+	_, ok := m.clearedFields[game.FieldTheAssassinatedIds]
+	return ok
+}
+
 // ResetTheAssassinatedIds resets all changes to the "the_assassinated_ids" field.
 func (m *GameMutation) ResetTheAssassinatedIds() {
 	m.the_assassinated_ids = nil
 	m.appendthe_assassinated_ids = nil
+	delete(m.clearedFields, game.FieldTheAssassinatedIds)
 }
 
 // SetAssassinChance sets the "assassin_chance" field.
@@ -1893,7 +1907,11 @@ func (m *GameMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GameMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(game.FieldTheAssassinatedIds) {
+		fields = append(fields, game.FieldTheAssassinatedIds)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1906,6 +1924,11 @@ func (m *GameMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GameMutation) ClearField(name string) error {
+	switch name {
+	case game.FieldTheAssassinatedIds:
+		m.ClearTheAssassinatedIds()
+		return nil
+	}
 	return fmt.Errorf("unknown Game nullable field %s", name)
 }
 

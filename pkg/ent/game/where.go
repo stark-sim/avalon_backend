@@ -593,6 +593,20 @@ func CapacityLTE(v uint8) predicate.Game {
 	})
 }
 
+// TheAssassinatedIdsIsNil applies the IsNil predicate on the "the_assassinated_ids" field.
+func TheAssassinatedIdsIsNil() predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldTheAssassinatedIds)))
+	})
+}
+
+// TheAssassinatedIdsNotNil applies the NotNil predicate on the "the_assassinated_ids" field.
+func TheAssassinatedIdsNotNil() predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldTheAssassinatedIds)))
+	})
+}
+
 // AssassinChanceEQ applies the EQ predicate on the "assassin_chance" field.
 func AssassinChanceEQ(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {

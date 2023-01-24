@@ -342,9 +342,6 @@ func (gc *GameCreate) check() error {
 	if _, ok := gc.mutation.Capacity(); !ok {
 		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "Game.capacity"`)}
 	}
-	if _, ok := gc.mutation.TheAssassinatedIds(); !ok {
-		return &ValidationError{Name: "the_assassinated_ids", err: errors.New(`ent: missing required field "Game.the_assassinated_ids"`)}
-	}
 	if _, ok := gc.mutation.AssassinChance(); !ok {
 		return &ValidationError{Name: "assassin_chance", err: errors.New(`ent: missing required field "Game.assassin_chance"`)}
 	}

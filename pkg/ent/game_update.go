@@ -147,6 +147,12 @@ func (gu *GameUpdate) AppendTheAssassinatedIds(s []string) *GameUpdate {
 	return gu
 }
 
+// ClearTheAssassinatedIds clears the value of the "the_assassinated_ids" field.
+func (gu *GameUpdate) ClearTheAssassinatedIds() *GameUpdate {
+	gu.mutation.ClearTheAssassinatedIds()
+	return gu
+}
+
 // SetAssassinChance sets the "assassin_chance" field.
 func (gu *GameUpdate) SetAssassinChance(u uint8) *GameUpdate {
 	gu.mutation.ResetAssassinChance()
@@ -390,6 +396,9 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, game.FieldTheAssassinatedIds, value)
 		})
+	}
+	if gu.mutation.TheAssassinatedIdsCleared() {
+		_spec.ClearField(game.FieldTheAssassinatedIds, field.TypeJSON)
 	}
 	if value, ok := gu.mutation.AssassinChance(); ok {
 		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)
@@ -674,6 +683,12 @@ func (guo *GameUpdateOne) AppendTheAssassinatedIds(s []string) *GameUpdateOne {
 	return guo
 }
 
+// ClearTheAssassinatedIds clears the value of the "the_assassinated_ids" field.
+func (guo *GameUpdateOne) ClearTheAssassinatedIds() *GameUpdateOne {
+	guo.mutation.ClearTheAssassinatedIds()
+	return guo
+}
+
 // SetAssassinChance sets the "assassin_chance" field.
 func (guo *GameUpdateOne) SetAssassinChance(u uint8) *GameUpdateOne {
 	guo.mutation.ResetAssassinChance()
@@ -947,6 +962,9 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, game.FieldTheAssassinatedIds, value)
 		})
+	}
+	if guo.mutation.TheAssassinatedIdsCleared() {
+		_spec.ClearField(game.FieldTheAssassinatedIds, field.TypeJSON)
 	}
 	if value, ok := guo.mutation.AssassinChance(); ok {
 		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)

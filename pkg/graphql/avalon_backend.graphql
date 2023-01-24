@@ -178,7 +178,7 @@ input CreateGameInput {
   """游戏人数"""
   capacity: Int
   """被刺杀者[们] ID"""
-  theAssassinatedIds: [String!]!
+  theAssassinatedIds: [String!]
   """刺杀机会，默认为 1 次"""
   assassinChance: Int
   gameUserIDs: [ID!]
@@ -335,7 +335,7 @@ type Game implements Node {
   """游戏人数"""
   capacity: Int!
   """被刺杀者[们] ID"""
-  theAssassinatedIds: [String!]!
+  theAssassinatedIds: [String!]
   """刺杀机会，默认为 1 次"""
   assassinChance: Int!
   gameUsers: [GameUser!]
@@ -1298,6 +1298,7 @@ input UpdateGameInput {
   endBy: GameEndBy
   """游戏人数"""
   capacity: Int
+  clearTheAssassinatedIds: Boolean
   """被刺杀者[们] ID"""
   theAssassinatedIds: [String!]
   appendTheAssassinatedIds: [String!]
