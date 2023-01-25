@@ -219,6 +219,7 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 		SetRoomID(roomID).
 		SetEndBy(game.EndByNone).
 		SetCapacity(playerNum).
+		SetTheAssassinatedIds([]string{}).
 		Save(ctx)
 	if err != nil {
 		return nil, err
