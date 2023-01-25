@@ -176,6 +176,7 @@ type ComplexityRoot struct {
 		GameUsers          func(childComplexity int) int
 		Games              func(childComplexity int) int
 		GetEndedGame       func(childComplexity int, req model.GameRequest) int
+		GetGameUsersByGame func(childComplexity int, req model.GameRequest) int
 		GetJoinedRoom      func(childComplexity int, req model.UserRequest) int
 		GetSquadInMission  func(childComplexity int, req ent.SquadWhereInput) int
 		GetVagueGameUsers  func(childComplexity int, req model.GameRequest) int
@@ -898,6 +899,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetEndedGame(childComplexity, args["req"].(model.GameRequest)), true
+
+	case "Query.getGameUsersByGame":
+		if e.complexity.Query.GetGameUsersByGame == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getGameUsersByGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetGameUsersByGame(childComplexity, args["req"].(model.GameRequest)), true
 
 	case "Query.getJoinedRoom":
 		if e.complexity.Query.GetJoinedRoom == nil {

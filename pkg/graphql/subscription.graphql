@@ -49,6 +49,8 @@ extend type Query {
     getEndedGame(req: GameRequest!): Game
     """ 获取刺杀环节信息盘，红方亮身份，蓝方不亮身份 """
     getVagueGameUsers(req: GameRequest!): [GameUser!]!
+    """ 查询游戏中的游戏玩家，按序号排序，不带 Card """
+    getGameUsersByGame(req: GameRequest!): [GameUser!]!
 }
 
 input RoomRequest {
@@ -132,6 +134,6 @@ input MissionOption {
     sequence: Int!
     # 出征所需人数
     capacity: Int!
-    # 是否保护轮
+    # 是否为保护轮
     protected: Boolean!
 }
