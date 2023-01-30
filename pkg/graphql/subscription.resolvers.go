@@ -254,12 +254,19 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 	// 创建 5 个 Mission，初始队长为 1-5 号玩家
 	missionCreates := make([]*ent.MissionCreate, 5)
 	for i := 0; i < 5; i++ {
+		var protected bool
+		if i == 4 {
+			protected = true
+		} else {
+			protected = false
+		}
 		missionCreates[i] = tx.Mission.
 			Create().
 			SetGameID(_game.ID).
 			SetLeaderID(userIDs[i]).
 			SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i+1)).
-			SetSequence(uint8(i + 1))
+			SetSequence(uint8(i + 1)).
+			SetProtected(protected)
 	}
 	_, err = tx.Mission.CreateBulk(missionCreates...).Save(ctx)
 	if err != nil {
