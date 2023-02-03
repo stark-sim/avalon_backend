@@ -698,7 +698,8 @@ func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereI
 	if userID == nil || missionID == nil {
 		return nil, errors.New("userID and missionID can't be null")
 	}
-	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID), vote.Voted(false)).First(ctx)
+	// 投好票的也返回，让前端可以通过数据恢复自己的投票状态
+	_vote, err := r.client.Vote.Query().Where(vote.UserID(*userID), vote.MissionID(*missionID), vote.DeletedAt(tools.ZeroTime)).First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
