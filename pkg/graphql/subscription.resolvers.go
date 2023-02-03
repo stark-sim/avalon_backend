@@ -717,7 +717,7 @@ func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWher
 	if userID == nil || missionID == nil {
 		return nil, errors.New("userID and missionID can't be null")
 	}
-	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID), squad.Acted(false)).First(ctx)
+	_squad, err := r.client.Squad.Query().Where(squad.UserID(*userID), squad.MissionID(*missionID), squad.DeletedAt(tools.ZeroTime)).First(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
