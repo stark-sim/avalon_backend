@@ -792,12 +792,35 @@ func (r *queryResolver) GetVagueGameUsers(ctx context.Context, req model.GameReq
 
 // GetGameUsersByGame is the resolver for the getGameUsersByGame field.
 func (r *queryResolver) GetGameUsersByGame(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
-	gameUsers, err := r.client.GameUser.Query().
-		Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
-		Order(ent.Asc(gameuser.FieldNumber)).
-		All(ctx)
+	// 先检查 Game 状态，如果已结束，则返回时允许访问 Card，通过事务来限制 graphql 的自行进一步访问
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.ID))).First(ctx)
+	if err != nil {
+		logrus.Errorf("error at query game by id: %v", err)
+		return nil, err
+	}
+	var gameUsers []*ent.GameUser
+	if _game.EndBy != game.EndByNone {
+		gameUsers, err = tx.GameUser.Query().
+			Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
+			Order(ent.Asc(gameuser.FieldNumber)).
+			WithCard().
+			All(ctx)
+	} else {
+		gameUsers, err = tx.GameUser.Query().
+			Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
+			Order(ent.Asc(gameuser.FieldNumber)).
+			All(ctx)
+	}
 	if err != nil {
 		logrus.Errorf("error at query gameUsers by gameID: %v", err)
+		return nil, err
+	}
+	err = tx.Commit()
+	if err != nil {
 		return nil, err
 	}
 	return gameUsers, nil
