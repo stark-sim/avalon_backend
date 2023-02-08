@@ -29,6 +29,11 @@ type GameRequest struct {
 	ID string `json:"id"`
 }
 
+type GameUserRequest struct {
+	UserID string `json:"userID"`
+	GameID string `json:"gameID"`
+}
+
 type JoinRoomInput struct {
 	ShortCode string `json:"shortCode"`
 	UserID    string `json:"userID"`

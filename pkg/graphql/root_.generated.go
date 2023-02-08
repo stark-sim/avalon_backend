@@ -178,6 +178,7 @@ type ComplexityRoot struct {
 		GetEndedGame       func(childComplexity int, req model.GameRequest) int
 		GetGameUsersByGame func(childComplexity int, req model.GameRequest) int
 		GetJoinedRoom      func(childComplexity int, req model.UserRequest) int
+		GetOnesCardInGame  func(childComplexity int, req model.GameUserRequest) int
 		GetSquadInMission  func(childComplexity int, req ent.SquadWhereInput) int
 		GetVagueGameUsers  func(childComplexity int, req model.GameRequest) int
 		GetVoteInMission   func(childComplexity int, req ent.VoteWhereInput) int
@@ -924,6 +925,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetJoinedRoom(childComplexity, args["req"].(model.UserRequest)), true
 
+	case "Query.getOnesCardInGame":
+		if e.complexity.Query.GetOnesCardInGame == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getOnesCardInGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOnesCardInGame(childComplexity, args["req"].(model.GameUserRequest)), true
+
 	case "Query.getSquadInMission":
 		if e.complexity.Query.GetSquadInMission == nil {
 			break
@@ -1545,6 +1558,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputGameOrder,
 		ec.unmarshalInputGameRequest,
 		ec.unmarshalInputGameUserOrder,
+		ec.unmarshalInputGameUserRequest,
 		ec.unmarshalInputGameUserWhereInput,
 		ec.unmarshalInputGameWhereInput,
 		ec.unmarshalInputJoinRoomInput,

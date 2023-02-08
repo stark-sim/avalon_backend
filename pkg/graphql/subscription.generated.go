@@ -2005,6 +2005,42 @@ func (ec *executionContext) unmarshalInputGameRequest(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputGameUserRequest(ctx context.Context, obj interface{}) (model.GameUserRequest, error) {
+	var it model.GameUserRequest
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userID", "gameID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "gameID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gameID"))
+			it.GameID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputJoinRoomInput(ctx context.Context, obj interface{}) (model.JoinRoomInput, error) {
 	var it model.JoinRoomInput
 	asMap := map[string]interface{}{}
@@ -2411,6 +2447,11 @@ func (ec *executionContext) unmarshalNCreateGameRequest2githubᚗcomᚋstarkᚑs
 
 func (ec *executionContext) unmarshalNGameRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐGameRequest(ctx context.Context, v interface{}) (model.GameRequest, error) {
 	res, err := ec.unmarshalInputGameRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNGameUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐGameUserRequest(ctx context.Context, v interface{}) (model.GameUserRequest, error) {
+	res, err := ec.unmarshalInputGameUserRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -81,6 +81,7 @@ type QueryResolver interface {
 	GetEndedGame(ctx context.Context, req model.GameRequest) (*ent.Game, error)
 	GetVagueGameUsers(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error)
 	GetGameUsersByGame(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error)
+	GetOnesCardInGame(ctx context.Context, req model.GameUserRequest) (*ent.Card, error)
 }
 type RecordResolver interface {
 	ID(ctx context.Context, obj *ent.Record) (string, error)
@@ -730,6 +731,21 @@ func (ec *executionContext) field_Query_getJoinedRoom_args(ctx context.Context, 
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
 		arg0, err = ec.unmarshalNUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐUserRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getOnesCardInGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GameUserRequest
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNGameUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐGameUserRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4780,6 +4796,83 @@ func (ec *executionContext) fieldContext_Query_getGameUsersByGame(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getGameUsersByGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getOnesCardInGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getOnesCardInGame(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetOnesCardInGame(rctx, fc.Args["req"].(model.GameUserRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Card)
+	fc.Result = res
+	return ec.marshalNCard2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCard(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getOnesCardInGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Card_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Card_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Card_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Card_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Card_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Card_deletedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_Card_name(ctx, field)
+			case "role":
+				return ec.fieldContext_Card_role(ctx, field)
+			case "tale":
+				return ec.fieldContext_Card_tale(ctx, field)
+			case "gameUsers":
+				return ec.fieldContext_Card_gameUsers(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Card", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getOnesCardInGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -18237,6 +18330,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getOnesCardInGame":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getOnesCardInGame(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "_entities":
 			field := field
 
@@ -19233,6 +19349,10 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNCard2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCard(ctx context.Context, sel ast.SelectionSet, v ent.Card) graphql.Marshaler {
+	return ec._Card(ctx, sel, &v)
+}
 
 func (ec *executionContext) marshalNCard2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCardᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Card) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))

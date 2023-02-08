@@ -51,6 +51,13 @@ extend type Query {
     getVagueGameUsers(req: GameRequest!): [GameUser!]!
     """ 查询游戏中的游戏玩家，按序号排序，游戏未结束时不带 Card，游戏结束带 Card """
     getGameUsersByGame(req: GameRequest!): [GameUser!]!
+    """ 查询自己在游戏中的卡牌 """
+    getOnesCardInGame(req: GameUserRequest!): Card!
+}
+
+input GameUserRequest {
+    userID: String!
+    gameID: String!
 }
 
 input RoomRequest {

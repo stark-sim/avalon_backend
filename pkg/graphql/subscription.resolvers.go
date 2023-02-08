@@ -860,6 +860,28 @@ func (r *queryResolver) GetGameUsersByGame(ctx context.Context, req model.GameRe
 	return gameUsers, nil
 }
 
+// GetOnesCardInGame is the resolver for the getOnesCardInGame field.
+func (r *queryResolver) GetOnesCardInGame(ctx context.Context, req model.GameUserRequest) (*ent.Card, error) {
+	gameUser, err := r.client.GameUser.Query().
+		Where(
+			gameuser.UserID(tools.StringToInt64(req.UserID)),
+			gameuser.GameID(tools.StringToInt64(req.GameID)),
+			gameuser.DeletedAt(tools.ZeroTime),
+		).
+		WithCard(func(cardQuery *ent.CardQuery) {
+			cardQuery.Where(card.DeletedAt(tools.ZeroTime))
+		}).
+		First(ctx)
+	if err != nil {
+		logrus.Errorf("error at get one's GameUser for Card: %v", err)
+		return nil, err
+	}
+	if gameUser.Edges.Card == nil {
+		return nil, errors.New("don't have card for this gameUser")
+	}
+	return gameUser.Edges.Card, nil
+}
+
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
 	user, err := GetUserAtResolver(ctx, obj.UserID)
