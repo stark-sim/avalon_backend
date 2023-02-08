@@ -568,6 +568,32 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 		if err != nil {
 			return nil, err
 		}
+		// 如果任务是最后一轮，则判断是否为红方胜利
+		if _mission.Sequence == 5 {
+			failedMissionCount, err := tx.Mission.Query().
+				Where(mission.GameID(_mission.GameID), mission.DeletedAt(tools.ZeroTime), mission.Failed(true)).
+				Count(ctx)
+			if err != nil {
+				logrus.Errorf("error at query missions when final act is done: %v", err)
+			}
+			// 如果失败次数达到三次，则红方胜利，游戏结束
+			if failedMissionCount >= 3 {
+				// 游戏结束，红方胜利，结束方式为刺杀成功
+				_game, err := tx.Game.UpdateOneID(_mission.GameID).
+					SetEndBy(game.EndByRed).
+					Save(ctx)
+				if err != nil {
+					return nil, err
+				}
+				// 游戏结束时，房间需要变为无游戏状态
+				err = tx.Room.UpdateOneID(_game.RoomID).
+					SetGameOn(false).
+					Exec(ctx)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -633,6 +659,10 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 				SetEndBy(game.EndByAssassination).
 				SetTheAssassinatedIds(req.TheAssassinatedIDs).
 				Save(ctx)
+			// 游戏结束时，房间需要变为无游戏状态
+			_, err = tx.Room.UpdateOneID(_game.RoomID).
+				SetGameOn(false).
+				Save(ctx)
 			if err != nil {
 				logrus.Errorf("error at update game when assassinate: %v", err)
 				return nil, err
@@ -648,6 +678,10 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 		_game, err = tx.Game.UpdateOne(_game).
 			SetEndBy(game.EndByBlue).
 			SetTheAssassinatedIds(req.TheAssassinatedIDs).
+			Save(ctx)
+		// 游戏结束时，房间需要变为无游戏状态
+		_, err = tx.Room.UpdateOneID(_game.RoomID).
+			SetGameOn(false).
 			Save(ctx)
 		if err != nil {
 			logrus.Errorf("error at update game when assassinate: %v", err)
