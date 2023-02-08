@@ -925,13 +925,13 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 
 // GetMissionsByGame is the resolver for the getMissionsByGame field.
 func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.GameRequest) (<-chan []*ent.Mission, error) {
-	// 前端目前用这个方法，只需要知道轮到哪个任务在进行，并且这些任务的状态，不需要知道 Mission 的 Squad 等后续数据
+	// 前端目前用这个方法，只需要知道轮到哪个任务在进行，和这些任务的状态，不需要知道 Mission 的 Squad 等后续数据
 	ch := make(chan []*ent.Mission)
-	// 检查如参 gameID
+	// 检查入参 gameID
 	gameID := tools.StringToInt64(req.ID)
-	_, err := r.client.Game.Query().Where(game.ID(gameID), game.EndByEQ(game.EndByNone), game.DeletedAt(tools.ZeroTime)).First(ctx)
+	_, err := r.client.Game.Query().Where(game.ID(gameID), game.DeletedAt(tools.ZeroTime)).First(ctx)
 	if err != nil {
-		logrus.Errorf("error at query missions, gameID not exist or ended: %v", err)
+		logrus.Errorf("error at query missions, gameID not exist: %v", err)
 		return nil, err
 	}
 	go func() {
