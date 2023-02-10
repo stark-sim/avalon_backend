@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"sync"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
@@ -1348,6 +1349,94 @@ func (ec *executionContext) fieldContext_Mutation_joinRoomByShortCode(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _OtherView_userID(ctx context.Context, field graphql.CollectedField, obj *model.OtherView) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OtherView_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OtherView_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OtherView",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OtherView_type(ctx context.Context, field graphql.CollectedField, obj *model.OtherView) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OtherView_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OtherView_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OtherView",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_getRoomUsers(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_getRoomUsers(ctx, field)
 	if err != nil {
@@ -2358,6 +2447,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var otherViewImplementors = []string{"OtherView"}
+
+func (ec *executionContext) _OtherView(ctx context.Context, sel ast.SelectionSet, obj *model.OtherView) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, otherViewImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OtherView")
+		case "userID":
+
+			out.Values[i] = ec._OtherView_userID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+
+			out.Values[i] = ec._OtherView_type(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var subscriptionImplementors = []string{"Subscription"}
 
 func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func(ctx context.Context) graphql.Marshaler {
@@ -2465,6 +2589,16 @@ func (ec *executionContext) unmarshalNMissionOption2ᚖgithubᚗcomᚋstarkᚑsi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNOtherView2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐOtherView(ctx context.Context, sel ast.SelectionSet, v *model.OtherView) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OtherView(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNRoomRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx context.Context, v interface{}) (model.RoomRequest, error) {
 	res, err := ec.unmarshalInputRoomRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2519,6 +2653,53 @@ func (ec *executionContext) unmarshalOMissionOption2ᚕᚖgithubᚗcomᚋstark�
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOOtherView2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐOtherViewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.OtherView) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOtherView2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐOtherView(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalORoomRequest2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐRoomRequest(ctx context.Context, v interface{}) (*model.RoomRequest, error) {

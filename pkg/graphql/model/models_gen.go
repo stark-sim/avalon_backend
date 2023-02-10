@@ -45,6 +45,12 @@ type MissionOption struct {
 	Protected bool `json:"protected"`
 }
 
+// 看别人是什么类型
+type OtherView struct {
+	UserID string `json:"userID"`
+	Type   string `json:"type"`
+}
+
 type RoomRequest struct {
 	ID string `json:"id"`
 }

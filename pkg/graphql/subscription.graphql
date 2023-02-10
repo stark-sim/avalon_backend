@@ -53,6 +53,14 @@ extend type Query {
     getGameUsersByGame(req: GameRequest!): [GameUser!]!
     """ 查询自己在游戏中的卡牌 """
     getOnesCardInGame(req: GameUserRequest!): Card!
+    """ 查询自己在游戏中的可见他人数据 """
+    viewOthersInGame(req: GameUserRequest!): [OtherView!]
+}
+
+""" 看别人是什么类型 """
+type OtherView {
+    userID: String!
+    type: String!
 }
 
 input GameUserRequest {

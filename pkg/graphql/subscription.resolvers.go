@@ -882,6 +882,44 @@ func (r *queryResolver) GetOnesCardInGame(ctx context.Context, req model.GameUse
 	return gameUser.Edges.Card, nil
 }
 
+// ViewOthersInGame is the resolver for the viewOthersInGame field. 凭本人的身份来返回对应的他人数据
+func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUserRequest) ([]*model.OtherView, error) {
+	// 先把人都搜出来
+	gameUsers, err := r.client.GameUser.Query().
+		Where(
+			gameuser.GameID(tools.StringToInt64(req.GameID)),
+			gameuser.DeletedAt(tools.ZeroTime),
+		).
+		WithCard().
+		All(ctx)
+	if err != nil {
+		logrus.Errorf("error at query gameUsers")
+		return nil, err
+	}
+	// 找出自己的身份
+	var selfCardName card.Name
+	for _, gameUser := range gameUsers {
+		if gameUser.UserID == tools.StringToInt64(req.UserID) {
+			selfCardName = gameUser.Edges.Card.Name
+			break
+		}
+	}
+	// 准备构建返回数据
+	res := make([]*model.OtherView, 0)
+	for _, gameUser := range gameUsers {
+		switch selfCardName {
+		case card.NameMerlin:
+			if gameUser.Edges.Card.Name == card.NameMerlin {
+				res = append(res, &model.OtherView{
+					UserID: strconv.FormatInt(gameUser.UserID, 10),
+					Type:   "Blue",
+				})
+			}
+		}
+	}
+	return res, err
+}
+
 // User is the resolver for the user field.
 func (r *roomUserResolver) User(ctx context.Context, obj *ent.RoomUser) (*model.User, error) {
 	user, err := GetUserAtResolver(ctx, obj.UserID)

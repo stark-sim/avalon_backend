@@ -164,6 +164,11 @@ type ComplexityRoot struct {
 		Vote                func(childComplexity int, req model.VoteRequest) int
 	}
 
+	OtherView struct {
+		Type   func(childComplexity int) int
+		UserID func(childComplexity int) int
+	}
+
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -189,6 +194,7 @@ type ComplexityRoot struct {
 		RoomUsers          func(childComplexity int) int
 		Rooms              func(childComplexity int) int
 		Squads             func(childComplexity int) int
+		ViewOthersInGame   func(childComplexity int, req model.GameUserRequest) int
 		Votes              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
 		__resolve_entities func(childComplexity int, representations []map[string]interface{}) int
@@ -840,6 +846,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Vote(childComplexity, args["req"].(model.VoteRequest)), true
 
+	case "OtherView.type":
+		if e.complexity.OtherView.Type == nil {
+			break
+		}
+
+		return e.complexity.OtherView.Type(childComplexity), true
+
+	case "OtherView.userID":
+		if e.complexity.OtherView.UserID == nil {
+			break
+		}
+
+		return e.complexity.OtherView.UserID(childComplexity), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -1031,6 +1051,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Squads(childComplexity), true
+
+	case "Query.viewOthersInGame":
+		if e.complexity.Query.ViewOthersInGame == nil {
+			break
+		}
+
+		args, err := ec.field_Query_viewOthersInGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ViewOthersInGame(childComplexity, args["req"].(model.GameUserRequest)), true
 
 	case "Query.votes":
 		if e.complexity.Query.Votes == nil {
