@@ -52,6 +52,10 @@ func init() {
 	cardDescTale := cardFields[2].Descriptor()
 	// card.DefaultTale holds the default value on creation for the tale field.
 	card.DefaultTale = cardDescTale.Default.(string)
+	// cardDescRed is the schema descriptor for red field.
+	cardDescRed := cardFields[3].Descriptor()
+	// card.DefaultRed holds the default value on creation for the red field.
+	card.DefaultRed = cardDescRed.Default.(bool)
 	// cardDescID is the schema descriptor for id field.
 	cardDescID := cardMixinFields0[0].Descriptor()
 	// card.DefaultID holds the default value on creation for the id field.

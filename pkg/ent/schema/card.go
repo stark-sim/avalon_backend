@@ -16,9 +16,10 @@ type Card struct {
 // Fields of the Card.
 func (Card) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("name").Values("Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Kay", "Ector", "Mordred", "Morgana", "Oberon", "Agravain", "Lancelot", "Kevin", "Stuart", "Bob").Default("Merlin").StructTag(`json:"name"`).Annotations(entgql.OrderField("NAME")),
-		field.Enum("role").Values("Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Ace", "Sinner", "Minion").StructTag(`json:"role"`),
-		field.String("tale").Default("").StructTag(`json:"tale"`),
+		field.Enum("name").Values("Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Kay", "Ector", "Mordred", "Morgana", "Oberon", "Agravain", "Lancelot", "Kevin", "Stuart", "Bob").Default("Merlin").StructTag(`json:"name"`).Annotations(entgql.OrderField("NAME")).Comment("名称"),
+		field.Enum("role").Values("Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Ace", "Sinner", "Minion").StructTag(`json:"role"`).Comment("角色"),
+		field.String("tale").Default("").StructTag(`json:"tale"`).Comment("故事"),
+		field.Bool("red").Default(false).StructTag(`json:"red"`).Comment("是否属于红方"),
 	}
 }
 

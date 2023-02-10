@@ -125,6 +125,20 @@ func (cc *CardCreate) SetNillableTale(s *string) *CardCreate {
 	return cc
 }
 
+// SetRed sets the "red" field.
+func (cc *CardCreate) SetRed(b bool) *CardCreate {
+	cc.mutation.SetRed(b)
+	return cc
+}
+
+// SetNillableRed sets the "red" field if the given value is not nil.
+func (cc *CardCreate) SetNillableRed(b *bool) *CardCreate {
+	if b != nil {
+		cc.SetRed(*b)
+	}
+	return cc
+}
+
 // SetID sets the "id" field.
 func (cc *CardCreate) SetID(i int64) *CardCreate {
 	cc.mutation.SetID(i)
@@ -259,6 +273,10 @@ func (cc *CardCreate) defaults() {
 		v := card.DefaultTale
 		cc.mutation.SetTale(v)
 	}
+	if _, ok := cc.mutation.Red(); !ok {
+		v := card.DefaultRed
+		cc.mutation.SetRed(v)
+	}
 	if _, ok := cc.mutation.ID(); !ok {
 		v := card.DefaultID()
 		cc.mutation.SetID(v)
@@ -300,6 +318,9 @@ func (cc *CardCreate) check() error {
 	}
 	if _, ok := cc.mutation.Tale(); !ok {
 		return &ValidationError{Name: "tale", err: errors.New(`ent: missing required field "Card.tale"`)}
+	}
+	if _, ok := cc.mutation.Red(); !ok {
+		return &ValidationError{Name: "red", err: errors.New(`ent: missing required field "Card.red"`)}
 	}
 	return nil
 }
@@ -365,6 +386,10 @@ func (cc *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Tale(); ok {
 		_spec.SetField(card.FieldTale, field.TypeString, value)
 		_node.Tale = value
+	}
+	if value, ok := cc.mutation.Red(); ok {
+		_spec.SetField(card.FieldRed, field.TypeBool, value)
+		_node.Red = value
 	}
 	if nodes := cc.mutation.GameUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -19,6 +19,7 @@ var (
 		{Name: "name", Type: field.TypeEnum, Enums: []string{"Merlin", "Percival", "Galahad", "Bors", "Bedivere", "Gawain", "Kay", "Ector", "Mordred", "Morgana", "Oberon", "Agravain", "Lancelot", "Kevin", "Stuart", "Bob"}, Default: "Merlin"},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"Prophet", "Knight", "Loyal", "Usurper", "Enchantress", "Assassin", "Erlking", "Ace", "Sinner", "Minion"}},
 		{Name: "tale", Type: field.TypeString, Default: ""},
+		{Name: "red", Type: field.TypeBool, Default: false},
 	}
 	// CardsTable holds the schema information for the "cards" table.
 	CardsTable = &schema.Table{

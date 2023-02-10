@@ -113,6 +113,10 @@ type CardWhereInput struct {
 	TaleEqualFold    *string  `json:"taleEqualFold,omitempty"`
 	TaleContainsFold *string  `json:"taleContainsFold,omitempty"`
 
+	// "red" field predicates.
+	Red    *bool `json:"red,omitempty"`
+	RedNEQ *bool `json:"redNEQ,omitempty"`
+
 	// "game_users" edge predicates.
 	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
 	HasGameUsersWith []*GameUserWhereInput `json:"hasGameUsersWith,omitempty"`
@@ -395,6 +399,12 @@ func (i *CardWhereInput) P() (predicate.Card, error) {
 	}
 	if i.TaleContainsFold != nil {
 		predicates = append(predicates, card.TaleContainsFold(*i.TaleContainsFold))
+	}
+	if i.Red != nil {
+		predicates = append(predicates, card.RedEQ(*i.Red))
+	}
+	if i.RedNEQ != nil {
+		predicates = append(predicates, card.RedNEQ(*i.RedNEQ))
 	}
 
 	if i.HasGameUsers != nil {

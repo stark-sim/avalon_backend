@@ -125,6 +125,20 @@ func (cu *CardUpdate) SetNillableTale(s *string) *CardUpdate {
 	return cu
 }
 
+// SetRed sets the "red" field.
+func (cu *CardUpdate) SetRed(b bool) *CardUpdate {
+	cu.mutation.SetRed(b)
+	return cu
+}
+
+// SetNillableRed sets the "red" field if the given value is not nil.
+func (cu *CardUpdate) SetNillableRed(b *bool) *CardUpdate {
+	if b != nil {
+		cu.SetRed(*b)
+	}
+	return cu
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by IDs.
 func (cu *CardUpdate) AddGameUserIDs(ids ...int64) *CardUpdate {
 	cu.mutation.AddGameUserIDs(ids...)
@@ -295,6 +309,9 @@ func (cu *CardUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.Tale(); ok {
 		_spec.SetField(card.FieldTale, field.TypeString, value)
 	}
+	if value, ok := cu.mutation.Red(); ok {
+		_spec.SetField(card.FieldRed, field.TypeBool, value)
+	}
 	if cu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -460,6 +477,20 @@ func (cuo *CardUpdateOne) SetTale(s string) *CardUpdateOne {
 func (cuo *CardUpdateOne) SetNillableTale(s *string) *CardUpdateOne {
 	if s != nil {
 		cuo.SetTale(*s)
+	}
+	return cuo
+}
+
+// SetRed sets the "red" field.
+func (cuo *CardUpdateOne) SetRed(b bool) *CardUpdateOne {
+	cuo.mutation.SetRed(b)
+	return cuo
+}
+
+// SetNillableRed sets the "red" field if the given value is not nil.
+func (cuo *CardUpdateOne) SetNillableRed(b *bool) *CardUpdateOne {
+	if b != nil {
+		cuo.SetRed(*b)
 	}
 	return cuo
 }
@@ -663,6 +694,9 @@ func (cuo *CardUpdateOne) sqlSave(ctx context.Context) (_node *Card, err error) 
 	}
 	if value, ok := cuo.mutation.Tale(); ok {
 		_spec.SetField(card.FieldTale, field.TypeString, value)
+	}
+	if value, ok := cuo.mutation.Red(); ok {
+		_spec.SetField(card.FieldRed, field.TypeBool, value)
 	}
 	if cuo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

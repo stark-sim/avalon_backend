@@ -7,9 +7,14 @@ type Card implements Node {
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time!
+  """名称"""
   name: CardName!
+  """角色"""
   role: CardRole!
+  """故事"""
   tale: String!
+  """是否属于红方"""
+  red: Boolean!
   gameUsers: [GameUser!]
 }
 """CardName is enum for the field name"""
@@ -144,6 +149,9 @@ input CardWhereInput {
   taleHasSuffix: String
   taleEqualFold: String
   taleContainsFold: String
+  """red field predicates"""
+  red: Boolean
+  redNEQ: Boolean
   """game_users edge predicates"""
   hasGameUsers: Boolean
   hasGameUsersWith: [GameUserWhereInput!]
@@ -158,9 +166,14 @@ input CreateCardInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
+  """名称"""
   name: CardName
+  """角色"""
   role: CardRole!
+  """故事"""
   tale: String
+  """是否属于红方"""
+  red: Boolean
   gameUserIDs: [ID!]
 }
 """
@@ -1279,9 +1292,14 @@ input UpdateCardInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
+  """名称"""
   name: CardName
+  """角色"""
   role: CardRole
+  """故事"""
   tale: String
+  """是否属于红方"""
+  red: Boolean
   addGameUserIDs: [ID!]
   removeGameUserIDs: [ID!]
 }

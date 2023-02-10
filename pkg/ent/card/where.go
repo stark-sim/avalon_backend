@@ -123,6 +123,13 @@ func Tale(v string) predicate.Card {
 	})
 }
 
+// Red applies equality check predicate on the "red" field. It's identical to RedEQ.
+func Red(v bool) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRed), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
@@ -611,6 +618,20 @@ func TaleEqualFold(v string) predicate.Card {
 func TaleContainsFold(v string) predicate.Card {
 	return predicate.Card(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldTale), v))
+	})
+}
+
+// RedEQ applies the EQ predicate on the "red" field.
+func RedEQ(v bool) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRed), v))
+	})
+}
+
+// RedNEQ applies the NEQ predicate on the "red" field.
+func RedNEQ(v bool) predicate.Card {
+	return predicate.Card(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRed), v))
 	})
 }
 

@@ -26,12 +26,14 @@ type Card struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at"`
-	// Name holds the value of the "name" field.
+	// 名称
 	Name card.Name `json:"name"`
-	// Role holds the value of the "role" field.
+	// 角色
 	Role card.Role `json:"role"`
-	// Tale holds the value of the "tale" field.
+	// 故事
 	Tale string `json:"tale"`
+	// 是否属于红方
+	Red bool `json:"red"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CardQuery when eager-loading is set.
 	Edges CardEdges `json:"edges"`
@@ -64,6 +66,8 @@ func (*Card) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case card.FieldRed:
+			values[i] = new(sql.NullBool)
 		case card.FieldID, card.FieldCreatedBy, card.FieldUpdatedBy:
 			values[i] = new(sql.NullInt64)
 		case card.FieldName, card.FieldRole, card.FieldTale:
@@ -139,6 +143,12 @@ func (c *Card) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Tale = value.String
 			}
+		case card.FieldRed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field red", values[i])
+			} else if value.Valid {
+				c.Red = value.Bool
+			}
 		}
 	}
 	return nil
@@ -195,6 +205,9 @@ func (c *Card) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tale=")
 	builder.WriteString(c.Tale)
+	builder.WriteString(", ")
+	builder.WriteString("red=")
+	builder.WriteString(fmt.Sprintf("%v", c.Red))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -898,9 +898,11 @@ func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUser
 	}
 	// 找出自己的身份
 	var selfCardName card.Name
+	var selfCardRed bool
 	for _, gameUser := range gameUsers {
 		if gameUser.UserID == tools.StringToInt64(req.UserID) {
 			selfCardName = gameUser.Edges.Card.Name
+			selfCardRed = gameUser.Edges.Card.Red
 			break
 		}
 	}
@@ -908,12 +910,44 @@ func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUser
 	res := make([]*model.OtherView, 0)
 	for _, gameUser := range gameUsers {
 		switch selfCardName {
+		// 梅林看所有，看错莫德雷德
 		case card.NameMerlin:
-			if gameUser.Edges.Card.Name == card.NameMerlin {
+			if gameUser.Edges.Card.Red == false {
 				res = append(res, &model.OtherView{
 					UserID: strconv.FormatInt(gameUser.UserID, 10),
-					Type:   "Blue",
+					Type:   "BLUE",
 				})
+			} else {
+				// 红方中看不到莫德雷德
+				if gameUser.Edges.Card.Name == card.NameMordred {
+					res = append(res, &model.OtherView{
+						UserID: strconv.FormatInt(gameUser.UserID, 10),
+						Type:   "BLUE",
+					})
+				} else {
+					res = append(res, &model.OtherView{
+						UserID: strconv.FormatInt(gameUser.UserID, 10),
+						Type:   "RED",
+					})
+				}
+			}
+		// 派西看梅林和莫甘娜，但看不懂
+		case card.NamePercival:
+			if gameUser.Edges.Card.Name == card.NameMerlin || gameUser.Edges.Card.Name == card.NameMorgana {
+				res = append(res, &model.OtherView{
+					UserID: strconv.FormatInt(gameUser.UserID, 10),
+					Type:   "UNKNOWN",
+				})
+			}
+		// 除奥伯伦外，红方看到红方
+		default:
+			if selfCardRed && selfCardName != card.NameOberon {
+				if gameUser.Edges.Card.Red && gameUser.Edges.Card.Name != card.NameOberon {
+					res = append(res, &model.OtherView{
+						UserID: strconv.FormatInt(gameUser.UserID, 10),
+						Type:   "RED",
+					})
+				}
 			}
 		}
 	}

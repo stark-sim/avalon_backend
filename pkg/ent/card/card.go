@@ -30,6 +30,8 @@ const (
 	FieldRole = "role"
 	// FieldTale holds the string denoting the tale field in the database.
 	FieldTale = "tale"
+	// FieldRed holds the string denoting the red field in the database.
+	FieldRed = "red"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
 	// Table holds the table name of the card in the database.
@@ -54,6 +56,7 @@ var Columns = []string{
 	FieldName,
 	FieldRole,
 	FieldTale,
+	FieldRed,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -81,6 +84,8 @@ var (
 	DefaultDeletedAt time.Time
 	// DefaultTale holds the default value on creation for the "tale" field.
 	DefaultTale string
+	// DefaultRed holds the default value on creation for the "red" field.
+	DefaultRed bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

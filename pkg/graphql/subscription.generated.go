@@ -833,6 +833,8 @@ func (ec *executionContext) fieldContext_Mutation_createCard(ctx context.Context
 				return ec.fieldContext_Card_role(ctx, field)
 			case "tale":
 				return ec.fieldContext_Card_tale(ctx, field)
+			case "red":
+				return ec.fieldContext_Card_red(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Card_gameUsers(ctx, field)
 			}

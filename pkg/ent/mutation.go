@@ -59,6 +59,7 @@ type CardMutation struct {
 	name              *card.Name
 	role              *card.Role
 	tale              *string
+	red               *bool
 	clearedFields     map[string]struct{}
 	game_users        map[int64]struct{}
 	removedgame_users map[int64]struct{}
@@ -500,6 +501,42 @@ func (m *CardMutation) ResetTale() {
 	m.tale = nil
 }
 
+// SetRed sets the "red" field.
+func (m *CardMutation) SetRed(b bool) {
+	m.red = &b
+}
+
+// Red returns the value of the "red" field in the mutation.
+func (m *CardMutation) Red() (r bool, exists bool) {
+	v := m.red
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRed returns the old "red" field's value of the Card entity.
+// If the Card object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CardMutation) OldRed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRed: %w", err)
+	}
+	return oldValue.Red, nil
+}
+
+// ResetRed resets all changes to the "red" field.
+func (m *CardMutation) ResetRed() {
+	m.red = nil
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by ids.
 func (m *CardMutation) AddGameUserIDs(ids ...int64) {
 	if m.game_users == nil {
@@ -573,7 +610,7 @@ func (m *CardMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CardMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_by != nil {
 		fields = append(fields, card.FieldCreatedBy)
 	}
@@ -597,6 +634,9 @@ func (m *CardMutation) Fields() []string {
 	}
 	if m.tale != nil {
 		fields = append(fields, card.FieldTale)
+	}
+	if m.red != nil {
+		fields = append(fields, card.FieldRed)
 	}
 	return fields
 }
@@ -622,6 +662,8 @@ func (m *CardMutation) Field(name string) (ent.Value, bool) {
 		return m.Role()
 	case card.FieldTale:
 		return m.Tale()
+	case card.FieldRed:
+		return m.Red()
 	}
 	return nil, false
 }
@@ -647,6 +689,8 @@ func (m *CardMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRole(ctx)
 	case card.FieldTale:
 		return m.OldTale(ctx)
+	case card.FieldRed:
+		return m.OldRed(ctx)
 	}
 	return nil, fmt.Errorf("unknown Card field %s", name)
 }
@@ -711,6 +755,13 @@ func (m *CardMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTale(v)
+		return nil
+	case card.FieldRed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Card field %s", name)
@@ -811,6 +862,9 @@ func (m *CardMutation) ResetField(name string) error {
 		return nil
 	case card.FieldTale:
 		m.ResetTale()
+		return nil
+	case card.FieldRed:
+		m.ResetRed()
 		return nil
 	}
 	return fmt.Errorf("unknown Card field %s", name)

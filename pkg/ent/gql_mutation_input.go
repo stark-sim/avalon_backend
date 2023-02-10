@@ -20,6 +20,7 @@ type CreateCardInput struct {
 	Name        *card.Name
 	Role        card.Role
 	Tale        *string
+	Red         *bool
 	GameUserIDs []int64
 }
 
@@ -47,6 +48,9 @@ func (i *CreateCardInput) Mutate(m *CardMutation) {
 	if v := i.Tale; v != nil {
 		m.SetTale(*v)
 	}
+	if v := i.Red; v != nil {
+		m.SetRed(*v)
+	}
 	if v := i.GameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
 	}
@@ -67,6 +71,7 @@ type UpdateCardInput struct {
 	Name              *card.Name
 	Role              *card.Role
 	Tale              *string
+	Red               *bool
 	AddGameUserIDs    []int64
 	RemoveGameUserIDs []int64
 }
@@ -93,6 +98,9 @@ func (i *UpdateCardInput) Mutate(m *CardMutation) {
 	}
 	if v := i.Tale; v != nil {
 		m.SetTale(*v)
+	}
+	if v := i.Red; v != nil {
+		m.SetRed(*v)
 	}
 	if v := i.AddGameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
