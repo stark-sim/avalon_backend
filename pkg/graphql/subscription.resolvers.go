@@ -558,7 +558,7 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 		missionFailed := false
 		if ratCount > 0 {
 			// 保护轮
-			if _mission.Sequence == 4 && ratCount <= 1 {
+			if _mission.Protected && ratCount <= 1 {
 				missionFailed = false
 			} else {
 				missionFailed = true
@@ -568,10 +568,15 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 		if err != nil {
 			return nil, err
 		}
-		// 如果任务是最后一轮，则判断是否为红方胜利
-		if _mission.Sequence == 5 {
+		// 如果目前任务失败，则判断有没有一共失败了 3 次，如果有，游戏由红方胜利结束
+		if missionFailed {
 			failedMissionCount, err := tx.Mission.Query().
-				Where(mission.GameID(_mission.GameID), mission.DeletedAt(tools.ZeroTime), mission.Failed(true)).
+				Where(
+					mission.GameID(_mission.GameID),
+					mission.DeletedAt(tools.ZeroTime),
+					mission.StatusEQ(mission.StatusClosed),
+					mission.Failed(true),
+				).
 				Count(ctx)
 			if err != nil {
 				logrus.Errorf("error at query missions when final act is done: %v", err)
