@@ -1,10 +1,10 @@
 package tools
 
 import (
+	"github.com/stark-sim/cas/tools"
 	"math/rand"
 	"reflect"
 	"strconv"
-	"time"
 )
 
 func StringToInt64(str string) int64 {
@@ -37,7 +37,7 @@ func Shuffle(list interface{}) []interface{} {
 	for i := 0; i < rv.Len(); i++ {
 		realList[i] = rv.Index(i).Interface()
 	}
-	rand.Seed(time.Now().Unix())
+	rand.Seed(tools.GenSnowflakeID())
 	rand.Shuffle(len(realList), func(i, j int) {
 		realList[i], realList[j] = realList[j], realList[i]
 	})
