@@ -81,11 +81,31 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 		if err != nil {
 			return nil, err
 		}
-		newRoomUser, err := tx.RoomUser.
-			Create().
-			SetUserID(req.UserID).
-			SetRoomID(req.RoomID).
-			Save(ctx)
+		// 添加前查看自己是不是第一个加入房间的人，如果是，自己是房主
+		notHost, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID)).Exist(ctx)
+		if err != nil {
+			logrus.Errorf("error at check if room is empty: %v", err)
+			return nil, err
+		}
+		var newRoomUser *ent.RoomUser
+		if notHost {
+			newRoomUser, err = tx.RoomUser.
+				Create().
+				SetUserID(req.UserID).
+				SetRoomID(req.RoomID).
+				Save(ctx)
+		} else {
+			newRoomUser, err = tx.RoomUser.
+				Create().
+				SetUserID(req.UserID).
+				SetRoomID(req.RoomID).
+				SetHost(true).
+				Save(ctx)
+		}
+		if err != nil {
+			logrus.Errorf("error at create roomUser: %v", err)
+			return nil, err
+		}
 		newRoomUser, err = tx.RoomUser.Query().Where(roomuser.ID(newRoomUser.ID)).WithRoom().First(ctx)
 		if err != nil {
 			return nil, err
@@ -116,6 +136,7 @@ func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserI
 // LeaveRoom is the resolver for the leaveRoom field.
 func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
 	redisClient := cache.NewRedisClient()
+	defer redisClient.Close()
 	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return nil, err
@@ -146,6 +167,7 @@ func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUser
 	if err = tx.RoomUser.
 		UpdateOne(roomUser).
 		SetDeletedAt(time.Now()).
+		SetHost(false).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
@@ -159,12 +181,26 @@ func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUser
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		// 如果还有别人，并且自己是房主，那么要把房主丢给别人
+		if roomUser.Host {
+			anotherRoomUser, err := tx.RoomUser.
+				Query().
+				Where(roomuser.RoomID(req.RoomID), roomuser.UserIDNEQ(req.UserID), roomuser.DeletedAt(tools.ZeroTime)).
+				First(ctx)
+			if err != nil {
+				return nil, err
+			}
+			err = tx.RoomUser.UpdateOne(anotherRoomUser).SetHost(true).Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
-	redisClient.Close()
 	return roomUser, nil
 }
 
