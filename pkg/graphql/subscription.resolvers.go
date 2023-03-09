@@ -722,6 +722,9 @@ func (r *mutationResolver) TerminateGame(ctx context.Context, req model.GameRequ
 		logrus.Errorf("error at update room when terminate game: %v", err)
 		return nil, err
 	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return _game, nil
 }
 
