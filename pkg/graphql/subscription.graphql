@@ -7,6 +7,8 @@ type Subscription {
     getMissionsByGame(req: GameRequest!): [Mission!]!
     """ 实时获取刺客刀人环节信息，没到刺杀环节返回空 """
     getAssassinationByGame(req: GameRequest!): AssassinInfo
+    """ 实时获取游戏的总状态 """
+    getGame(req: GameRequest!): Game!
 }
 
 type Mutation {

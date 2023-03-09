@@ -1146,6 +1146,24 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 	return ch, nil
 }
 
+// GetGame is the resolver for the getGame field.
+func (r *subscriptionResolver) GetGame(ctx context.Context, req model.GameRequest) (<-chan *ent.Game, error) {
+	ch := make(chan *ent.Game)
+	go func() {
+		for {
+			_game, err := r.client.Game.Get(ctx, tools.StringToInt64(req.ID))
+			if err != nil {
+				return
+			}
+			select {
+			case ch <- _game:
+				time.Sleep(time.Second)
+			}
+		}
+	}()
+	return ch, nil
+}
+
 // User is the resolver for the user field.
 func (r *voteResolver) User(ctx context.Context, obj *ent.Vote) (*model.User, error) {
 	fc := graphql.GetFieldContext(ctx)
@@ -1163,13 +1181,3 @@ func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionRes
 
 type mutationResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) GetGameUsersByRoom(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
-	panic(fmt.Errorf("not implemented: GetGameUsersByRoom - getGameUsersByRoom"))
-}

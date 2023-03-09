@@ -261,6 +261,7 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		GetAssassinationByGame func(childComplexity int, req model.GameRequest) int
+		GetGame                func(childComplexity int, req model.GameRequest) int
 		GetMissionsByGame      func(childComplexity int, req model.GameRequest) int
 		GetRoomOngoingGame     func(childComplexity int, req model.RoomRequest) int
 		GetRoomUsers           func(childComplexity int, req *model.RoomRequest) int
@@ -1437,6 +1438,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.GetAssassinationByGame(childComplexity, args["req"].(model.GameRequest)), true
+
+	case "Subscription.getGame":
+		if e.complexity.Subscription.GetGame == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_getGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.GetGame(childComplexity, args["req"].(model.GameRequest)), true
 
 	case "Subscription.getMissionsByGame":
 		if e.complexity.Subscription.GetMissionsByGame == nil {
