@@ -361,6 +361,7 @@ enum GameEndBy @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/game
   blue
   red
   assassination
+  hand
 }
 """Ordering options for Game connections"""
 input GameOrder {

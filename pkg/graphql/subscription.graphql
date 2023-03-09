@@ -36,6 +36,8 @@ type Mutation {
     assassinate(req: AssassinateRequest!): Game
     """ 通过短号加入房间 """
     joinRoomByShortCode(req: JoinRoomInput!): RoomUser
+    """ 中止游戏 """
+    terminateGame(req: GameRequest!): Game
 }
 
 extend type Query {

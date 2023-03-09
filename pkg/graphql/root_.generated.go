@@ -162,6 +162,7 @@ type ComplexityRoot struct {
 		PickSquads          func(childComplexity int, req []*ent.CreateSquadInput) int
 		TempAssassinate     func(childComplexity int, req model.AssassinateRequest) int
 		TempPickSquads      func(childComplexity int, req []*ent.CreateSquadInput) int
+		TerminateGame       func(childComplexity int, req model.GameRequest) int
 		Vote                func(childComplexity int, req model.VoteRequest) int
 	}
 
@@ -841,6 +842,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.TempPickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
+
+	case "Mutation.terminateGame":
+		if e.complexity.Mutation.TerminateGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_terminateGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TerminateGame(childComplexity, args["req"].(model.GameRequest)), true
 
 	case "Mutation.vote":
 		if e.complexity.Mutation.Vote == nil {

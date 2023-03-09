@@ -123,6 +123,7 @@ const (
 	EndByBlue          EndBy = "blue"
 	EndByRed           EndBy = "red"
 	EndByAssassination EndBy = "assassination"
+	EndByHand          EndBy = "hand"
 )
 
 func (eb EndBy) String() string {
@@ -132,7 +133,7 @@ func (eb EndBy) String() string {
 // EndByValidator is a validator for the "end_by" field enum values. It is called by the builders before save.
 func EndByValidator(eb EndBy) error {
 	switch eb {
-	case EndByNone, EndByBlue, EndByRed, EndByAssassination:
+	case EndByNone, EndByBlue, EndByRed, EndByAssassination, EndByHand:
 		return nil
 	default:
 		return fmt.Errorf("game: invalid enum value for end_by field: %q", eb)

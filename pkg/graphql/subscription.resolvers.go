@@ -705,6 +705,26 @@ func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.Jo
 	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
 }
 
+// TerminateGame is the resolver for the terminateGame field.
+func (r *mutationResolver) TerminateGame(ctx context.Context, req model.GameRequest) (*ent.Game, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// 游戏修改状态
+	_game, err := tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetEndBy(game.EndByHand).Save(ctx)
+	if err != nil {
+		logrus.Errorf("error at terminate game: %v", err)
+		return nil, err
+	}
+	// 房间变回无进行游戏状态
+	if err = tx.Room.UpdateOneID(_game.RoomID).SetGameOn(false).Exec(ctx); err != nil {
+		logrus.Errorf("error at update room when terminate game: %v", err)
+		return nil, err
+	}
+	return _game, nil
+}
+
 // GetJoinedRoom is the resolver for the getJoinedRoom field.
 func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest) (*ent.Room, error) {
 	// 查询 room 没有关闭的，且具有 roomUser 的
