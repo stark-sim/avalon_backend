@@ -967,13 +967,14 @@ type GameMutation struct {
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	deleted_at                 *time.Time
-	end_by                     *game.EndBy
+	result                     *game.Result
 	capacity                   *uint8
 	addcapacity                *int8
 	the_assassinated_ids       *[]string
 	appendthe_assassinated_ids []string
 	assassin_chance            *uint8
 	addassassin_chance         *int8
+	closed                     *bool
 	clearedFields              map[string]struct{}
 	game_users                 map[int64]struct{}
 	removedgame_users          map[int64]struct{}
@@ -1348,40 +1349,40 @@ func (m *GameMutation) ResetRoomID() {
 	m.room = nil
 }
 
-// SetEndBy sets the "end_by" field.
-func (m *GameMutation) SetEndBy(gb game.EndBy) {
-	m.end_by = &gb
+// SetResult sets the "result" field.
+func (m *GameMutation) SetResult(ga game.Result) {
+	m.result = &ga
 }
 
-// EndBy returns the value of the "end_by" field in the mutation.
-func (m *GameMutation) EndBy() (r game.EndBy, exists bool) {
-	v := m.end_by
+// Result returns the value of the "result" field in the mutation.
+func (m *GameMutation) Result() (r game.Result, exists bool) {
+	v := m.result
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEndBy returns the old "end_by" field's value of the Game entity.
+// OldResult returns the old "result" field's value of the Game entity.
 // If the Game object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMutation) OldEndBy(ctx context.Context) (v game.EndBy, err error) {
+func (m *GameMutation) OldResult(ctx context.Context) (v game.Result, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEndBy is only allowed on UpdateOne operations")
+		return v, errors.New("OldResult is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEndBy requires an ID field in the mutation")
+		return v, errors.New("OldResult requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEndBy: %w", err)
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
 	}
-	return oldValue.EndBy, nil
+	return oldValue.Result, nil
 }
 
-// ResetEndBy resets all changes to the "end_by" field.
-func (m *GameMutation) ResetEndBy() {
-	m.end_by = nil
+// ResetResult resets all changes to the "result" field.
+func (m *GameMutation) ResetResult() {
+	m.result = nil
 }
 
 // SetCapacity sets the "capacity" field.
@@ -1561,6 +1562,42 @@ func (m *GameMutation) ResetAssassinChance() {
 	m.addassassin_chance = nil
 }
 
+// SetClosed sets the "closed" field.
+func (m *GameMutation) SetClosed(b bool) {
+	m.closed = &b
+}
+
+// Closed returns the value of the "closed" field in the mutation.
+func (m *GameMutation) Closed() (r bool, exists bool) {
+	v := m.closed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosed returns the old "closed" field's value of the Game entity.
+// If the Game object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameMutation) OldClosed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosed: %w", err)
+	}
+	return oldValue.Closed, nil
+}
+
+// ResetClosed resets all changes to the "closed" field.
+func (m *GameMutation) ResetClosed() {
+	m.closed = nil
+}
+
 // AddGameUserIDs adds the "game_users" edge to the GameUser entity by ids.
 func (m *GameMutation) AddGameUserIDs(ids ...int64) {
 	if m.game_users == nil {
@@ -1714,7 +1751,7 @@ func (m *GameMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_by != nil {
 		fields = append(fields, game.FieldCreatedBy)
 	}
@@ -1733,8 +1770,8 @@ func (m *GameMutation) Fields() []string {
 	if m.room != nil {
 		fields = append(fields, game.FieldRoomID)
 	}
-	if m.end_by != nil {
-		fields = append(fields, game.FieldEndBy)
+	if m.result != nil {
+		fields = append(fields, game.FieldResult)
 	}
 	if m.capacity != nil {
 		fields = append(fields, game.FieldCapacity)
@@ -1744,6 +1781,9 @@ func (m *GameMutation) Fields() []string {
 	}
 	if m.assassin_chance != nil {
 		fields = append(fields, game.FieldAssassinChance)
+	}
+	if m.closed != nil {
+		fields = append(fields, game.FieldClosed)
 	}
 	return fields
 }
@@ -1765,14 +1805,16 @@ func (m *GameMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedAt()
 	case game.FieldRoomID:
 		return m.RoomID()
-	case game.FieldEndBy:
-		return m.EndBy()
+	case game.FieldResult:
+		return m.Result()
 	case game.FieldCapacity:
 		return m.Capacity()
 	case game.FieldTheAssassinatedIds:
 		return m.TheAssassinatedIds()
 	case game.FieldAssassinChance:
 		return m.AssassinChance()
+	case game.FieldClosed:
+		return m.Closed()
 	}
 	return nil, false
 }
@@ -1794,14 +1836,16 @@ func (m *GameMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedAt(ctx)
 	case game.FieldRoomID:
 		return m.OldRoomID(ctx)
-	case game.FieldEndBy:
-		return m.OldEndBy(ctx)
+	case game.FieldResult:
+		return m.OldResult(ctx)
 	case game.FieldCapacity:
 		return m.OldCapacity(ctx)
 	case game.FieldTheAssassinatedIds:
 		return m.OldTheAssassinatedIds(ctx)
 	case game.FieldAssassinChance:
 		return m.OldAssassinChance(ctx)
+	case game.FieldClosed:
+		return m.OldClosed(ctx)
 	}
 	return nil, fmt.Errorf("unknown Game field %s", name)
 }
@@ -1853,12 +1897,12 @@ func (m *GameMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRoomID(v)
 		return nil
-	case game.FieldEndBy:
-		v, ok := value.(game.EndBy)
+	case game.FieldResult:
+		v, ok := value.(game.Result)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEndBy(v)
+		m.SetResult(v)
 		return nil
 	case game.FieldCapacity:
 		v, ok := value.(uint8)
@@ -1880,6 +1924,13 @@ func (m *GameMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAssassinChance(v)
+		return nil
+	case game.FieldClosed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Game field %s", name)
@@ -2008,8 +2059,8 @@ func (m *GameMutation) ResetField(name string) error {
 	case game.FieldRoomID:
 		m.ResetRoomID()
 		return nil
-	case game.FieldEndBy:
-		m.ResetEndBy()
+	case game.FieldResult:
+		m.ResetResult()
 		return nil
 	case game.FieldCapacity:
 		m.ResetCapacity()
@@ -2019,6 +2070,9 @@ func (m *GameMutation) ResetField(name string) error {
 		return nil
 	case game.FieldAssassinChance:
 		m.ResetAssassinChance()
+		return nil
+	case game.FieldClosed:
+		m.ResetClosed()
 		return nil
 	}
 	return fmt.Errorf("unknown Game field %s", name)

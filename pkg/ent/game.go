@@ -30,14 +30,16 @@ type Game struct {
 	DeletedAt time.Time `json:"deleted_at"`
 	// 所属房间 ID
 	RoomID int64 `json:"room_id"`
-	// 游戏结束方式
-	EndBy game.EndBy `json:"end_by"`
+	// 游戏结果
+	Result game.Result `json:"result"`
 	// 游戏人数
 	Capacity uint8 `json:"capacity"`
 	// 被刺杀者[们] ID
 	TheAssassinatedIds []string `json:"the_assassinated_ids"`
 	// 刺杀机会，默认为 1 次
 	AssassinChance uint8 `json:"assassin_chance"`
+	// 游戏是否关闭，需要有结果且所有人都退出才会关闭或者强制关闭
+	Closed bool `json:"closed"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameQuery when eager-loading is set.
 	Edges GameEdges `json:"edges"`
@@ -99,9 +101,11 @@ func (*Game) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case game.FieldTheAssassinatedIds:
 			values[i] = new([]byte)
+		case game.FieldClosed:
+			values[i] = new(sql.NullBool)
 		case game.FieldID, game.FieldCreatedBy, game.FieldUpdatedBy, game.FieldRoomID, game.FieldCapacity, game.FieldAssassinChance:
 			values[i] = new(sql.NullInt64)
-		case game.FieldEndBy:
+		case game.FieldResult:
 			values[i] = new(sql.NullString)
 		case game.FieldCreatedAt, game.FieldUpdatedAt, game.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -162,11 +166,11 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ga.RoomID = value.Int64
 			}
-		case game.FieldEndBy:
+		case game.FieldResult:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field end_by", values[i])
+				return fmt.Errorf("unexpected type %T for field result", values[i])
 			} else if value.Valid {
-				ga.EndBy = game.EndBy(value.String)
+				ga.Result = game.Result(value.String)
 			}
 		case game.FieldCapacity:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -187,6 +191,12 @@ func (ga *Game) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field assassin_chance", values[i])
 			} else if value.Valid {
 				ga.AssassinChance = uint8(value.Int64)
+			}
+		case game.FieldClosed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field closed", values[i])
+			} else if value.Valid {
+				ga.Closed = value.Bool
 			}
 		}
 	}
@@ -249,8 +259,8 @@ func (ga *Game) String() string {
 	builder.WriteString("room_id=")
 	builder.WriteString(fmt.Sprintf("%v", ga.RoomID))
 	builder.WriteString(", ")
-	builder.WriteString("end_by=")
-	builder.WriteString(fmt.Sprintf("%v", ga.EndBy))
+	builder.WriteString("result=")
+	builder.WriteString(fmt.Sprintf("%v", ga.Result))
 	builder.WriteString(", ")
 	builder.WriteString("capacity=")
 	builder.WriteString(fmt.Sprintf("%v", ga.Capacity))
@@ -260,6 +270,9 @@ func (ga *Game) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("assassin_chance=")
 	builder.WriteString(fmt.Sprintf("%v", ga.AssassinChance))
+	builder.WriteString(", ")
+	builder.WriteString("closed=")
+	builder.WriteString(fmt.Sprintf("%v", ga.Closed))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -100,16 +100,16 @@ func (gu *GameUpdate) SetRoomID(i int64) *GameUpdate {
 	return gu
 }
 
-// SetEndBy sets the "end_by" field.
-func (gu *GameUpdate) SetEndBy(gb game.EndBy) *GameUpdate {
-	gu.mutation.SetEndBy(gb)
+// SetResult sets the "result" field.
+func (gu *GameUpdate) SetResult(ga game.Result) *GameUpdate {
+	gu.mutation.SetResult(ga)
 	return gu
 }
 
-// SetNillableEndBy sets the "end_by" field if the given value is not nil.
-func (gu *GameUpdate) SetNillableEndBy(gb *game.EndBy) *GameUpdate {
-	if gb != nil {
-		gu.SetEndBy(*gb)
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableResult(ga *game.Result) *GameUpdate {
+	if ga != nil {
+		gu.SetResult(*ga)
 	}
 	return gu
 }
@@ -171,6 +171,20 @@ func (gu *GameUpdate) SetNillableAssassinChance(u *uint8) *GameUpdate {
 // AddAssassinChance adds u to the "assassin_chance" field.
 func (gu *GameUpdate) AddAssassinChance(u int8) *GameUpdate {
 	gu.mutation.AddAssassinChance(u)
+	return gu
+}
+
+// SetClosed sets the "closed" field.
+func (gu *GameUpdate) SetClosed(b bool) *GameUpdate {
+	gu.mutation.SetClosed(b)
+	return gu
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (gu *GameUpdate) SetNillableClosed(b *bool) *GameUpdate {
+	if b != nil {
+		gu.SetClosed(*b)
+	}
 	return gu
 }
 
@@ -333,9 +347,9 @@ func (gu *GameUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gu *GameUpdate) check() error {
-	if v, ok := gu.mutation.EndBy(); ok {
-		if err := game.EndByValidator(v); err != nil {
-			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+	if v, ok := gu.mutation.Result(); ok {
+		if err := game.ResultValidator(v); err != nil {
+			return &ValidationError{Name: "result", err: fmt.Errorf(`ent: validator failed for field "Game.result": %w`, err)}
 		}
 	}
 	if _, ok := gu.mutation.RoomID(); gu.mutation.RoomCleared() && !ok {
@@ -380,8 +394,8 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.DeletedAt(); ok {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
 	}
-	if value, ok := gu.mutation.EndBy(); ok {
-		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
+	if value, ok := gu.mutation.Result(); ok {
+		_spec.SetField(game.FieldResult, field.TypeEnum, value)
 	}
 	if value, ok := gu.mutation.Capacity(); ok {
 		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
@@ -405,6 +419,9 @@ func (gu *GameUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.AddedAssassinChance(); ok {
 		_spec.AddField(game.FieldAssassinChance, field.TypeUint8, value)
+	}
+	if value, ok := gu.mutation.Closed(); ok {
+		_spec.SetField(game.FieldClosed, field.TypeBool, value)
 	}
 	if gu.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -636,16 +653,16 @@ func (guo *GameUpdateOne) SetRoomID(i int64) *GameUpdateOne {
 	return guo
 }
 
-// SetEndBy sets the "end_by" field.
-func (guo *GameUpdateOne) SetEndBy(gb game.EndBy) *GameUpdateOne {
-	guo.mutation.SetEndBy(gb)
+// SetResult sets the "result" field.
+func (guo *GameUpdateOne) SetResult(ga game.Result) *GameUpdateOne {
+	guo.mutation.SetResult(ga)
 	return guo
 }
 
-// SetNillableEndBy sets the "end_by" field if the given value is not nil.
-func (guo *GameUpdateOne) SetNillableEndBy(gb *game.EndBy) *GameUpdateOne {
-	if gb != nil {
-		guo.SetEndBy(*gb)
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableResult(ga *game.Result) *GameUpdateOne {
+	if ga != nil {
+		guo.SetResult(*ga)
 	}
 	return guo
 }
@@ -707,6 +724,20 @@ func (guo *GameUpdateOne) SetNillableAssassinChance(u *uint8) *GameUpdateOne {
 // AddAssassinChance adds u to the "assassin_chance" field.
 func (guo *GameUpdateOne) AddAssassinChance(u int8) *GameUpdateOne {
 	guo.mutation.AddAssassinChance(u)
+	return guo
+}
+
+// SetClosed sets the "closed" field.
+func (guo *GameUpdateOne) SetClosed(b bool) *GameUpdateOne {
+	guo.mutation.SetClosed(b)
+	return guo
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (guo *GameUpdateOne) SetNillableClosed(b *bool) *GameUpdateOne {
+	if b != nil {
+		guo.SetClosed(*b)
+	}
 	return guo
 }
 
@@ -882,9 +913,9 @@ func (guo *GameUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (guo *GameUpdateOne) check() error {
-	if v, ok := guo.mutation.EndBy(); ok {
-		if err := game.EndByValidator(v); err != nil {
-			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+	if v, ok := guo.mutation.Result(); ok {
+		if err := game.ResultValidator(v); err != nil {
+			return &ValidationError{Name: "result", err: fmt.Errorf(`ent: validator failed for field "Game.result": %w`, err)}
 		}
 	}
 	if _, ok := guo.mutation.RoomID(); guo.mutation.RoomCleared() && !ok {
@@ -946,8 +977,8 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 	if value, ok := guo.mutation.DeletedAt(); ok {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
 	}
-	if value, ok := guo.mutation.EndBy(); ok {
-		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
+	if value, ok := guo.mutation.Result(); ok {
+		_spec.SetField(game.FieldResult, field.TypeEnum, value)
 	}
 	if value, ok := guo.mutation.Capacity(); ok {
 		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
@@ -971,6 +1002,9 @@ func (guo *GameUpdateOne) sqlSave(ctx context.Context) (_node *Game, err error) 
 	}
 	if value, ok := guo.mutation.AddedAssassinChance(); ok {
 		_spec.AddField(game.FieldAssassinChance, field.TypeUint8, value)
+	}
+	if value, ok := guo.mutation.Closed(); ok {
+		_spec.SetField(game.FieldClosed, field.TypeBool, value)
 	}
 	if guo.mutation.GameUsersCleared() {
 		edge := &sqlgraph.EdgeSpec{

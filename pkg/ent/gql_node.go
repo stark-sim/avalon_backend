@@ -151,7 +151,7 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     ga.ID,
 		Type:   "Game",
-		Fields: make([]*Field, 10),
+		Fields: make([]*Field, 11),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -203,12 +203,12 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "room_id",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(ga.EndBy); err != nil {
+	if buf, err = json.Marshal(ga.Result); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
-		Type:  "game.EndBy",
-		Name:  "end_by",
+		Type:  "game.Result",
+		Name:  "result",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(ga.Capacity); err != nil {
@@ -233,6 +233,14 @@ func (ga *Game) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[9] = &Field{
 		Type:  "uint8",
 		Name:  "assassin_chance",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ga.Closed); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "bool",
+		Name:  "closed",
 		Value: string(buf),
 	}
 	node.Edges[0] = &Edge{

@@ -99,16 +99,16 @@ func (gc *GameCreate) SetRoomID(i int64) *GameCreate {
 	return gc
 }
 
-// SetEndBy sets the "end_by" field.
-func (gc *GameCreate) SetEndBy(gb game.EndBy) *GameCreate {
-	gc.mutation.SetEndBy(gb)
+// SetResult sets the "result" field.
+func (gc *GameCreate) SetResult(ga game.Result) *GameCreate {
+	gc.mutation.SetResult(ga)
 	return gc
 }
 
-// SetNillableEndBy sets the "end_by" field if the given value is not nil.
-func (gc *GameCreate) SetNillableEndBy(gb *game.EndBy) *GameCreate {
-	if gb != nil {
-		gc.SetEndBy(*gb)
+// SetNillableResult sets the "result" field if the given value is not nil.
+func (gc *GameCreate) SetNillableResult(ga *game.Result) *GameCreate {
+	if ga != nil {
+		gc.SetResult(*ga)
 	}
 	return gc
 }
@@ -143,6 +143,20 @@ func (gc *GameCreate) SetAssassinChance(u uint8) *GameCreate {
 func (gc *GameCreate) SetNillableAssassinChance(u *uint8) *GameCreate {
 	if u != nil {
 		gc.SetAssassinChance(*u)
+	}
+	return gc
+}
+
+// SetClosed sets the "closed" field.
+func (gc *GameCreate) SetClosed(b bool) *GameCreate {
+	gc.mutation.SetClosed(b)
+	return gc
+}
+
+// SetNillableClosed sets the "closed" field if the given value is not nil.
+func (gc *GameCreate) SetNillableClosed(b *bool) *GameCreate {
+	if b != nil {
+		gc.SetClosed(*b)
 	}
 	return gc
 }
@@ -293,9 +307,9 @@ func (gc *GameCreate) defaults() {
 		v := game.DefaultDeletedAt
 		gc.mutation.SetDeletedAt(v)
 	}
-	if _, ok := gc.mutation.EndBy(); !ok {
-		v := game.DefaultEndBy
-		gc.mutation.SetEndBy(v)
+	if _, ok := gc.mutation.Result(); !ok {
+		v := game.DefaultResult
+		gc.mutation.SetResult(v)
 	}
 	if _, ok := gc.mutation.Capacity(); !ok {
 		v := game.DefaultCapacity
@@ -304,6 +318,10 @@ func (gc *GameCreate) defaults() {
 	if _, ok := gc.mutation.AssassinChance(); !ok {
 		v := game.DefaultAssassinChance
 		gc.mutation.SetAssassinChance(v)
+	}
+	if _, ok := gc.mutation.Closed(); !ok {
+		v := game.DefaultClosed
+		gc.mutation.SetClosed(v)
 	}
 	if _, ok := gc.mutation.ID(); !ok {
 		v := game.DefaultID()
@@ -331,12 +349,12 @@ func (gc *GameCreate) check() error {
 	if _, ok := gc.mutation.RoomID(); !ok {
 		return &ValidationError{Name: "room_id", err: errors.New(`ent: missing required field "Game.room_id"`)}
 	}
-	if _, ok := gc.mutation.EndBy(); !ok {
-		return &ValidationError{Name: "end_by", err: errors.New(`ent: missing required field "Game.end_by"`)}
+	if _, ok := gc.mutation.Result(); !ok {
+		return &ValidationError{Name: "result", err: errors.New(`ent: missing required field "Game.result"`)}
 	}
-	if v, ok := gc.mutation.EndBy(); ok {
-		if err := game.EndByValidator(v); err != nil {
-			return &ValidationError{Name: "end_by", err: fmt.Errorf(`ent: validator failed for field "Game.end_by": %w`, err)}
+	if v, ok := gc.mutation.Result(); ok {
+		if err := game.ResultValidator(v); err != nil {
+			return &ValidationError{Name: "result", err: fmt.Errorf(`ent: validator failed for field "Game.result": %w`, err)}
 		}
 	}
 	if _, ok := gc.mutation.Capacity(); !ok {
@@ -344,6 +362,9 @@ func (gc *GameCreate) check() error {
 	}
 	if _, ok := gc.mutation.AssassinChance(); !ok {
 		return &ValidationError{Name: "assassin_chance", err: errors.New(`ent: missing required field "Game.assassin_chance"`)}
+	}
+	if _, ok := gc.mutation.Closed(); !ok {
+		return &ValidationError{Name: "closed", err: errors.New(`ent: missing required field "Game.closed"`)}
 	}
 	if _, ok := gc.mutation.RoomID(); !ok {
 		return &ValidationError{Name: "room", err: errors.New(`ent: missing required edge "Game.room"`)}
@@ -401,9 +422,9 @@ func (gc *GameCreate) createSpec() (*Game, *sqlgraph.CreateSpec) {
 		_spec.SetField(game.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
 	}
-	if value, ok := gc.mutation.EndBy(); ok {
-		_spec.SetField(game.FieldEndBy, field.TypeEnum, value)
-		_node.EndBy = value
+	if value, ok := gc.mutation.Result(); ok {
+		_spec.SetField(game.FieldResult, field.TypeEnum, value)
+		_node.Result = value
 	}
 	if value, ok := gc.mutation.Capacity(); ok {
 		_spec.SetField(game.FieldCapacity, field.TypeUint8, value)
@@ -416,6 +437,10 @@ func (gc *GameCreate) createSpec() (*Game, *sqlgraph.CreateSpec) {
 	if value, ok := gc.mutation.AssassinChance(); ok {
 		_spec.SetField(game.FieldAssassinChance, field.TypeUint8, value)
 		_node.AssassinChance = value
+	}
+	if value, ok := gc.mutation.Closed(); ok {
+		_spec.SetField(game.FieldClosed, field.TypeBool, value)
+		_node.Closed = value
 	}
 	if nodes := gc.mutation.GameUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

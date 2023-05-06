@@ -779,14 +779,16 @@ func (ec *executionContext) fieldContext_Mutation_createGame(ctx context.Context
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -1275,14 +1277,16 @@ func (ec *executionContext) fieldContext_Mutation_assassinate(ctx context.Contex
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -1433,14 +1437,16 @@ func (ec *executionContext) fieldContext_Mutation_terminateGame(ctx context.Cont
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -1707,14 +1713,16 @@ func (ec *executionContext) fieldContext_Subscription_getRoomOngoingGame(ctx con
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -1981,14 +1989,16 @@ func (ec *executionContext) fieldContext_Subscription_getGame(ctx context.Contex
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":

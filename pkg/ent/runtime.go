@@ -95,6 +95,10 @@ func init() {
 	gameDescAssassinChance := gameFields[4].Descriptor()
 	// game.DefaultAssassinChance holds the default value on creation for the assassin_chance field.
 	game.DefaultAssassinChance = gameDescAssassinChance.Default.(uint8)
+	// gameDescClosed is the schema descriptor for closed field.
+	gameDescClosed := gameFields[5].Descriptor()
+	// game.DefaultClosed holds the default value on creation for the closed field.
+	game.DefaultClosed = gameDescClosed.Default.(bool)
 	// gameDescID is the schema descriptor for id field.
 	gameDescID := gameMixinFields0[0].Descriptor()
 	// game.DefaultID holds the default value on creation for the id field.

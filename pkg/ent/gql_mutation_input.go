@@ -129,10 +129,11 @@ type CreateGameInput struct {
 	CreatedAt          *time.Time
 	UpdatedAt          *time.Time
 	DeletedAt          *time.Time
-	EndBy              *game.EndBy
+	Result             *game.Result
 	Capacity           *uint8
 	TheAssassinatedIds []string
 	AssassinChance     *uint8
+	Closed             *bool
 	GameUserIDs        []int64
 	MissionIDs         []int64
 	RoomID             int64
@@ -155,8 +156,8 @@ func (i *CreateGameInput) Mutate(m *GameMutation) {
 	if v := i.DeletedAt; v != nil {
 		m.SetDeletedAt(*v)
 	}
-	if v := i.EndBy; v != nil {
-		m.SetEndBy(*v)
+	if v := i.Result; v != nil {
+		m.SetResult(*v)
 	}
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
@@ -166,6 +167,9 @@ func (i *CreateGameInput) Mutate(m *GameMutation) {
 	}
 	if v := i.AssassinChance; v != nil {
 		m.SetAssassinChance(*v)
+	}
+	if v := i.Closed; v != nil {
+		m.SetClosed(*v)
 	}
 	if v := i.GameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)
@@ -188,12 +192,13 @@ type UpdateGameInput struct {
 	UpdatedBy                *int64
 	UpdatedAt                *time.Time
 	DeletedAt                *time.Time
-	EndBy                    *game.EndBy
+	Result                   *game.Result
 	Capacity                 *uint8
 	ClearTheAssassinatedIds  bool
 	TheAssassinatedIds       []string
 	AppendTheAssassinatedIds []string
 	AssassinChance           *uint8
+	Closed                   *bool
 	AddGameUserIDs           []int64
 	RemoveGameUserIDs        []int64
 	AddMissionIDs            []int64
@@ -216,8 +221,8 @@ func (i *UpdateGameInput) Mutate(m *GameMutation) {
 	if v := i.DeletedAt; v != nil {
 		m.SetDeletedAt(*v)
 	}
-	if v := i.EndBy; v != nil {
-		m.SetEndBy(*v)
+	if v := i.Result; v != nil {
+		m.SetResult(*v)
 	}
 	if v := i.Capacity; v != nil {
 		m.SetCapacity(*v)
@@ -233,6 +238,9 @@ func (i *UpdateGameInput) Mutate(m *GameMutation) {
 	}
 	if v := i.AssassinChance; v != nil {
 		m.SetAssassinChance(*v)
+	}
+	if v := i.Closed; v != nil {
+		m.SetClosed(*v)
 	}
 	if v := i.AddGameUserIDs; len(v) > 0 {
 		m.AddGameUserIDs(v...)

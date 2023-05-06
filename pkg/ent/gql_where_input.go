@@ -508,11 +508,11 @@ type GameWhereInput struct {
 	RoomIDIn    []int64 `json:"roomIDIn,omitempty"`
 	RoomIDNotIn []int64 `json:"roomIDNotIn,omitempty"`
 
-	// "end_by" field predicates.
-	EndBy      *game.EndBy  `json:"endBy,omitempty"`
-	EndByNEQ   *game.EndBy  `json:"endByNEQ,omitempty"`
-	EndByIn    []game.EndBy `json:"endByIn,omitempty"`
-	EndByNotIn []game.EndBy `json:"endByNotIn,omitempty"`
+	// "result" field predicates.
+	Result      *game.Result  `json:"result,omitempty"`
+	ResultNEQ   *game.Result  `json:"resultNEQ,omitempty"`
+	ResultIn    []game.Result `json:"resultIn,omitempty"`
+	ResultNotIn []game.Result `json:"resultNotIn,omitempty"`
 
 	// "capacity" field predicates.
 	Capacity      *uint8  `json:"capacity,omitempty"`
@@ -533,6 +533,10 @@ type GameWhereInput struct {
 	AssassinChanceGTE   *uint8  `json:"assassinChanceGTE,omitempty"`
 	AssassinChanceLT    *uint8  `json:"assassinChanceLT,omitempty"`
 	AssassinChanceLTE   *uint8  `json:"assassinChanceLTE,omitempty"`
+
+	// "closed" field predicates.
+	Closed    *bool `json:"closed,omitempty"`
+	ClosedNEQ *bool `json:"closedNEQ,omitempty"`
 
 	// "game_users" edge predicates.
 	HasGameUsers     *bool                 `json:"hasGameUsers,omitempty"`
@@ -774,17 +778,17 @@ func (i *GameWhereInput) P() (predicate.Game, error) {
 	if len(i.RoomIDNotIn) > 0 {
 		predicates = append(predicates, game.RoomIDNotIn(i.RoomIDNotIn...))
 	}
-	if i.EndBy != nil {
-		predicates = append(predicates, game.EndByEQ(*i.EndBy))
+	if i.Result != nil {
+		predicates = append(predicates, game.ResultEQ(*i.Result))
 	}
-	if i.EndByNEQ != nil {
-		predicates = append(predicates, game.EndByNEQ(*i.EndByNEQ))
+	if i.ResultNEQ != nil {
+		predicates = append(predicates, game.ResultNEQ(*i.ResultNEQ))
 	}
-	if len(i.EndByIn) > 0 {
-		predicates = append(predicates, game.EndByIn(i.EndByIn...))
+	if len(i.ResultIn) > 0 {
+		predicates = append(predicates, game.ResultIn(i.ResultIn...))
 	}
-	if len(i.EndByNotIn) > 0 {
-		predicates = append(predicates, game.EndByNotIn(i.EndByNotIn...))
+	if len(i.ResultNotIn) > 0 {
+		predicates = append(predicates, game.ResultNotIn(i.ResultNotIn...))
 	}
 	if i.Capacity != nil {
 		predicates = append(predicates, game.CapacityEQ(*i.Capacity))
@@ -833,6 +837,12 @@ func (i *GameWhereInput) P() (predicate.Game, error) {
 	}
 	if i.AssassinChanceLTE != nil {
 		predicates = append(predicates, game.AssassinChanceLTE(*i.AssassinChanceLTE))
+	}
+	if i.Closed != nil {
+		predicates = append(predicates, game.ClosedEQ(*i.Closed))
+	}
+	if i.ClosedNEQ != nil {
+		predicates = append(predicates, game.ClosedNEQ(*i.ClosedNEQ))
 	}
 
 	if i.HasGameUsers != nil {

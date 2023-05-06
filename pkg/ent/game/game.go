@@ -26,14 +26,16 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// FieldRoomID holds the string denoting the room_id field in the database.
 	FieldRoomID = "room_id"
-	// FieldEndBy holds the string denoting the end_by field in the database.
-	FieldEndBy = "end_by"
+	// FieldResult holds the string denoting the result field in the database.
+	FieldResult = "result"
 	// FieldCapacity holds the string denoting the capacity field in the database.
 	FieldCapacity = "capacity"
 	// FieldTheAssassinatedIds holds the string denoting the the_assassinated_ids field in the database.
 	FieldTheAssassinatedIds = "the_assassinated_ids"
 	// FieldAssassinChance holds the string denoting the assassin_chance field in the database.
 	FieldAssassinChance = "assassin_chance"
+	// FieldClosed holds the string denoting the closed field in the database.
+	FieldClosed = "closed"
 	// EdgeGameUsers holds the string denoting the game_users edge name in mutations.
 	EdgeGameUsers = "game_users"
 	// EdgeMissions holds the string denoting the missions edge name in mutations.
@@ -74,10 +76,11 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldDeletedAt,
 	FieldRoomID,
-	FieldEndBy,
+	FieldResult,
 	FieldCapacity,
 	FieldTheAssassinatedIds,
 	FieldAssassinChance,
+	FieldClosed,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -107,53 +110,55 @@ var (
 	DefaultCapacity uint8
 	// DefaultAssassinChance holds the default value on creation for the "assassin_chance" field.
 	DefaultAssassinChance uint8
+	// DefaultClosed holds the default value on creation for the "closed" field.
+	DefaultClosed bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )
 
-// EndBy defines the type for the "end_by" enum field.
-type EndBy string
+// Result defines the type for the "result" enum field.
+type Result string
 
-// EndByNone is the default value of the EndBy enum.
-const DefaultEndBy = EndByNone
+// ResultNone is the default value of the Result enum.
+const DefaultResult = ResultNone
 
-// EndBy values.
+// Result values.
 const (
-	EndByNone          EndBy = "none"
-	EndByBlue          EndBy = "blue"
-	EndByRed           EndBy = "red"
-	EndByAssassination EndBy = "assassination"
-	EndByHand          EndBy = "hand"
+	ResultNone          Result = "none"
+	ResultBlue          Result = "blue"
+	ResultRed           Result = "red"
+	ResultAssassination Result = "assassination"
+	ResultHand          Result = "hand"
 )
 
-func (eb EndBy) String() string {
-	return string(eb)
+func (r Result) String() string {
+	return string(r)
 }
 
-// EndByValidator is a validator for the "end_by" field enum values. It is called by the builders before save.
-func EndByValidator(eb EndBy) error {
-	switch eb {
-	case EndByNone, EndByBlue, EndByRed, EndByAssassination, EndByHand:
+// ResultValidator is a validator for the "result" field enum values. It is called by the builders before save.
+func ResultValidator(r Result) error {
+	switch r {
+	case ResultNone, ResultBlue, ResultRed, ResultAssassination, ResultHand:
 		return nil
 	default:
-		return fmt.Errorf("game: invalid enum value for end_by field: %q", eb)
+		return fmt.Errorf("game: invalid enum value for result field: %q", r)
 	}
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (e EndBy) MarshalGQL(w io.Writer) {
+func (e Result) MarshalGQL(w io.Writer) {
 	io.WriteString(w, strconv.Quote(e.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (e *EndBy) UnmarshalGQL(val interface{}) error {
+func (e *Result) UnmarshalGQL(val interface{}) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("enum %T must be a string", val)
 	}
-	*e = EndBy(str)
-	if err := EndByValidator(*e); err != nil {
-		return fmt.Errorf("%s is not a valid EndBy", str)
+	*e = Result(str)
+	if err := ResultValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Result", str)
 	}
 	return nil
 }

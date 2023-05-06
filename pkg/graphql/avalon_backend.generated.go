@@ -167,6 +167,7 @@ type CreateGameInputResolver interface {
 	Capacity(ctx context.Context, obj *ent.CreateGameInput, data *int) error
 
 	AssassinChance(ctx context.Context, obj *ent.CreateGameInput, data *int) error
+
 	GameUserIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 	MissionIDs(ctx context.Context, obj *ent.CreateGameInput, data []string) error
 	RoomID(ctx context.Context, obj *ent.CreateGameInput, data string) error
@@ -545,6 +546,7 @@ type UpdateGameInputResolver interface {
 	Capacity(ctx context.Context, obj *ent.UpdateGameInput, data *int) error
 
 	AssassinChance(ctx context.Context, obj *ent.UpdateGameInput, data *int) error
+
 	AddGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 	RemoveGameUserIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
 	AddMissionIDs(ctx context.Context, obj *ent.UpdateGameInput, data []string) error
@@ -1670,8 +1672,8 @@ func (ec *executionContext) fieldContext_Game_roomID(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Game_endBy(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Game_endBy(ctx, field)
+func (ec *executionContext) _Game_result(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Game_result(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1684,7 +1686,7 @@ func (ec *executionContext) _Game_endBy(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EndBy, nil
+		return obj.Result, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1696,19 +1698,19 @@ func (ec *executionContext) _Game_endBy(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(game.EndBy)
+	res := resTmp.(game.Result)
 	fc.Result = res
-	return ec.marshalNGameEndBy2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, field.Selections, res)
+	return ec.marshalNGameResult2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Game_endBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Game_result(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Game",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type GameEndBy does not have child fields")
+			return nil, errors.New("field of type GameResult does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1838,6 +1840,50 @@ func (ec *executionContext) fieldContext_Game_assassinChance(ctx context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Game_closed(ctx context.Context, field graphql.CollectedField, obj *ent.Game) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Game_closed(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Closed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Game_closed(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Game",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2550,14 +2596,16 @@ func (ec *executionContext) fieldContext_GameUser_game(ctx context.Context, fiel
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -3316,14 +3364,16 @@ func (ec *executionContext) fieldContext_Mission_game(ctx context.Context, field
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -3869,14 +3919,16 @@ func (ec *executionContext) fieldContext_Query_games(ctx context.Context, field 
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -4668,14 +4720,16 @@ func (ec *executionContext) fieldContext_Query_getEndedGame(ctx context.Context,
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -6212,14 +6266,16 @@ func (ec *executionContext) fieldContext_Room_games(ctx context.Context, field g
 				return ec.fieldContext_Game_deletedAt(ctx, field)
 			case "roomID":
 				return ec.fieldContext_Game_roomID(ctx, field)
-			case "endBy":
-				return ec.fieldContext_Game_endBy(ctx, field)
+			case "result":
+				return ec.fieldContext_Game_result(ctx, field)
 			case "capacity":
 				return ec.fieldContext_Game_capacity(ctx, field)
 			case "theAssassinatedIds":
 				return ec.fieldContext_Game_theAssassinatedIds(ctx, field)
 			case "assassinChance":
 				return ec.fieldContext_Game_assassinChance(ctx, field)
+			case "closed":
+				return ec.fieldContext_Game_closed(ctx, field)
 			case "gameUsers":
 				return ec.fieldContext_Game_gameUsers(ctx, field)
 			case "missions":
@@ -8814,7 +8870,7 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "endBy", "capacity", "theAssassinatedIds", "assassinChance", "gameUserIDs", "missionIDs", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "result", "capacity", "theAssassinatedIds", "assassinChance", "closed", "gameUserIDs", "missionIDs", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8867,11 +8923,11 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "endBy":
+		case "result":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endBy"))
-			it.EndBy, err = ec.unmarshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("result"))
+			it.Result, err = ec.unmarshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8903,6 +8959,14 @@ func (ec *executionContext) unmarshalInputCreateGameInput(ctx context.Context, o
 				return it, err
 			}
 			if err = ec.resolvers.CreateGameInput().AssassinChance(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "closed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closed"))
+			it.Closed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "gameUserIDs":
@@ -10616,7 +10680,7 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "endBy", "endByNEQ", "endByIn", "endByNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "assassinChance", "assassinChanceNEQ", "assassinChanceIn", "assassinChanceNotIn", "assassinChanceGT", "assassinChanceGTE", "assassinChanceLT", "assassinChanceLTE", "hasGameUsers", "hasGameUsersWith", "hasMissions", "hasMissionsWith", "hasRoom", "hasRoomWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "roomID", "roomIDNEQ", "roomIDIn", "roomIDNotIn", "result", "resultNEQ", "resultIn", "resultNotIn", "capacity", "capacityNEQ", "capacityIn", "capacityNotIn", "capacityGT", "capacityGTE", "capacityLT", "capacityLTE", "assassinChance", "assassinChanceNEQ", "assassinChanceIn", "assassinChanceNotIn", "assassinChanceGT", "assassinChanceGTE", "assassinChanceLT", "assassinChanceLTE", "closed", "closedNEQ", "hasGameUsers", "hasGameUsersWith", "hasMissions", "hasMissionsWith", "hasRoom", "hasRoomWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11147,35 +11211,35 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 			if err = ec.resolvers.GameWhereInput().RoomIDNotIn(ctx, &it, data); err != nil {
 				return it, err
 			}
-		case "endBy":
+		case "result":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endBy"))
-			it.EndBy, err = ec.unmarshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("result"))
+			it.Result, err = ec.unmarshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "endByNEQ":
+		case "resultNEQ":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endByNEQ"))
-			it.EndByNEQ, err = ec.unmarshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resultNEQ"))
+			it.ResultNEQ, err = ec.unmarshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "endByIn":
+		case "resultIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endByIn"))
-			it.EndByIn, err = ec.unmarshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndByᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resultIn"))
+			it.ResultIn, err = ec.unmarshalOGameResult2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResultᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "endByNotIn":
+		case "resultNotIn":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endByNotIn"))
-			it.EndByNotIn, err = ec.unmarshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndByᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resultNotIn"))
+			it.ResultNotIn, err = ec.unmarshalOGameResult2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResultᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11353,6 +11417,22 @@ func (ec *executionContext) unmarshalInputGameWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			if err = ec.resolvers.GameWhereInput().AssassinChanceLte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "closed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closed"))
+			it.Closed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "closedNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closedNEQ"))
+			it.ClosedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "hasGameUsers":
@@ -15388,7 +15468,7 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "endBy", "capacity", "clearTheAssassinatedIds", "theAssassinatedIds", "appendTheAssassinatedIds", "assassinChance", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "result", "capacity", "clearTheAssassinatedIds", "theAssassinatedIds", "appendTheAssassinatedIds", "assassinChance", "closed", "addGameUserIDs", "removeGameUserIDs", "addMissionIDs", "removeMissionIDs", "clearRoom", "roomID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15433,11 +15513,11 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "endBy":
+		case "result":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endBy"))
-			it.EndBy, err = ec.unmarshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("result"))
+			it.Result, err = ec.unmarshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15485,6 +15565,14 @@ func (ec *executionContext) unmarshalInputUpdateGameInput(ctx context.Context, o
 				return it, err
 			}
 			if err = ec.resolvers.UpdateGameInput().AssassinChance(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "closed":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("closed"))
+			it.Closed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "addGameUserIDs":
@@ -17440,9 +17528,9 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
-		case "endBy":
+		case "result":
 
-			out.Values[i] = ec._Game_endBy(ctx, field, obj)
+			out.Values[i] = ec._Game_result(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -17491,6 +17579,13 @@ func (ec *executionContext) _Game(ctx context.Context, sel ast.SelectionSet, obj
 				return innerFunc(ctx)
 
 			})
+		case "closed":
+
+			out.Values[i] = ec._Game_closed(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "gameUsers":
 			field := field
 
@@ -19727,16 +19822,6 @@ func (ec *executionContext) marshalNGame2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_
 	return ec._Game(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNGameEndBy2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx context.Context, v interface{}) (game.EndBy, error) {
-	var res game.EndBy
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNGameEndBy2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx context.Context, sel ast.SelectionSet, v game.EndBy) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNGameOrderField2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameOrderField(ctx context.Context, v interface{}) (*ent.GameOrderField, error) {
 	var res = new(ent.GameOrderField)
 	err := res.UnmarshalGQL(v)
@@ -19750,6 +19835,16 @@ func (ec *executionContext) marshalNGameOrderField2ᚖgithubᚗcomᚋstarkᚑsim
 		}
 		return graphql.Null
 	}
+	return v
+}
+
+func (ec *executionContext) unmarshalNGameResult2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx context.Context, v interface{}) (game.Result, error) {
+	var res game.Result
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGameResult2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx context.Context, sel ast.SelectionSet, v game.Result) graphql.Marshaler {
 	return v
 }
 
@@ -20657,7 +20752,7 @@ func (ec *executionContext) marshalOGame2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_
 	return ec._Game(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndByᚄ(ctx context.Context, v interface{}) ([]game.EndBy, error) {
+func (ec *executionContext) unmarshalOGameResult2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResultᚄ(ctx context.Context, v interface{}) ([]game.Result, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -20666,10 +20761,10 @@ func (ec *executionContext) unmarshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋ
 		vSlice = graphql.CoerceList(v)
 	}
 	var err error
-	res := make([]game.EndBy, len(vSlice))
+	res := make([]game.Result, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNGameEndBy2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNGameResult2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -20677,7 +20772,7 @@ func (ec *executionContext) unmarshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋ
 	return res, nil
 }
 
-func (ec *executionContext) marshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndByᚄ(ctx context.Context, sel ast.SelectionSet, v []game.EndBy) graphql.Marshaler {
+func (ec *executionContext) marshalOGameResult2ᚕgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResultᚄ(ctx context.Context, sel ast.SelectionSet, v []game.Result) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -20704,7 +20799,7 @@ func (ec *executionContext) marshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋav
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNGameEndBy2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx, sel, v[i])
+			ret[i] = ec.marshalNGameResult2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -20724,16 +20819,16 @@ func (ec *executionContext) marshalOGameEndBy2ᚕgithubᚗcomᚋstarkᚑsimᚋav
 	return ret
 }
 
-func (ec *executionContext) unmarshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx context.Context, v interface{}) (*game.EndBy, error) {
+func (ec *executionContext) unmarshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx context.Context, v interface{}) (*game.Result, error) {
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(game.EndBy)
+	var res = new(game.Result)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOGameEndBy2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐEndBy(ctx context.Context, sel ast.SelectionSet, v *game.EndBy) graphql.Marshaler {
+func (ec *executionContext) marshalOGameResult2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚋgameᚐResult(ctx context.Context, sel ast.SelectionSet, v *game.Result) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

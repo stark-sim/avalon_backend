@@ -35,10 +35,11 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime},
-		{Name: "end_by", Type: field.TypeEnum, Enums: []string{"none", "blue", "red", "assassination", "hand"}, Default: "none"},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"none", "blue", "red", "assassination", "hand"}, Default: "none"},
 		{Name: "capacity", Type: field.TypeUint8, Default: 0},
 		{Name: "the_assassinated_ids", Type: field.TypeJSON, Nullable: true},
 		{Name: "assassin_chance", Type: field.TypeUint8, Default: 1},
+		{Name: "closed", Type: field.TypeBool, Default: false},
 		{Name: "room_id", Type: field.TypeInt64},
 	}
 	// GamesTable holds the schema information for the "games" table.
@@ -49,7 +50,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "games_rooms_games",
-				Columns:    []*schema.Column{GamesColumns[10]},
+				Columns:    []*schema.Column{GamesColumns[11]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

@@ -186,14 +186,16 @@ input CreateGameInput {
   createdAt: Time
   updatedAt: Time
   deletedAt: Time
-  """游戏结束方式"""
-  endBy: GameEndBy
+  """游戏结果"""
+  result: GameResult
   """游戏人数"""
   capacity: Int
   """被刺杀者[们] ID"""
   theAssassinatedIds: [String!]
   """刺杀机会，默认为 1 次"""
   assassinChance: Int
+  """游戏是否关闭，需要有结果且所有人都退出才会关闭或者强制关闭"""
+  closed: Boolean
   gameUserIDs: [ID!]
   missionIDs: [ID!]
   roomID: ID!
@@ -343,25 +345,19 @@ type Game implements Node {
   deletedAt: Time!
   """所属房间 ID"""
   roomID: ID!
-  """游戏结束方式"""
-  endBy: GameEndBy!
+  """游戏结果"""
+  result: GameResult!
   """游戏人数"""
   capacity: Int!
   """被刺杀者[们] ID"""
   theAssassinatedIds: [String!]
   """刺杀机会，默认为 1 次"""
   assassinChance: Int!
+  """游戏是否关闭，需要有结果且所有人都退出才会关闭或者强制关闭"""
+  closed: Boolean!
   gameUsers: [GameUser!]
   missions: [Mission!]
   room: Room!
-}
-"""GameEndBy is enum for the field end_by"""
-enum GameEndBy @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/game.EndBy") {
-  none
-  blue
-  red
-  assassination
-  hand
 }
 """Ordering options for Game connections"""
 input GameOrder {
@@ -375,6 +371,14 @@ enum GameOrderField {
   CREATED_AT
   UPDATED_AT
   DELETED_AT
+}
+"""GameResult is enum for the field result"""
+enum GameResult @goModel(model: "github.com/stark-sim/avalon_backend/pkg/ent/game.Result") {
+  none
+  blue
+  red
+  assassination
+  hand
 }
 type GameUser implements Node {
   id: ID!
@@ -571,11 +575,11 @@ input GameWhereInput {
   roomIDNEQ: ID
   roomIDIn: [ID!]
   roomIDNotIn: [ID!]
-  """end_by field predicates"""
-  endBy: GameEndBy
-  endByNEQ: GameEndBy
-  endByIn: [GameEndBy!]
-  endByNotIn: [GameEndBy!]
+  """result field predicates"""
+  result: GameResult
+  resultNEQ: GameResult
+  resultIn: [GameResult!]
+  resultNotIn: [GameResult!]
   """capacity field predicates"""
   capacity: Int
   capacityNEQ: Int
@@ -594,6 +598,9 @@ input GameWhereInput {
   assassinChanceGTE: Int
   assassinChanceLT: Int
   assassinChanceLTE: Int
+  """closed field predicates"""
+  closed: Boolean
+  closedNEQ: Boolean
   """game_users edge predicates"""
   hasGameUsers: Boolean
   hasGameUsersWith: [GameUserWhereInput!]
@@ -1313,8 +1320,8 @@ input UpdateGameInput {
   updatedBy: String
   updatedAt: Time
   deletedAt: Time
-  """游戏结束方式"""
-  endBy: GameEndBy
+  """游戏结果"""
+  result: GameResult
   """游戏人数"""
   capacity: Int
   clearTheAssassinatedIds: Boolean
@@ -1323,6 +1330,8 @@ input UpdateGameInput {
   appendTheAssassinatedIds: [String!]
   """刺杀机会，默认为 1 次"""
   assassinChance: Int
+  """游戏是否关闭，需要有结果且所有人都退出才会关闭或者强制关闭"""
+  closed: Boolean
   addGameUserIDs: [ID!]
   removeGameUserIDs: [ID!]
   addMissionIDs: [ID!]

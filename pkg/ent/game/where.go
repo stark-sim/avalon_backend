@@ -137,6 +137,13 @@ func AssassinChance(v uint8) predicate.Game {
 	})
 }
 
+// Closed applies equality check predicate on the "closed" field. It's identical to ClosedEQ.
+func Closed(v bool) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosed), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
@@ -493,39 +500,39 @@ func RoomIDNotIn(vs ...int64) predicate.Game {
 	})
 }
 
-// EndByEQ applies the EQ predicate on the "end_by" field.
-func EndByEQ(v EndBy) predicate.Game {
+// ResultEQ applies the EQ predicate on the "result" field.
+func ResultEQ(v Result) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldEndBy), v))
+		s.Where(sql.EQ(s.C(FieldResult), v))
 	})
 }
 
-// EndByNEQ applies the NEQ predicate on the "end_by" field.
-func EndByNEQ(v EndBy) predicate.Game {
+// ResultNEQ applies the NEQ predicate on the "result" field.
+func ResultNEQ(v Result) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldEndBy), v))
+		s.Where(sql.NEQ(s.C(FieldResult), v))
 	})
 }
 
-// EndByIn applies the In predicate on the "end_by" field.
-func EndByIn(vs ...EndBy) predicate.Game {
+// ResultIn applies the In predicate on the "result" field.
+func ResultIn(vs ...Result) predicate.Game {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldEndBy), v...))
+		s.Where(sql.In(s.C(FieldResult), v...))
 	})
 }
 
-// EndByNotIn applies the NotIn predicate on the "end_by" field.
-func EndByNotIn(vs ...EndBy) predicate.Game {
+// ResultNotIn applies the NotIn predicate on the "result" field.
+func ResultNotIn(vs ...Result) predicate.Game {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
 	return predicate.Game(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldEndBy), v...))
+		s.Where(sql.NotIn(s.C(FieldResult), v...))
 	})
 }
 
@@ -668,6 +675,20 @@ func AssassinChanceLT(v uint8) predicate.Game {
 func AssassinChanceLTE(v uint8) predicate.Game {
 	return predicate.Game(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldAssassinChance), v))
+	})
+}
+
+// ClosedEQ applies the EQ predicate on the "closed" field.
+func ClosedEQ(v bool) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldClosed), v))
+	})
+}
+
+// ClosedNEQ applies the NEQ predicate on the "closed" field.
+func ClosedNEQ(v bool) predicate.Game {
+	return predicate.Game(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldClosed), v))
 	})
 }
 

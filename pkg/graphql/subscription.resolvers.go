@@ -253,7 +253,7 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 	_game, err := tx.Game.
 		Create().
 		SetRoomID(roomID).
-		SetEndBy(game.EndByNone).
+		SetResult(game.ResultNone).
 		SetCapacity(playerNum).
 		SetTheAssassinatedIds([]string{}).
 		Save(ctx)
@@ -621,7 +621,7 @@ func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.
 			if failedMissionCount >= 3 {
 				// 游戏结束，红方胜利，结束方式为刺杀成功
 				_game, err := tx.Game.UpdateOneID(_mission.GameID).
-					SetEndBy(game.EndByRed).
+					SetResult(game.ResultRed).
 					Save(ctx)
 				if err != nil {
 					return nil, err
@@ -697,7 +697,7 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 		if tempCard.Name == card.NameMerlin {
 			// 游戏结束，红方胜利，结束方式为刺杀成功
 			_game, err = tx.Game.UpdateOne(_game).
-				SetEndBy(game.EndByAssassination).
+				SetResult(game.ResultAssassination).
 				SetTheAssassinatedIds(req.TheAssassinatedIDs).
 				Save(ctx)
 			// 游戏结束时，房间需要变为无游戏状态
@@ -717,7 +717,7 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 	if !merlinDead {
 		// 游戏结束，蓝方获胜
 		_game, err = tx.Game.UpdateOne(_game).
-			SetEndBy(game.EndByBlue).
+			SetResult(game.ResultBlue).
 			SetTheAssassinatedIds(req.TheAssassinatedIDs).
 			Save(ctx)
 		// 游戏结束时，房间需要变为无游戏状态
@@ -748,7 +748,7 @@ func (r *mutationResolver) TerminateGame(ctx context.Context, req model.GameRequ
 		return nil, err
 	}
 	// 游戏修改状态
-	_game, err := tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetEndBy(game.EndByHand).Save(ctx)
+	_game, err := tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultHand).Save(ctx)
 	if err != nil {
 		logrus.Errorf("error at terminate game: %v", err)
 		return nil, err
@@ -856,7 +856,7 @@ func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest)
 	}
 	// 如果失败达到 3 次，游戏状态直接变成 end_by red
 	if failedCount == 3 {
-		err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetEndBy(game.EndByRed).Exec(ctx)
+		err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultRed).Exec(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -864,7 +864,7 @@ func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest)
 	_game, err := tx.Game.Query().
 		Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
 		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
-			query.Where(gameuser.HasGameWith(game.EndByNEQ(game.EndByNone))).WithCard()
+			query.Where(gameuser.HasGameWith(game.ResultNEQ(game.ResultNone))).WithCard()
 		}).
 		First(ctx)
 	err = tx.Commit()
@@ -901,7 +901,7 @@ func (r *queryResolver) GetGameUsersByGame(ctx context.Context, req model.GameRe
 		return nil, err
 	}
 	var gameUsers []*ent.GameUser
-	if _game.EndBy != game.EndByNone {
+	if _game.Result != game.ResultNone {
 		gameUsers, err = tx.GameUser.Query().
 			Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
 			Order(ent.Asc(gameuser.FieldNumber)).
@@ -1076,7 +1076,7 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 				Where(
 					game.RoomID(roomID),
 					game.DeletedAt(tools.ZeroTime),
-					game.EndByEQ(game.EndByNone),
+					game.ResultEQ(game.ResultNone),
 				).
 				All(ctx)
 			if err != nil {

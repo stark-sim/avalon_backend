@@ -100,13 +100,14 @@ type ComplexityRoot struct {
 	Game struct {
 		AssassinChance     func(childComplexity int) int
 		Capacity           func(childComplexity int) int
+		Closed             func(childComplexity int) int
 		CreatedAt          func(childComplexity int) int
 		CreatedBy          func(childComplexity int) int
 		DeletedAt          func(childComplexity int) int
-		EndBy              func(childComplexity int) int
 		GameUsers          func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Missions           func(childComplexity int) int
+		Result             func(childComplexity int) int
 		Room               func(childComplexity int) int
 		RoomID             func(childComplexity int) int
 		TheAssassinatedIds func(childComplexity int) int
@@ -413,6 +414,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Game.Capacity(childComplexity), true
 
+	case "Game.closed":
+		if e.complexity.Game.Closed == nil {
+			break
+		}
+
+		return e.complexity.Game.Closed(childComplexity), true
+
 	case "Game.createdAt":
 		if e.complexity.Game.CreatedAt == nil {
 			break
@@ -434,13 +442,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Game.DeletedAt(childComplexity), true
 
-	case "Game.endBy":
-		if e.complexity.Game.EndBy == nil {
-			break
-		}
-
-		return e.complexity.Game.EndBy(childComplexity), true
-
 	case "Game.gameUsers":
 		if e.complexity.Game.GameUsers == nil {
 			break
@@ -461,6 +462,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Game.Missions(childComplexity), true
+
+	case "Game.result":
+		if e.complexity.Game.Result == nil {
+			break
+		}
+
+		return e.complexity.Game.Result(childComplexity), true
 
 	case "Game.room":
 		if e.complexity.Game.Room == nil {
