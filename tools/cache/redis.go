@@ -93,11 +93,13 @@ func (rc *RedisClient) WaitRoomMutex(ctx context.Context, roomID int64) error {
 	for {
 		done, err := rc.rdb.SetNX(ctx, fmt.Sprintf(RedisRoomIDMutex, strconv.FormatInt(roomID, 10)), roomID, 2*time.Second).Result()
 		if err != nil {
+			logrus.Errorf("set room %d mutex: %v", roomID, err)
 			return err
 		}
 		if !done {
 			continue
 		} else {
+			// 抢到信号量
 			return nil
 		}
 	}
@@ -106,6 +108,7 @@ func (rc *RedisClient) WaitRoomMutex(ctx context.Context, roomID int64) error {
 func (rc *RedisClient) ReleaseRoomMutex(ctx context.Context, roomID int64) error {
 	_, err := rc.rdb.Del(ctx, fmt.Sprintf(RedisRoomIDMutex, strconv.FormatInt(roomID, 10))).Result()
 	if err != nil {
+		logrus.Errorf("release room %d mutex: %v", roomID, err)
 		return err
 	}
 	return nil
