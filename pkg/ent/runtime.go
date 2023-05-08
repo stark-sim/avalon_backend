@@ -130,6 +130,10 @@ func init() {
 	gameuserDescDeletedAt := gameuserMixinFields0[5].Descriptor()
 	// gameuser.DefaultDeletedAt holds the default value on creation for the deleted_at field.
 	gameuser.DefaultDeletedAt = gameuserDescDeletedAt.Default.(time.Time)
+	// gameuserDescExited is the schema descriptor for exited field.
+	gameuserDescExited := gameuserFields[4].Descriptor()
+	// gameuser.DefaultExited holds the default value on creation for the exited field.
+	gameuser.DefaultExited = gameuserDescExited.Default.(bool)
 	// gameuserDescID is the schema descriptor for id field.
 	gameuserDescID := gameuserMixinFields0[0].Descriptor()
 	// gameuser.DefaultID holds the default value on creation for the id field.

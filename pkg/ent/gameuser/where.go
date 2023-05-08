@@ -144,6 +144,13 @@ func Number(v uint8) predicate.GameUser {
 	})
 }
 
+// Exited applies equality check predicate on the "exited" field. It's identical to ExitedEQ.
+func Exited(v bool) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExited), v))
+	})
+}
+
 // CreatedByEQ applies the EQ predicate on the "created_by" field.
 func CreatedByEQ(v int64) predicate.GameUser {
 	return predicate.GameUser(func(s *sql.Selector) {
@@ -661,6 +668,20 @@ func NumberLT(v uint8) predicate.GameUser {
 func NumberLTE(v uint8) predicate.GameUser {
 	return predicate.GameUser(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldNumber), v))
+	})
+}
+
+// ExitedEQ applies the EQ predicate on the "exited" field.
+func ExitedEQ(v bool) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldExited), v))
+	})
+}
+
+// ExitedNEQ applies the NEQ predicate on the "exited" field.
+func ExitedNEQ(v bool) predicate.GameUser {
+	return predicate.GameUser(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldExited), v))
 	})
 }
 

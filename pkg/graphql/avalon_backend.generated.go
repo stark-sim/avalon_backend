@@ -178,6 +178,7 @@ type CreateGameUserInputResolver interface {
 
 	UserID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 	Number(ctx context.Context, obj *ent.CreateGameUserInput, data int) error
+
 	GameID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 	CardID(ctx context.Context, obj *ent.CreateGameUserInput, data string) error
 }
@@ -1351,6 +1352,8 @@ func (ec *executionContext) fieldContext_Card_gameUsers(ctx context.Context, fie
 				return ec.fieldContext_GameUser_cardID(ctx, field)
 			case "number":
 				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
 			case "game":
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
@@ -1945,6 +1948,8 @@ func (ec *executionContext) fieldContext_Game_gameUsers(ctx context.Context, fie
 				return ec.fieldContext_GameUser_cardID(ctx, field)
 			case "number":
 				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
 			case "game":
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
@@ -2538,6 +2543,50 @@ func (ec *executionContext) fieldContext_GameUser_number(ctx context.Context, fi
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GameUser_exited(ctx context.Context, field graphql.CollectedField, obj *ent.GameUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GameUser_exited(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Exited, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GameUser_exited(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GameUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4001,6 +4050,8 @@ func (ec *executionContext) fieldContext_Query_gameUsers(ctx context.Context, fi
 				return ec.fieldContext_GameUser_cardID(ctx, field)
 			case "number":
 				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
 			case "game":
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
@@ -4813,6 +4864,8 @@ func (ec *executionContext) fieldContext_Query_getVagueGameUsers(ctx context.Con
 				return ec.fieldContext_GameUser_cardID(ctx, field)
 			case "number":
 				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
 			case "game":
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
@@ -4896,6 +4949,8 @@ func (ec *executionContext) fieldContext_Query_getGameUsersByGame(ctx context.Co
 				return ec.fieldContext_GameUser_cardID(ctx, field)
 			case "number":
 				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
 			case "game":
 				return ec.fieldContext_GameUser_game(ctx, field)
 			case "card":
@@ -9015,7 +9070,7 @@ func (ec *executionContext) unmarshalInputCreateGameUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "number", "gameID", "cardID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "createdAt", "updatedAt", "deletedAt", "userID", "number", "exited", "gameID", "cardID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9088,6 +9143,14 @@ func (ec *executionContext) unmarshalInputCreateGameUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.CreateGameUserInput().Number(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "exited":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exited"))
+			it.Exited, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "gameID":
@@ -9884,7 +9947,7 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "cardID", "cardIDNEQ", "cardIDIn", "cardIDNotIn", "number", "numberNEQ", "numberIn", "numberNotIn", "numberGT", "numberGTE", "numberLT", "numberLTE", "hasGame", "hasGameWith", "hasCard", "hasCardWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdBy", "createdByNEQ", "createdByIn", "createdByNotIn", "createdByGT", "createdByGTE", "createdByLT", "createdByLTE", "updatedBy", "updatedByNEQ", "updatedByIn", "updatedByNotIn", "updatedByGT", "updatedByGTE", "updatedByLT", "updatedByLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "deletedAt", "deletedAtNEQ", "deletedAtIn", "deletedAtNotIn", "deletedAtGT", "deletedAtGTE", "deletedAtLT", "deletedAtLTE", "userID", "userIDNEQ", "userIDIn", "userIDNotIn", "userIDGT", "userIDGTE", "userIDLT", "userIDLTE", "gameID", "gameIDNEQ", "gameIDIn", "gameIDNotIn", "cardID", "cardIDNEQ", "cardIDIn", "cardIDNotIn", "number", "numberNEQ", "numberIn", "numberNotIn", "numberGT", "numberGTE", "numberLT", "numberLTE", "exited", "exitedNEQ", "hasGame", "hasGameWith", "hasCard", "hasCardWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10633,6 +10696,22 @@ func (ec *executionContext) unmarshalInputGameUserWhereInput(ctx context.Context
 				return it, err
 			}
 			if err = ec.resolvers.GameUserWhereInput().NumberLte(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "exited":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exited"))
+			it.Exited, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exitedNEQ":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exitedNEQ"))
+			it.ExitedNEQ, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "hasGame":
@@ -15651,7 +15730,7 @@ func (ec *executionContext) unmarshalInputUpdateGameUserInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "number", "clearGame", "gameID", "clearCard", "cardID"}
+	fieldsInOrder := [...]string{"createdBy", "updatedBy", "updatedAt", "deletedAt", "userID", "number", "exited", "clearGame", "gameID", "clearCard", "cardID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -15716,6 +15795,14 @@ func (ec *executionContext) unmarshalInputUpdateGameUserInput(ctx context.Contex
 				return it, err
 			}
 			if err = ec.resolvers.UpdateGameUserInput().Number(ctx, &it, data); err != nil {
+				return it, err
+			}
+		case "exited":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exited"))
+			it.Exited, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
 				return it, err
 			}
 		case "clearGame":
@@ -17822,6 +17909,13 @@ func (ec *executionContext) _GameUser(ctx context.Context, sel ast.SelectionSet,
 				return innerFunc(ctx)
 
 			})
+		case "exited":
+
+			out.Values[i] = ec._GameUser_exited(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "game":
 			field := field
 

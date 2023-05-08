@@ -2223,6 +2223,7 @@ type GameUserMutation struct {
 	adduser_id    *int64
 	number        *uint8
 	addnumber     *int8
+	exited        *bool
 	clearedFields map[string]struct{}
 	game          *int64
 	clearedgame   bool
@@ -2741,6 +2742,42 @@ func (m *GameUserMutation) ResetNumber() {
 	m.addnumber = nil
 }
 
+// SetExited sets the "exited" field.
+func (m *GameUserMutation) SetExited(b bool) {
+	m.exited = &b
+}
+
+// Exited returns the value of the "exited" field in the mutation.
+func (m *GameUserMutation) Exited() (r bool, exists bool) {
+	v := m.exited
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExited returns the old "exited" field's value of the GameUser entity.
+// If the GameUser object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameUserMutation) OldExited(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExited is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExited requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExited: %w", err)
+	}
+	return oldValue.Exited, nil
+}
+
+// ResetExited resets all changes to the "exited" field.
+func (m *GameUserMutation) ResetExited() {
+	m.exited = nil
+}
+
 // ClearGame clears the "game" edge to the Game entity.
 func (m *GameUserMutation) ClearGame() {
 	m.clearedgame = true
@@ -2812,7 +2849,7 @@ func (m *GameUserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameUserMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_by != nil {
 		fields = append(fields, gameuser.FieldCreatedBy)
 	}
@@ -2840,6 +2877,9 @@ func (m *GameUserMutation) Fields() []string {
 	if m.number != nil {
 		fields = append(fields, gameuser.FieldNumber)
 	}
+	if m.exited != nil {
+		fields = append(fields, gameuser.FieldExited)
+	}
 	return fields
 }
 
@@ -2866,6 +2906,8 @@ func (m *GameUserMutation) Field(name string) (ent.Value, bool) {
 		return m.CardID()
 	case gameuser.FieldNumber:
 		return m.Number()
+	case gameuser.FieldExited:
+		return m.Exited()
 	}
 	return nil, false
 }
@@ -2893,6 +2935,8 @@ func (m *GameUserMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldCardID(ctx)
 	case gameuser.FieldNumber:
 		return m.OldNumber(ctx)
+	case gameuser.FieldExited:
+		return m.OldExited(ctx)
 	}
 	return nil, fmt.Errorf("unknown GameUser field %s", name)
 }
@@ -2964,6 +3008,13 @@ func (m *GameUserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNumber(v)
+		return nil
+	case gameuser.FieldExited:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExited(v)
 		return nil
 	}
 	return fmt.Errorf("unknown GameUser field %s", name)
@@ -3091,6 +3142,9 @@ func (m *GameUserMutation) ResetField(name string) error {
 		return nil
 	case gameuser.FieldNumber:
 		m.ResetNumber()
+		return nil
+	case gameuser.FieldExited:
+		m.ResetExited()
 		return nil
 	}
 	return fmt.Errorf("unknown GameUser field %s", name)

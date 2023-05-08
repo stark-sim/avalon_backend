@@ -66,6 +66,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "number", Type: field.TypeUint8},
+		{Name: "exited", Type: field.TypeBool, Default: false},
 		{Name: "card_id", Type: field.TypeInt64},
 		{Name: "game_id", Type: field.TypeInt64},
 	}
@@ -77,13 +78,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "game_users_cards_game_users",
-				Columns:    []*schema.Column{GameUsersColumns[8]},
+				Columns:    []*schema.Column{GameUsersColumns[9]},
 				RefColumns: []*schema.Column{CardsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "game_users_games_game_users",
-				Columns:    []*schema.Column{GameUsersColumns[9]},
+				Columns:    []*schema.Column{GameUsersColumns[10]},
 				RefColumns: []*schema.Column{GamesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

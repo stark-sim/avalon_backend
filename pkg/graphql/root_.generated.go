@@ -121,6 +121,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		CreatedBy func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
+		Exited    func(childComplexity int) int
 		Game      func(childComplexity int) int
 		GameID    func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -539,6 +540,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GameUser.DeletedAt(childComplexity), true
+
+	case "GameUser.exited":
+		if e.complexity.GameUser.Exited == nil {
+			break
+		}
+
+		return e.complexity.GameUser.Exited(childComplexity), true
 
 	case "GameUser.game":
 		if e.complexity.GameUser.Game == nil {

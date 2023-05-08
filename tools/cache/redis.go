@@ -55,11 +55,13 @@ func (rc *RedisClient) SetUser(ctx context.Context, user *model.User) error {
 	return nil
 }
 
+// GetRoomIDByShortCode 通过短码获取房间 ID，没有数据时返回 0 和错误
 func (rc *RedisClient) GetRoomIDByShortCode(ctx context.Context, shortCode string) (int64, error) {
 	val, err := rc.rdb.Get(ctx, fmt.Sprintf(RedisRoomIDShortCodeKey, shortCode)).Int64()
 	if err == redis.Nil {
 		return 0, err
 	} else if err != nil {
+		logrus.Errorf("get roomID by shortCode %s: %v", shortCode, err)
 		return 0, err
 	} else {
 		return val, nil

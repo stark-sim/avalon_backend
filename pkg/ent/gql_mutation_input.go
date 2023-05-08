@@ -283,6 +283,7 @@ type CreateGameUserInput struct {
 	DeletedAt *time.Time
 	UserID    int64
 	Number    uint8
+	Exited    *bool
 	GameID    int64
 	CardID    int64
 }
@@ -306,6 +307,9 @@ func (i *CreateGameUserInput) Mutate(m *GameUserMutation) {
 	}
 	m.SetUserID(i.UserID)
 	m.SetNumber(i.Number)
+	if v := i.Exited; v != nil {
+		m.SetExited(*v)
+	}
 	m.SetGameID(i.GameID)
 	m.SetCardID(i.CardID)
 }
@@ -324,6 +328,7 @@ type UpdateGameUserInput struct {
 	DeletedAt *time.Time
 	UserID    *int64
 	Number    *uint8
+	Exited    *bool
 	ClearGame bool
 	GameID    *int64
 	ClearCard bool
@@ -349,6 +354,9 @@ func (i *UpdateGameUserInput) Mutate(m *GameUserMutation) {
 	}
 	if v := i.Number; v != nil {
 		m.SetNumber(*v)
+	}
+	if v := i.Exited; v != nil {
+		m.SetExited(*v)
 	}
 	if i.ClearGame {
 		m.ClearGame()

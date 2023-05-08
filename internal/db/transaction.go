@@ -1,14 +1,15 @@
-package ent
+package db
 
 import (
 	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/pkg/ent"
 )
 
 // WithTx wrap transaction according to doc of Ent
 // https://entgo.io/docs/transactions/
-func WithTx(ctx context.Context, client *Client, fn func(tx *Tx) error) error {
+func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) error {
 	tx, err := client.Tx(ctx)
 	if err != nil {
 		logrus.Errorf("begin tx: %v", err)

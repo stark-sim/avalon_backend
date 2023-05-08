@@ -36,6 +36,8 @@ type GameUser struct {
 	CardID int64 `json:"card_id"`
 	// 排序，号数
 	Number uint8 `json:"number"`
+	// 用户是否已经退出游戏，都退出游戏时游戏关闭，为了让游戏结束时用户还可以进去查看结果
+	Exited bool `json:"exited"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GameUserQuery when eager-loading is set.
 	Edges GameUserEdges `json:"edges"`
@@ -85,6 +87,8 @@ func (*GameUser) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case gameuser.FieldExited:
+			values[i] = new(sql.NullBool)
 		case gameuser.FieldID, gameuser.FieldCreatedBy, gameuser.FieldUpdatedBy, gameuser.FieldUserID, gameuser.FieldGameID, gameuser.FieldCardID, gameuser.FieldNumber:
 			values[i] = new(sql.NullInt64)
 		case gameuser.FieldCreatedAt, gameuser.FieldUpdatedAt, gameuser.FieldDeletedAt:
@@ -164,6 +168,12 @@ func (gu *GameUser) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gu.Number = uint8(value.Int64)
 			}
+		case gameuser.FieldExited:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field exited", values[i])
+			} else if value.Valid {
+				gu.Exited = value.Bool
+			}
 		}
 	}
 	return nil
@@ -228,6 +238,9 @@ func (gu *GameUser) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("number=")
 	builder.WriteString(fmt.Sprintf("%v", gu.Number))
+	builder.WriteString(", ")
+	builder.WriteString("exited=")
+	builder.WriteString(fmt.Sprintf("%v", gu.Exited))
 	builder.WriteByte(')')
 	return builder.String()
 }

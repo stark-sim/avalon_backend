@@ -130,6 +130,20 @@ func (guu *GameUserUpdate) AddNumber(u int8) *GameUserUpdate {
 	return guu
 }
 
+// SetExited sets the "exited" field.
+func (guu *GameUserUpdate) SetExited(b bool) *GameUserUpdate {
+	guu.mutation.SetExited(b)
+	return guu
+}
+
+// SetNillableExited sets the "exited" field if the given value is not nil.
+func (guu *GameUserUpdate) SetNillableExited(b *bool) *GameUserUpdate {
+	if b != nil {
+		guu.SetExited(*b)
+	}
+	return guu
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (guu *GameUserUpdate) SetGame(g *Game) *GameUserUpdate {
 	return guu.SetGameID(g.ID)
@@ -284,6 +298,9 @@ func (guu *GameUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := guu.mutation.AddedNumber(); ok {
 		_spec.AddField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
+	if value, ok := guu.mutation.Exited(); ok {
+		_spec.SetField(gameuser.FieldExited, field.TypeBool, value)
 	}
 	if guu.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -474,6 +491,20 @@ func (guuo *GameUserUpdateOne) AddNumber(u int8) *GameUserUpdateOne {
 	return guuo
 }
 
+// SetExited sets the "exited" field.
+func (guuo *GameUserUpdateOne) SetExited(b bool) *GameUserUpdateOne {
+	guuo.mutation.SetExited(b)
+	return guuo
+}
+
+// SetNillableExited sets the "exited" field if the given value is not nil.
+func (guuo *GameUserUpdateOne) SetNillableExited(b *bool) *GameUserUpdateOne {
+	if b != nil {
+		guuo.SetExited(*b)
+	}
+	return guuo
+}
+
 // SetGame sets the "game" edge to the Game entity.
 func (guuo *GameUserUpdateOne) SetGame(g *Game) *GameUserUpdateOne {
 	return guuo.SetGameID(g.ID)
@@ -658,6 +689,9 @@ func (guuo *GameUserUpdateOne) sqlSave(ctx context.Context) (_node *GameUser, er
 	}
 	if value, ok := guuo.mutation.AddedNumber(); ok {
 		_spec.AddField(gameuser.FieldNumber, field.TypeUint8, value)
+	}
+	if value, ok := guuo.mutation.Exited(); ok {
+		_spec.SetField(gameuser.FieldExited, field.TypeBool, value)
 	}
 	if guuo.mutation.GameCleared() {
 		edge := &sqlgraph.EdgeSpec{

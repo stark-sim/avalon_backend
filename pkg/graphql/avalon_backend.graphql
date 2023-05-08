@@ -214,6 +214,8 @@ input CreateGameUserInput {
   userID: ID!
   """排序，号数"""
   number: Int!
+  """用户是否已经退出游戏，都退出游戏时游戏关闭，为了让游戏结束时用户还可以进去查看结果"""
+  exited: Boolean
   gameID: ID!
   cardID: ID!
 }
@@ -395,6 +397,8 @@ type GameUser implements Node {
   cardID: ID!
   """排序，号数"""
   number: Int!
+  """用户是否已经退出游戏，都退出游戏时游戏关闭，为了让游戏结束时用户还可以进去查看结果"""
+  exited: Boolean!
   game: Game!
   card: Card!
 }
@@ -501,6 +505,9 @@ input GameUserWhereInput {
   numberGTE: Int
   numberLT: Int
   numberLTE: Int
+  """exited field predicates"""
+  exited: Boolean
+  exitedNEQ: Boolean
   """game edge predicates"""
   hasGame: Boolean
   hasGameWith: [GameWhereInput!]
@@ -1352,6 +1359,8 @@ input UpdateGameUserInput {
   userID: ID
   """排序，号数"""
   number: Int
+  """用户是否已经退出游戏，都退出游戏时游戏关闭，为了让游戏结束时用户还可以进去查看结果"""
+  exited: Boolean
   clearGame: Boolean
   gameID: ID
   clearCard: Boolean

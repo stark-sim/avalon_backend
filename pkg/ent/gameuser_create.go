@@ -116,6 +116,20 @@ func (guc *GameUserCreate) SetNumber(u uint8) *GameUserCreate {
 	return guc
 }
 
+// SetExited sets the "exited" field.
+func (guc *GameUserCreate) SetExited(b bool) *GameUserCreate {
+	guc.mutation.SetExited(b)
+	return guc
+}
+
+// SetNillableExited sets the "exited" field if the given value is not nil.
+func (guc *GameUserCreate) SetNillableExited(b *bool) *GameUserCreate {
+	if b != nil {
+		guc.SetExited(*b)
+	}
+	return guc
+}
+
 // SetID sets the "id" field.
 func (guc *GameUserCreate) SetID(i int64) *GameUserCreate {
 	guc.mutation.SetID(i)
@@ -237,6 +251,10 @@ func (guc *GameUserCreate) defaults() {
 		v := gameuser.DefaultDeletedAt
 		guc.mutation.SetDeletedAt(v)
 	}
+	if _, ok := guc.mutation.Exited(); !ok {
+		v := gameuser.DefaultExited
+		guc.mutation.SetExited(v)
+	}
 	if _, ok := guc.mutation.ID(); !ok {
 		v := gameuser.DefaultID()
 		guc.mutation.SetID(v)
@@ -271,6 +289,9 @@ func (guc *GameUserCreate) check() error {
 	}
 	if _, ok := guc.mutation.Number(); !ok {
 		return &ValidationError{Name: "number", err: errors.New(`ent: missing required field "GameUser.number"`)}
+	}
+	if _, ok := guc.mutation.Exited(); !ok {
+		return &ValidationError{Name: "exited", err: errors.New(`ent: missing required field "GameUser.exited"`)}
 	}
 	if _, ok := guc.mutation.GameID(); !ok {
 		return &ValidationError{Name: "game", err: errors.New(`ent: missing required edge "GameUser.game"`)}
@@ -338,6 +359,10 @@ func (guc *GameUserCreate) createSpec() (*GameUser, *sqlgraph.CreateSpec) {
 	if value, ok := guc.mutation.Number(); ok {
 		_spec.SetField(gameuser.FieldNumber, field.TypeUint8, value)
 		_node.Number = value
+	}
+	if value, ok := guc.mutation.Exited(); ok {
+		_spec.SetField(gameuser.FieldExited, field.TypeBool, value)
+		_node.Exited = value
 	}
 	if nodes := guc.mutation.GameIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

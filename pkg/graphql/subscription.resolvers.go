@@ -8,11 +8,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v9"
 	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/sirupsen/logrus"
+	"github.com/stark-sim/avalon_backend/internal/db"
 	"github.com/stark-sim/avalon_backend/internal/logic"
 	"github.com/stark-sim/avalon_backend/pkg/ent"
 	"github.com/stark-sim/avalon_backend/pkg/ent/card"
@@ -56,85 +58,8 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, req ent.CreateRoomInp
 
 // JoinRoom is the resolver for the joinRoom field.
 func (r *mutationResolver) JoinRoom(ctx context.Context, req ent.CreateRoomUserInput) (*ent.RoomUser, error) {
-	var roomUser *ent.RoomUser
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
-		// 加入前检查 房间 是否关闭
-		_, err := tx.Room.Query().Where(room.ID(req.RoomID), room.DeletedAt(tools.ZeroTime), room.Closed(false)).First(ctx)
-		if ent.IsNotFound(err) {
-			return errors.New("room no exist")
-		} else if err != nil {
-			logrus.Errorf("query room before join room: %v", err)
-			return err
-		}
-		// 加入前检查自己是否在其他房间
-		if _, err = tx.RoomUser.Query().Where(roomuser.UserID(req.UserID), roomuser.DeletedAt(tools.ZeroTime), roomuser.RoomIDNEQ(req.RoomID)).First(ctx); err != nil {
-			if !ent.IsNotFound(err) {
-				// 预期外错误
-				logrus.Errorf("check if user in another room already: %v", err)
-				return err
-			}
-		} else {
-			// 成功找到数据，说明在别的房间，就是出错
-			return errors.New("user be in another room")
-		}
-		// 中间表调整软删除字段来代替创建和删除
-		// 需要在 tx Commit 之前把之后有可能会拿的 Room 先拿出来
-		roomUser, err = tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID), roomuser.UserID(req.UserID)).WithRoom().First(ctx)
-		if ent.IsNotFound(err) {
-			redisClient := cache.NewRedisClient()
-			defer redisClient.Close()
-			// 要插入 RoomUser 的话需要 Room 信号量
-			if err = redisClient.WaitRoomMutex(ctx, req.RoomID); err != nil {
-				return err
-			}
-			defer func(redisClient *cache.RedisClient, ctx context.Context, roomID int64) {
-				if err = redisClient.ReleaseRoomMutex(ctx, roomID); err != nil {
-					return
-				}
-			}(redisClient, ctx, req.RoomID)
-			// 添加前查看自己是不是第一个加入房间的人，如果是，自己是房主
-			// 不需要区分检查软删除，因为所有人退出时，房间会关闭
-			hostTaken, err := tx.RoomUser.Query().Where(roomuser.RoomID(req.RoomID)).Exist(ctx)
-			if err != nil {
-				logrus.Errorf("error at check if room is empty: %v", err)
-				return err
-			}
-			var newRoomUser *ent.RoomUser
-			if hostTaken {
-				newRoomUser, err = tx.RoomUser.
-					Create().
-					SetUserID(req.UserID).
-					SetRoomID(req.RoomID).
-					Save(ctx)
-			} else {
-				newRoomUser, err = tx.RoomUser.
-					Create().
-					SetUserID(req.UserID).
-					SetRoomID(req.RoomID).
-					SetHost(true).
-					Save(ctx)
-			}
-			if err != nil {
-				logrus.Errorf("error at create roomUser: %v", err)
-				return err
-			}
-			// 有可能要带出 Room 的信息
-			newRoomUser, err = tx.RoomUser.Query().Where(roomuser.ID(newRoomUser.ID)).WithRoom().First(ctx)
-			if err != nil {
-				return err
-			}
-			roomUser = newRoomUser
-			return nil
-		} else {
-			// 不需要新增数据库，修改软删除字段就好
-			roomUser, err = tx.RoomUser.UpdateOneID(roomUser.ID).SetDeletedAt(tools.ZeroTime).Save(ctx)
-			if err != nil {
-				logrus.Errorf("update gameUser %d deleted_at when joinRoom: %v", roomUser.ID, err)
-				return err
-			}
-			return nil
-		}
-	}); err != nil {
+	roomUser, err := logic.JoinRoom(ctx, r.client, req.RoomID, req.UserID)
+	if err != nil {
 		return nil, err
 	}
 	return roomUser, nil
@@ -145,7 +70,7 @@ func (r *mutationResolver) LeaveRoom(ctx context.Context, req ent.CreateRoomUser
 	redisClient := cache.NewRedisClient()
 	defer redisClient.Close()
 	var roomUser *ent.RoomUser
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
 		// 离开前查看房间剩余人数，要抢信号量锁住 RoomUser 表新增
 		if err := redisClient.WaitRoomMutex(ctx, req.RoomID); err != nil {
 			return err
@@ -233,7 +158,7 @@ func (r *mutationResolver) CloseRoom(ctx context.Context, req model.RoomRequest)
 func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameRequest) (*ent.Game, error) {
 	roomID := tools.StringToInt64(req.RoomID)
 	var _game *ent.Game
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
 		// 将房间中现有的人加入到一局新游戏里
 		// 先检查房间没有在进行游戏
 		_room, err := tx.Room.
@@ -383,10 +308,9 @@ func (r *mutationResolver) TempPickSquads(ctx context.Context, req []*ent.Create
 }
 
 // PickSquads is the resolver for the pickSquads field.
-// 确定选择小队成员
 func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSquadInput) ([]*ent.Squad, error) {
 	var squads []*ent.Squad
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
 		// 队长选任务小队人数，选好后任务进去投票阶段，并且为大家创建 Vote
 		// 检查 1. 小队任务的是同一个 2. 小队人数和任务任务相等 3. 小队人员在任务所属游戏中
 		missionID := int64(0)
@@ -494,7 +418,7 @@ func (r *mutationResolver) PickSquads(ctx context.Context, req []*ent.CreateSqua
 // Vote is the resolver for the vote field.
 func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*ent.Vote, error) {
 	var _vote *ent.Vote
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
 		var err error
 		_vote, err = tx.Vote.UpdateOneID(tools.StringToInt64(req.VoteID)).SetPass(req.Pass).SetVoted(true).Save(ctx)
 		if err != nil {
@@ -602,7 +526,7 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 // Act is the resolver for the act field.
 func (r *mutationResolver) Act(ctx context.Context, req model.ActRequest) (*ent.Squad, error) {
 	var _squad *ent.Squad
-	if err := ent.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
 		// 执行任务是否破坏
 		var err error
 		_squad, err = tx.Squad.UpdateOneID(tools.StringToInt64(req.SquadID)).SetRat(req.Rat).SetActed(true).Save(ctx)
@@ -699,73 +623,63 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 	if err != nil {
 		return nil, err
 	}
-	// 进行事务
-	tx, err := r.client.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.GameID)), game.DeletedAt(tools.ZeroTime)).First(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// 把刺杀的游戏玩家找到
-	theAssassinatedIDs := make([]int64, len(req.TheAssassinatedIDs))
-	for i, theAssassinatedID := range req.TheAssassinatedIDs {
-		theAssassinatedIDs[i] = tools.StringToInt64(theAssassinatedID)
-	}
-	gameUsers, err := tx.GameUser.Query().
-		Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserIDIn(theAssassinatedIDs...)).
-		WithCard().
-		All(ctx)
-	if err != nil {
-		logrus.Errorf("error at query target gameUser when assassinate: %v", err)
-		return nil, err
-	}
-	// 看看杀没杀到梅林
-	merlinDead := false
-	for _, gameUser := range gameUsers {
-		tempCard, err := gameUser.Card(ctx)
+	var _game *ent.Game
+	if err = db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		_game, err = tx.Game.Query().Where(game.ID(tools.StringToInt64(req.GameID)), game.DeletedAt(tools.ZeroTime)).First(ctx)
 		if err != nil {
-			logrus.Errorf("error at query gameUsers with card: %v", err)
-			return nil, err
+			logrus.Errorf("query game %s when assassinate: %v", req.GameID, err)
+			return err
 		}
-		if tempCard.Name == card.NameMerlin {
-			// 游戏结束，红方胜利，结束方式为刺杀成功
+		// 把刺杀的游戏玩家找到
+		theAssassinatedIDs := make([]int64, len(req.TheAssassinatedIDs))
+		for i, theAssassinatedID := range req.TheAssassinatedIDs {
+			theAssassinatedIDs[i] = tools.StringToInt64(theAssassinatedID)
+		}
+		gameUsers, err := tx.GameUser.Query().
+			Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime), gameuser.UserIDIn(theAssassinatedIDs...)).
+			WithCard().
+			All(ctx)
+		if err != nil {
+			logrus.Errorf("query target gameUsers %v when assassinate: %v", theAssassinatedIDs, err)
+			return err
+		}
+		// 看看杀没杀到梅林
+		merlinDead := false
+		for _, gameUser := range gameUsers {
+			tempCard, err := gameUser.Card(ctx)
+			if err != nil {
+				logrus.Errorf("query gameUsers with card: %v", err)
+				return err
+			}
+			if tempCard.Name == card.NameMerlin {
+				// 游戏结束，红方胜利，结束方式为刺杀成功
+				_game, err = tx.Game.UpdateOne(_game).
+					SetResult(game.ResultAssassination).
+					SetTheAssassinatedIds(req.TheAssassinatedIDs).
+					Save(ctx)
+				if err != nil {
+					logrus.Errorf("update game %d when merlin dead: %v", _game.ID, err)
+					return err
+				}
+				// 梅林阵亡
+				merlinDead = true
+				break
+			}
+		}
+		// 梅林没死
+		if !merlinDead {
+			// 游戏结束，蓝方获胜
 			_game, err = tx.Game.UpdateOne(_game).
-				SetResult(game.ResultAssassination).
+				SetResult(game.ResultBlue).
 				SetTheAssassinatedIds(req.TheAssassinatedIDs).
 				Save(ctx)
-			// 游戏结束时，房间需要变为无游戏状态
-			_, err = tx.Room.UpdateOneID(_game.RoomID).
-				SetGameOn(false).
-				Save(ctx)
 			if err != nil {
-				logrus.Errorf("error at update game when assassinate: %v", err)
-				return nil, err
+				logrus.Errorf("update game %d when merlin survive: %v", _game.ID, err)
+				return err
 			}
-			// 梅林阵亡
-			merlinDead = true
-			break
 		}
-	}
-	// 梅林没死
-	if !merlinDead {
-		// 游戏结束，蓝方获胜
-		_game, err = tx.Game.UpdateOne(_game).
-			SetResult(game.ResultBlue).
-			SetTheAssassinatedIds(req.TheAssassinatedIDs).
-			Save(ctx)
-		// 游戏结束时，房间需要变为无游戏状态
-		_, err = tx.Room.UpdateOneID(_game.RoomID).
-			SetGameOn(false).
-			Save(ctx)
-		if err != nil {
-			logrus.Errorf("error at update game when assassinate: %v", err)
-			return nil, err
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 	return _game, nil
@@ -773,27 +687,46 @@ func (r *mutationResolver) Assassinate(ctx context.Context, req model.Assassinat
 
 // JoinRoomByShortCode is the resolver for the joinRoomByShortCode field.
 func (r *mutationResolver) JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error) {
-	panic(fmt.Errorf("not implemented: JoinRoomByShortCode - joinRoomByShortCode"))
+	cacheClient := cache.NewRedisClient()
+	defer cacheClient.Close()
+	roomID, err := cacheClient.GetRoomIDByShortCode(ctx, req.ShortCode)
+	if err != nil {
+		if err == redis.Nil {
+			return nil, fmt.Errorf("short_code %s not exist", req.ShortCode)
+		} else {
+			return nil, err
+		}
+	}
+	roomUser, err := logic.JoinRoom(ctx, r.client, roomID, tools.StringToInt64(req.UserID))
+	if err != nil {
+		return nil, err
+	}
+	return roomUser, nil
 }
 
 // TerminateGame is the resolver for the terminateGame field.
 func (r *mutationResolver) TerminateGame(ctx context.Context, req model.GameRequest) (*ent.Game, error) {
-	tx, err := r.client.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// 游戏修改状态
-	_game, err := tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultHand).Save(ctx)
-	if err != nil {
-		logrus.Errorf("error at terminate game: %v", err)
-		return nil, err
-	}
-	// 房间变回无进行游戏状态
-	if err = tx.Room.UpdateOneID(_game.RoomID).SetGameOn(false).Exec(ctx); err != nil {
-		logrus.Errorf("error at update room when terminate game: %v", err)
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
+	var _game *ent.Game
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		var err error
+		// 游戏修改状态为手动终止，并且游戏直接关闭
+		_game, err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultHand).SetClosed(true).Save(ctx)
+		if err != nil {
+			logrus.Errorf("error at terminate game: %v", err)
+			return err
+		}
+		// 所有游戏人员被踢出游戏
+		if err = tx.GameUser.Update().Where(gameuser.GameID(_game.ID), gameuser.DeletedAt(tools.ZeroTime)).SetExited(true).Exec(ctx); err != nil {
+			logrus.Errorf("update gameUsers when game %d terminated: %v", _game.ID, err)
+			return err
+		}
+		// 房间变回无进行游戏状态
+		if err = tx.Room.UpdateOneID(_game.RoomID).SetGameOn(false).Exec(ctx); err != nil {
+			logrus.Errorf("update room %d when terminate game %d: %v", _game.RoomID, _game.ID, err)
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 	return _game, nil
@@ -817,7 +750,7 @@ func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest
 		if ent.IsNotFound(err) {
 			return nil, nil
 		} else {
-			logrus.Errorf("error at query user joined room: %v", err)
+			logrus.Errorf("query user %s joined room: %v", req.ID, err)
 			return nil, err
 		}
 	}
@@ -826,6 +759,7 @@ func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest
 
 // GetVoteInMission is the resolver for the getVoteInMission field.
 func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereInput) (*ent.Vote, error) {
+	// 投票阶段看看自己需不需要投票
 	userID := req.UserID
 	missionID := req.MissionID
 	if userID == nil || missionID == nil {
@@ -845,6 +779,7 @@ func (r *queryResolver) GetVoteInMission(ctx context.Context, req ent.VoteWhereI
 
 // GetSquadInMission is the resolver for the getSquadInMission field.
 func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWhereInput) (*ent.Squad, error) {
+	// 执行阶段查看是否要操作 Act
 	userID := req.UserID
 	missionID := req.MissionID
 	if userID == nil || missionID == nil {
@@ -854,7 +789,7 @@ func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWher
 	if ent.IsNotFound(err) {
 		return nil, nil
 	} else if err != nil {
-		logrus.Errorf("error at query vote in mission: %v", err)
+		logrus.Errorf("query squad in mission %d: %v", *missionID, err)
 		return nil, err
 	} else {
 		return _squad, nil
@@ -863,47 +798,51 @@ func (r *queryResolver) GetSquadInMission(ctx context.Context, req ent.SquadWher
 
 // GetEndedGame is the resolver for the getEndedGame field.
 func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest) (*ent.Game, error) {
-	tx, err := r.client.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// 先看看 Game 的 Missions 是不是分出结果了
-	missions, err := tx.Mission.Query().
-		Where(
-			mission.GameID(tools.StringToInt64(req.ID)),
-			mission.DeletedAt(tools.ZeroTime),
-			mission.StatusNEQ(mission.StatusDelayed),
-		).
-		All(ctx)
-	closedCount := 0
-	failedCount := 0
-	for _, v := range missions {
-		if v.Status == mission.StatusClosed {
-			closedCount += 1
-			if v.Failed {
-				failedCount += 1
+	// 大概率不需要该接口，可以由 Act 中的功能代替
+	var _game *ent.Game
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		// 先看看 Game 的 Missions 是不是分出结果了
+		missions, err := tx.Mission.Query().
+			Where(
+				mission.GameID(tools.StringToInt64(req.ID)),
+				mission.DeletedAt(tools.ZeroTime),
+				mission.StatusNEQ(mission.StatusDelayed),
+			).
+			All(ctx)
+		closedCount := 0
+		failedCount := 0
+		for _, v := range missions {
+			if v.Status == mission.StatusClosed {
+				closedCount += 1
+				if v.Failed {
+					failedCount += 1
+				}
 			}
 		}
-	}
-	// 还没结束的话，返回空
-	if failedCount != 3 && closedCount-failedCount < 3 {
-		return nil, nil
-	}
-	// 如果失败达到 3 次，游戏状态直接变成 result red
-	if failedCount == 3 {
-		err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultRed).Exec(ctx)
-		if err != nil {
-			return nil, err
+		// 还没结束的话，返回空
+		if failedCount != 3 && closedCount-failedCount < 3 {
+			return nil
 		}
-	}
-	_game, err := tx.Game.Query().
-		Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
-		WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
-			query.Where(gameuser.HasGameWith(game.ResultNEQ(game.ResultNone))).WithCard()
-		}).
-		First(ctx)
-	err = tx.Commit()
-	if err != nil {
+		// 如果失败达到 3 次，游戏状态直接变成 result red
+		if failedCount == 3 {
+			err = tx.Game.UpdateOneID(tools.StringToInt64(req.ID)).SetResult(game.ResultRed).Exec(ctx)
+			if err != nil {
+				logrus.Errorf("update game %s result to red: %v", req.ID, err)
+				return err
+			}
+		}
+		_game, err = tx.Game.Query().
+			Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
+			WithNamedGameUsers("gameUsers", func(query *ent.GameUserQuery) {
+				query.Where(gameuser.HasGameWith(game.ResultNEQ(game.ResultNone))).WithCard()
+			}).
+			First(ctx)
+		if err != nil {
+			logrus.Errorf("query game %s when get ended game info: %v", req.ID, err)
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 	return _game, nil
@@ -911,13 +850,14 @@ func (r *queryResolver) GetEndedGame(ctx context.Context, req model.GameRequest)
 
 // GetVagueGameUsers is the resolver for the getVagueGameUsers field.
 func (r *queryResolver) GetVagueGameUsers(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
+	// 该方法在输出时会被中间件拦截修改返回信息
 	gameUsers, err := r.client.GameUser.Query().
 		Where(gameuser.GameID(tools.StringToInt64(req.ID)), gameuser.DeletedAt(tools.ZeroTime)).
 		WithCard().
 		Order(ent.Asc(gameuser.FieldNumber)).
 		All(ctx)
 	if err != nil {
-		logrus.Errorf("error at query gameUsers when getVagueGameUsers: %v", err)
+		logrus.Errorf("query gameUsers of game %s when getVagueGameUsers: %v", req.ID, err)
 		return nil, err
 	}
 	return gameUsers, nil
@@ -926,34 +866,32 @@ func (r *queryResolver) GetVagueGameUsers(ctx context.Context, req model.GameReq
 // GetGameUsersByGame is the resolver for the getGameUsersByGame field.
 func (r *queryResolver) GetGameUsersByGame(ctx context.Context, req model.GameRequest) ([]*ent.GameUser, error) {
 	// 先检查 Game 状态，如果已结束，则返回时允许访问 Card，通过事务来限制 graphql 的自行进一步访问
-	tx, err := r.client.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.ID))).First(ctx)
-	if err != nil {
-		logrus.Errorf("error at query game by id: %v", err)
-		return nil, err
-	}
 	var gameUsers []*ent.GameUser
-	if _game.Result != game.ResultNone {
-		gameUsers, err = tx.GameUser.Query().
-			Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
-			Order(ent.Asc(gameuser.FieldNumber)).
-			WithCard().
-			All(ctx)
-	} else {
-		gameUsers, err = tx.GameUser.Query().
-			Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
-			Order(ent.Asc(gameuser.FieldNumber)).
-			All(ctx)
-	}
-	if err != nil {
-		logrus.Errorf("error at query gameUsers by gameID: %v", err)
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.ID))).First(ctx)
+		if err != nil {
+			logrus.Errorf("query game %s when geting gameUsers: %v", req.ID, err)
+			return err
+		}
+		// 如果游戏出结果了，那么大家的身份可以暴露
+		if _game.Result != game.ResultNone {
+			gameUsers, err = tx.GameUser.Query().
+				Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
+				Order(ent.Asc(gameuser.FieldNumber)).
+				WithCard().
+				All(ctx)
+		} else {
+			gameUsers, err = tx.GameUser.Query().
+				Where(gameuser.DeletedAt(tools.ZeroTime), gameuser.GameID(tools.StringToInt64(req.ID))).
+				Order(ent.Asc(gameuser.FieldNumber)).
+				All(ctx)
+		}
+		if err != nil {
+			logrus.Errorf("query gameUsers by gameID %d: %v", _game.ID, err)
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 	return gameUsers, nil
@@ -961,6 +899,7 @@ func (r *queryResolver) GetGameUsersByGame(ctx context.Context, req model.GameRe
 
 // GetOnesCardInGame is the resolver for the getOnesCardInGame field.
 func (r *queryResolver) GetOnesCardInGame(ctx context.Context, req model.GameUserRequest) (*ent.Card, error) {
+	// 获取自己的身份牌信息
 	gameUser, err := r.client.GameUser.Query().
 		Where(
 			gameuser.UserID(tools.StringToInt64(req.UserID)),
@@ -972,17 +911,18 @@ func (r *queryResolver) GetOnesCardInGame(ctx context.Context, req model.GameUse
 		}).
 		First(ctx)
 	if err != nil {
-		logrus.Errorf("error at get one's GameUser for Card: %v", err)
+		logrus.Errorf("get one's GameUser for Card from game %s of user %s: %v", req.GameID, req.UserID, err)
 		return nil, err
 	}
 	if gameUser.Edges.Card == nil {
-		return nil, errors.New("don't have card for this gameUser")
+		return nil, fmt.Errorf("don't have card for this gameUser %d, which should never happen", gameUser.ID)
 	}
 	return gameUser.Edges.Card, nil
 }
 
-// ViewOthersInGame is the resolver for the viewOthersInGame field. 凭本人的身份来返回对应的他人数据
+// ViewOthersInGame is the resolver for the viewOthersInGame field.
 func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUserRequest) ([]*model.OtherView, error) {
+	// 凭本人的身份来返回对应的他人数据，全查询静态数据操作，不加事务
 	// 先把人都搜出来
 	gameUsers, err := r.client.GameUser.Query().
 		Where(
@@ -992,7 +932,7 @@ func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUser
 		WithCard().
 		All(ctx)
 	if err != nil {
-		logrus.Errorf("error at query gameUsers")
+		logrus.Errorf("query gameUsers of game %s: %v", req.GameID, err)
 		return nil, err
 	}
 	// 找出自己的身份
@@ -1012,6 +952,7 @@ func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUser
 		// 梅林看所有，看错莫德雷德
 		case card.NameMerlin:
 			if gameUser.Edges.Card.Red == false {
+				// 蓝方全看见
 				res = append(res, &model.OtherView{
 					UserID: strconv.FormatInt(gameUser.UserID, 10),
 					Type:   "BLUE",
@@ -1024,6 +965,7 @@ func (r *queryResolver) ViewOthersInGame(ctx context.Context, req model.GameUser
 						Type:   "BLUE",
 					})
 				} else {
+					// 其它红方能看出来
 					res = append(res, &model.OtherView{
 						UserID: strconv.FormatInt(gameUser.UserID, 10),
 						Type:   "RED",
@@ -1083,6 +1025,7 @@ func (r *subscriptionResolver) GetRoomUsers(ctx context.Context, req *model.Room
 				Order(ent.Asc(roomuser.FieldUpdatedAt)).
 				All(ctx)
 			if err != nil {
+				logrus.Errorf("fetching roomUser of room %d: %v", roomID, err)
 				return
 			}
 			select {
@@ -1102,6 +1045,7 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 	// 首先检查房间是正常的
 	_, err := r.client.Room.Query().Where(room.ID(roomID), room.DeletedAt(tools.ZeroTime), room.Closed(false)).First(ctx)
 	if err != nil {
+		logrus.Errorf("query room %d before fetch room's game: %v", roomID, err)
 		return nil, err
 	}
 	go func() {
@@ -1115,7 +1059,7 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 				).
 				All(ctx)
 			if err != nil {
-				logrus.Errorf("error at querying ongoing game within room %s: %v", req.ID, err)
+				logrus.Errorf("querying ongoing game within room %s: %v", req.ID, err)
 				return
 			}
 			ongoingGamesLen := len(ongoingGames)
@@ -1138,7 +1082,7 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 					WithNamedGameUsers("gameUsers").
 					First(ctx)
 				if err != nil {
-					logrus.Errorf("error at query the ongoing game: %v", err)
+					logrus.Errorf("query the ongoing game %d: %v", ongoingGames[0].ID, err)
 				}
 				select {
 				case ch <- _game:
@@ -1158,7 +1102,7 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 	gameID := tools.StringToInt64(req.ID)
 	_, err := r.client.Game.Query().Where(game.ID(gameID), game.DeletedAt(tools.ZeroTime)).First(ctx)
 	if err != nil {
-		logrus.Errorf("error at query missions, gameID not exist: %v", err)
+		logrus.Errorf("query missions of game %d: %v", gameID, err)
 		return nil, err
 	}
 	go func() {
@@ -1166,10 +1110,11 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 			missions, err := r.client.Mission.
 				Query().
 				Where(mission.GameID(gameID), mission.DeletedAt(tools.ZeroTime)).
+				// 存在流局可能，所以要两级排序
 				Order(ent.Asc(mission.FieldSequence), ent.Asc(mission.FieldCreatedAt)).
 				All(ctx)
 			if err != nil {
-				logrus.Errorf("error at query missions: %v", err)
+				logrus.Errorf("fetching missions of game %d: %v", gameID, err)
 				return
 			}
 			select {
@@ -1183,8 +1128,10 @@ func (r *subscriptionResolver) GetMissionsByGame(ctx context.Context, req model.
 
 // GetAssassinationByGame is the resolver for the getAssassinationByGame field.
 func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req model.GameRequest) (<-chan *model.AssassinInfo, error) {
+	// 获取刺杀环节信息
 	ch := make(chan *model.AssassinInfo)
 	go func() {
+		// 使用这个长链接中的 redisClient TODO 好像不用内置在链接中难以控制，这个方法也不会被重复调用
 		cacheClient, ok := ctx.Value(cache.DefaultClient).(cache.Client)
 		if !ok {
 			logrus.Errorf("error at get cacheClient when get AssassinationInfo")
@@ -1197,8 +1144,10 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 				Where(game.ID(tools.StringToInt64(req.ID)), game.DeletedAt(tools.ZeroTime)).
 				First(ctx)
 			if err != nil {
+				logrus.Errorf("get game %s info when fetching assassination: %v", req.ID, err)
 				return
 			}
+			// 刺杀已经完成，更新实时记录
 			if len(_game.TheAssassinatedIds) != 0 {
 				res.TheAssassinatedIDs = _game.TheAssassinatedIds
 				res.TempPickedIDs = res.TheAssassinatedIDs
@@ -1208,6 +1157,7 @@ func (r *subscriptionResolver) GetAssassinationByGame(ctx context.Context, req m
 				if err != nil {
 					return
 				}
+				// 最终人选还没确认
 				res.TheAssassinatedIDs = []string{}
 				res.TempPickedIDs = tempAssassinatedIDs
 			}

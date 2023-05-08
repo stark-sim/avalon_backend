@@ -29,6 +29,8 @@ const (
 	FieldCardID = "card_id"
 	// FieldNumber holds the string denoting the number field in the database.
 	FieldNumber = "number"
+	// FieldExited holds the string denoting the exited field in the database.
+	FieldExited = "exited"
 	// EdgeGame holds the string denoting the game edge name in mutations.
 	EdgeGame = "game"
 	// EdgeCard holds the string denoting the card edge name in mutations.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldGameID,
 	FieldCardID,
 	FieldNumber,
+	FieldExited,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -88,6 +91,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultDeletedAt holds the default value on creation for the "deleted_at" field.
 	DefaultDeletedAt time.Time
+	// DefaultExited holds the default value on creation for the "exited" field.
+	DefaultExited bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() int64
 )

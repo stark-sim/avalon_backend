@@ -1008,6 +1008,10 @@ type GameUserWhereInput struct {
 	NumberLT    *uint8  `json:"numberLT,omitempty"`
 	NumberLTE   *uint8  `json:"numberLTE,omitempty"`
 
+	// "exited" field predicates.
+	Exited    *bool `json:"exited,omitempty"`
+	ExitedNEQ *bool `json:"exitedNEQ,omitempty"`
+
 	// "game" edge predicates.
 	HasGame     *bool             `json:"hasGame,omitempty"`
 	HasGameWith []*GameWhereInput `json:"hasGameWith,omitempty"`
@@ -1303,6 +1307,12 @@ func (i *GameUserWhereInput) P() (predicate.GameUser, error) {
 	}
 	if i.NumberLTE != nil {
 		predicates = append(predicates, gameuser.NumberLTE(*i.NumberLTE))
+	}
+	if i.Exited != nil {
+		predicates = append(predicates, gameuser.ExitedEQ(*i.Exited))
+	}
+	if i.ExitedNEQ != nil {
+		predicates = append(predicates, gameuser.ExitedNEQ(*i.ExitedNEQ))
 	}
 
 	if i.HasGame != nil {
