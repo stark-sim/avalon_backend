@@ -20976,6 +20976,13 @@ func (ec *executionContext) marshalOGameUser2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋ
 	return ret
 }
 
+func (ec *executionContext) marshalOGameUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameUser(ctx context.Context, sel ast.SelectionSet, v *ent.GameUser) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._GameUser(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOGameUserWhereInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameUserWhereInputᚄ(ctx context.Context, v interface{}) ([]*ent.GameUserWhereInput, error) {
 	if v == nil {
 		return nil, nil

@@ -158,10 +158,12 @@ type ComplexityRoot struct {
 		CreateCard          func(childComplexity int, req ent.CreateCardInput) int
 		CreateGame          func(childComplexity int, req model.CreateGameRequest) int
 		CreateRoom          func(childComplexity int, req ent.CreateRoomInput) int
+		ExitGame            func(childComplexity int, req model.GameUserRequest) int
 		JoinRoom            func(childComplexity int, req ent.CreateRoomUserInput) int
 		JoinRoomByShortCode func(childComplexity int, req model.JoinRoomInput) int
 		LeaveRoom           func(childComplexity int, req ent.CreateRoomUserInput) int
 		PickSquads          func(childComplexity int, req []*ent.CreateSquadInput) int
+		ReentryEndedGame    func(childComplexity int, req model.GameUserRequest) int
 		TempAssassinate     func(childComplexity int, req model.AssassinateRequest) int
 		TempPickSquads      func(childComplexity int, req []*ent.CreateSquadInput) int
 		TerminateGame       func(childComplexity int, req model.GameRequest) int
@@ -788,6 +790,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateRoom(childComplexity, args["req"].(ent.CreateRoomInput)), true
 
+	case "Mutation.exitGame":
+		if e.complexity.Mutation.ExitGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_exitGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ExitGame(childComplexity, args["req"].(model.GameUserRequest)), true
+
 	case "Mutation.joinRoom":
 		if e.complexity.Mutation.JoinRoom == nil {
 			break
@@ -835,6 +849,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PickSquads(childComplexity, args["req"].([]*ent.CreateSquadInput)), true
+
+	case "Mutation.reentryEndedGame":
+		if e.complexity.Mutation.ReentryEndedGame == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_reentryEndedGame_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ReentryEndedGame(childComplexity, args["req"].(model.GameUserRequest)), true
 
 	case "Mutation.tempAssassinate":
 		if e.complexity.Mutation.TempAssassinate == nil {

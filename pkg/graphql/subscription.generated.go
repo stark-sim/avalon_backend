@@ -33,6 +33,8 @@ type MutationResolver interface {
 	Assassinate(ctx context.Context, req model.AssassinateRequest) (*ent.Game, error)
 	JoinRoomByShortCode(ctx context.Context, req model.JoinRoomInput) (*ent.RoomUser, error)
 	TerminateGame(ctx context.Context, req model.GameRequest) (*ent.Game, error)
+	ExitGame(ctx context.Context, req model.GameUserRequest) (*ent.GameUser, error)
+	ReentryEndedGame(ctx context.Context, req model.GameUserRequest) (*ent.GameUser, error)
 }
 type SubscriptionResolver interface {
 	GetRoomUsers(ctx context.Context, req *model.RoomRequest) (<-chan []*ent.RoomUser, error)
@@ -136,6 +138,21 @@ func (ec *executionContext) field_Mutation_createRoom_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_exitGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GameUserRequest
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNGameUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐGameUserRequest(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_joinRoomByShortCode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -188,6 +205,21 @@ func (ec *executionContext) field_Mutation_pickSquads_args(ctx context.Context, 
 	if tmp, ok := rawArgs["req"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
 		arg0, err = ec.unmarshalNCreateSquadInput2ᚕᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐCreateSquadInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["req"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_reentryEndedGame_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.GameUserRequest
+	if tmp, ok := rawArgs["req"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
+		arg0, err = ec.unmarshalNGameUserRequest2githubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋgraphqlᚋmodelᚐGameUserRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1471,6 +1503,170 @@ func (ec *executionContext) fieldContext_Mutation_terminateGame(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_exitGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_exitGame(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ExitGame(rctx, fc.Args["req"].(model.GameUserRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.GameUser)
+	fc.Result = res
+	return ec.marshalOGameUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_exitGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_GameUser_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_GameUser_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_GameUser_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_GameUser_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_GameUser_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_GameUser_deletedAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_GameUser_userID(ctx, field)
+			case "gameID":
+				return ec.fieldContext_GameUser_gameID(ctx, field)
+			case "cardID":
+				return ec.fieldContext_GameUser_cardID(ctx, field)
+			case "number":
+				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
+			case "game":
+				return ec.fieldContext_GameUser_game(ctx, field)
+			case "card":
+				return ec.fieldContext_GameUser_card(ctx, field)
+			case "user":
+				return ec.fieldContext_GameUser_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GameUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_exitGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_reentryEndedGame(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_reentryEndedGame(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ReentryEndedGame(rctx, fc.Args["req"].(model.GameUserRequest))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.GameUser)
+	fc.Result = res
+	return ec.marshalOGameUser2ᚖgithubᚗcomᚋstarkᚑsimᚋavalon_backendᚋpkgᚋentᚐGameUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_reentryEndedGame(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_GameUser_id(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_GameUser_createdBy(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_GameUser_updatedBy(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_GameUser_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_GameUser_updatedAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_GameUser_deletedAt(ctx, field)
+			case "userID":
+				return ec.fieldContext_GameUser_userID(ctx, field)
+			case "gameID":
+				return ec.fieldContext_GameUser_gameID(ctx, field)
+			case "cardID":
+				return ec.fieldContext_GameUser_cardID(ctx, field)
+			case "number":
+				return ec.fieldContext_GameUser_number(ctx, field)
+			case "exited":
+				return ec.fieldContext_GameUser_exited(ctx, field)
+			case "game":
+				return ec.fieldContext_GameUser_game(ctx, field)
+			case "card":
+				return ec.fieldContext_GameUser_card(ctx, field)
+			case "user":
+				return ec.fieldContext_GameUser_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GameUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_reentryEndedGame_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _OtherView_userID(ctx context.Context, field graphql.CollectedField, obj *model.OtherView) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_OtherView_userID(ctx, field)
 	if err != nil {
@@ -2665,6 +2861,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_terminateGame(ctx, field)
+			})
+
+		case "exitGame":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_exitGame(ctx, field)
+			})
+
+		case "reentryEndedGame":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_reentryEndedGame(ctx, field)
 			})
 
 		default:

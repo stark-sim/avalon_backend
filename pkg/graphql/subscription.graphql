@@ -40,6 +40,10 @@ type Mutation {
     joinRoomByShortCode(req: JoinRoomInput!): RoomUser
     """ 中止游戏 """
     terminateGame(req: GameRequest!): Game
+    """ 离开游戏 """
+    exitGame(req: GameUserRequest!): GameUser
+    """ 重新进入已结束的游戏 """
+    reentryEndedGame(req: GameUserRequest!): GameUser
 }
 
 extend type Query {

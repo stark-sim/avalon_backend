@@ -8,11 +8,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v9"
 	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	redis "github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/internal/db"
 	"github.com/stark-sim/avalon_backend/internal/logic"
@@ -732,6 +732,97 @@ func (r *mutationResolver) TerminateGame(ctx context.Context, req model.GameRequ
 	return _game, nil
 }
 
+// ExitGame is the resolver for the exitGame field.
+func (r *mutationResolver) ExitGame(ctx context.Context, req model.GameUserRequest) (*ent.GameUser, error) {
+	// 当游戏已出结果后，用户可以离开游戏，所有人离开后，游戏才算关闭，可以进行下一把
+	var gameUser *ent.GameUser
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		// 先检查游戏是否已有结果
+		_game, err := tx.Game.Query().Where(game.ID(tools.StringToInt64(req.GameID)), game.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			logrus.Errorf("query game %s when user %s exiting: %v", req.GameID, req.UserID, err)
+			return err
+		}
+		if _game.Result == game.ResultNone {
+			return fmt.Errorf("game %d is not ended, user %s cann't leave", _game.ID, req.UserID)
+		}
+		// 将自己退出
+		if err = tx.GameUser.Update().
+			Where(gameuser.GameID(_game.ID), gameuser.UserID(tools.StringToInt64(req.UserID)), gameuser.DeletedAt(tools.ZeroTime)).
+			SetExited(true).
+			Exec(ctx); err != nil {
+			logrus.Errorf("update user %s from game %d when exiting: %v", req.UserID, _game.ID, err)
+			return err
+		}
+		// 退出后检查是不是游戏里没人了，如果没人了，那么游戏关闭，房间变回无游戏状态
+		inGameUsersCount, err := tx.GameUser.Query().
+			Where(gameuser.GameID(_game.ID), gameuser.Exited(false), gameuser.DeletedAt(tools.ZeroTime)).
+			Count(ctx)
+		if err != nil {
+			logrus.Errorf("query still in game %d users count when user %s exited: %v", _game.ID, req.UserID, err)
+			return err
+		}
+		// 如果没人了，执行更新操作
+		if inGameUsersCount == 0 {
+			if err = tx.Game.UpdateOne(_game).SetClosed(true).Exec(ctx); err != nil {
+				logrus.Errorf("update game %d to be closed when user %s exited: %v", _game.ID, req.UserID, err)
+				return err
+			}
+			if err = tx.Room.UpdateOneID(_game.RoomID).SetGameOn(false).Exec(ctx); err != nil {
+				logrus.Errorf("update room %d to be not game on when user %s exited from game %d: %v", _game.RoomID, req.UserID, _game.ID, err)
+				return err
+			}
+		}
+		// 为了返回，查询 gameUser
+		gameUser, err = tx.GameUser.Query().Where(gameuser.GameID(_game.ID), gameuser.UserID(tools.StringToInt64(req.UserID)), gameuser.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			logrus.Errorf("query gameUser of user %s from game %d when exited: %v", req.UserID, _game.ID, err)
+			return err
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return gameUser, nil
+}
+
+// ReentryEndedGame is the resolver for the reentryEndedGame field.
+func (r *mutationResolver) ReentryEndedGame(ctx context.Context, req model.GameUserRequest) (*ent.GameUser, error) {
+	// 重新进入已结束但还没关闭的游戏中
+	var gameUser *ent.GameUser
+	if err := db.WithTx(ctx, r.client, func(tx *ent.Tx) error {
+		// 首先用户是得原来在这个游戏中的
+		var err error
+		gameUser, err = tx.GameUser.Query().Where(gameuser.GameID(tools.StringToInt64(req.GameID)), gameuser.UserID(tools.StringToInt64(req.UserID)), gameuser.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			logrus.Errorf("query gameUser of user %s from game %s: %v", req.UserID, req.GameID, err)
+			return err
+		}
+		if gameUser.Exited == false {
+			return fmt.Errorf("user %s already in game %s", req.UserID, req.GameID)
+		}
+		// 其次游戏不能已关闭
+		_, err = tx.Game.Query().Where(game.ID(gameUser.GameID), game.Closed(false), game.DeletedAt(tools.ZeroTime)).First(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return fmt.Errorf("game %s is closed, user %s can't reentry", req.GameID, req.UserID)
+			} else {
+				logrus.Errorf("query open game %s when user %s reentry: %v", req.GameID, req.UserID, err)
+				return err
+			}
+		}
+		// 更新 gameUser 状态
+		if err = tx.GameUser.UpdateOne(gameUser).SetExited(false).Exec(ctx); err != nil {
+			logrus.Errorf("update gameUser %d to be not exited: %v", gameUser.ID, err)
+			return err
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return gameUser, nil
+}
+
 // GetJoinedRoom is the resolver for the getJoinedRoom field.
 func (r *queryResolver) GetJoinedRoom(ctx context.Context, req model.UserRequest) (*ent.Room, error) {
 	// 查询 room 没有关闭的，且具有 roomUser 的
@@ -1055,7 +1146,8 @@ func (r *subscriptionResolver) GetRoomOngoingGame(ctx context.Context, req model
 				Where(
 					game.RoomID(roomID),
 					game.DeletedAt(tools.ZeroTime),
-					game.ResultEQ(game.ResultNone),
+					// 游戏出结果了，但是还没关闭的话，就还是可以看到
+					game.Closed(false),
 				).
 				All(ctx)
 			if err != nil {
