@@ -301,7 +301,7 @@ func (r *mutationResolver) TempPickSquads(ctx context.Context, req []*ent.Create
 	cacheClient := cache.NewRedisClient()
 	defer cacheClient.Close()
 	if err := cacheClient.SetMissionTempPickUserIDs(ctx, missionID, userIDs); err != nil {
-		logrus.Errorf("set mission %d temp pick userIDs: %v", missionID, err)
+		logrus.Errorf("set mission %s temp pick userIDs: %v", missionID, err)
 		return nil, err
 	}
 	return userIDs, nil
@@ -467,14 +467,15 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 					logrus.Errorf("query postMissions when current mission %d delayed: %v", _mission.ID, err)
 					return err
 				}
-				// 再把 GameUser 中的 userID 按 number 找出来
+				// 再把 GameUser 中的 userID 按 number 倒序找出来
 				var inGameUserIDs []struct {
 					UserID int64 `json:"user_id"`
+					Number uint8 `json:"number"`
 				}
 				err = tx.GameUser.Query().
 					Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
 					Order(ent.Desc(gameuser.FieldNumber)).
-					Select(gameuser.FieldUserID).
+					Select(gameuser.FieldUserID, gameuser.FieldNumber).
 					Scan(ctx, &inGameUserIDs)
 				if err != nil {
 					logrus.Errorf("query userIDs when mission %d delayed: %v", _mission.ID, err)
@@ -484,13 +485,32 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 				// 第一个 leader 给到因流局而新建的局，
 				// 中间的 leader 则往前挪，
 				// 最后的新 leader 是号码最大的 leader 的下一位
-				//var maxLeaderNumber uint8
+				var maxLeaderNumber uint8
 				delayLeaderIDMap := make(map[int64]int64, 0)
 				for i, postMission := range postMissions {
 					// 最后一个特殊处理
 					if i+1 != len(postMissions) {
 						// 其它前挪一位
 						delayLeaderIDMap[postMission.LeaderID] = postMissions[i+1].LeaderID
+					}
+					// 找出这些 leader 中在 gameUser 号码最大的
+					for _, inGameUserID := range inGameUserIDs {
+						if inGameUserID.Number > maxLeaderNumber && inGameUserID.UserID == postMission.LeaderID {
+							maxLeaderNumber = inGameUserID.Number
+						}
+					}
+				}
+				// 最大号码的下一位 gameUser 的 User 就是最后一个任务的新 Leader
+				if maxLeaderNumber == inGameUserIDs[0].Number {
+					// 最大号码是最后一位的时候，下一位就是 1 号了
+					delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserIDs[len(inGameUserIDs)-1].UserID
+				} else {
+					// 不是时，那就是大 1 位的号码对应的 userID
+					for _, inGameUserID := range inGameUserIDs {
+						if inGameUserID.Number-1 == maxLeaderNumber {
+							delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserID.UserID
+							break
+						}
 					}
 				}
 				// 之后的任务的 leader 更新，第一个 leader 作为流局重开局的 leader
