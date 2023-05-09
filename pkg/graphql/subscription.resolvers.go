@@ -187,14 +187,19 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 		}
 		playerNum := uint8(len(roomUsers))
 		// 创建游戏
-		_game, err = tx.Game.
+		gameCreate := tx.Game.
 			Create().
 			SetRoomID(roomID).
 			SetResult(game.ResultNone).
 			SetCapacity(playerNum).
 			SetTheAssassinatedIds([]string{}).
 			SetClosed(false).
-			Save(ctx)
+			SetAssassinChance(1)
+		// 自定义刺杀机会数
+		if req.AssassinChance != nil {
+			gameCreate.SetAssassinChance(uint8(*req.AssassinChance))
+		}
+		_game, err = gameCreate.Save(ctx)
 		if err != nil {
 			logrus.Errorf("create game of room %d: %v", roomID, err)
 			return err
@@ -207,8 +212,30 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 		for i, v := range tools.Shuffle(userIDs) {
 			userIDs[i] = v.(int64)
 		}
+		// 自定义指定角色牌
+		var customCardSelection []*ent.Card
+		if req.CardIDs != nil {
+			if len(req.CardIDs) != int(playerNum) {
+				return fmt.Errorf("custom card id count %d not match player count %d", len(req.CardIDs), playerNum)
+			} else {
+				// 抽取角色卡
+				var customCardIDs []int64
+				for _, cardID := range customCardIDs {
+					customCardIDs = append(customCardIDs, cardID)
+				}
+				customCardSelection, err = tx.Card.Query().Where(card.IDIn(customCardIDs...), card.DeletedAt(tools.ZeroTime)).All(ctx)
+				if err != nil {
+					logrus.Errorf("query custom cards %v when create game of room %d: %v", customCardIDs, roomID, err)
+					return err
+				}
+				if len(customCardSelection) != len(req.CardIDs) {
+					// 角色牌数量不对，很有可能 id 乱传的
+					return fmt.Errorf("custom card count %d not match player count %d", len(customCardSelection), playerNum)
+				}
+			}
+		}
 		// 按人数拿牌，拿的时候已经洗好了
-		cards, err := logic.GetShuffledCardsByNum(ctx, playerNum, nil)
+		cards, err := logic.GetShuffledCardsByNum(ctx, playerNum, customCardSelection)
 		if err != nil {
 			return err
 		}
@@ -227,23 +254,58 @@ func (r *mutationResolver) CreateGame(ctx context.Context, req model.CreateGameR
 			logrus.Errorf("bulk create gameUsers of room %d: %v", roomID, err)
 			return err
 		}
-		// 创建 5 个 Mission，初始队长为 1-5 号玩家
-		// TODO: 自定义游戏创建选项
-		missionCreates := make([]*ent.MissionCreate, 5)
+		// 创建 missions 之前，先看是不是会随机 Leader 或者自定义任务配置
+		type missionConfig struct {
+			LeaderID  int64
+			Capacity  uint8
+			Protected bool
+		}
+		missionConfigMap := map[int]*missionConfig{}
+		var randomUserIDs []int64
+		// 随机排序用户，为随机 LeaderID 作准备
+		if req.RandomLeader != nil && *req.RandomLeader {
+			randomUserIDs = make([]int64, len(userIDs))
+			copy(randomUserIDs, userIDs)
+			tools.Shuffle(randomUserIDs)
+		}
 		for i := 0; i < 5; i++ {
+			// 默认配置
 			var protected bool
-			if i == 4 {
+			if i == 3 {
 				protected = true
 			} else {
 				protected = false
 			}
+			missionConfigMap[i] = &missionConfig{
+				LeaderID:  userIDs[i],
+				Capacity:  logic.GetMissionCapacityByNumAndSeq(playerNum, i+1),
+				Protected: protected,
+			}
+			if req.MissionOptions != nil {
+				for _, missionOption := range req.MissionOptions {
+					// 覆盖配置
+					if missionOption.Sequence == i+1 {
+						missionConfigMap[i].Capacity = uint8(missionOption.Capacity)
+						missionConfigMap[i].Protected = missionOption.Protected
+						break
+					}
+				}
+			}
+			// 覆盖随机 LeaderID
+			if req.RandomLeader != nil && *req.RandomLeader {
+				missionConfigMap[i].LeaderID = randomUserIDs[i]
+			}
+		}
+		// 创建 5 个 Mission
+		missionCreates := make([]*ent.MissionCreate, 5)
+		for i := 0; i < 5; i++ {
 			missionCreates[i] = tx.Mission.
 				Create().
 				SetGameID(_game.ID).
-				SetLeaderID(userIDs[i]).
-				SetCapacity(logic.GetMissionCapacityByNumAndSeq(playerNum, i+1)).
+				SetCapacity(missionConfigMap[i].Capacity).
 				SetSequence(uint8(i + 1)).
-				SetProtected(protected)
+				SetProtected(missionConfigMap[i].Protected).
+				SetLeaderID(missionConfigMap[i].LeaderID)
 		}
 		_, err = tx.Mission.CreateBulk(missionCreates...).Save(ctx)
 		if err != nil {
@@ -455,82 +517,96 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 			}
 			// 判断流局还是继续进行
 			if notPassCount > passCount {
-				// 流局的话，当前任务状态改变，新增一个任务
-				if err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusDelayed).Exec(ctx); err != nil {
-					logrus.Errorf("update mission %d to status delayed when voting %d: %v", _mission.ID, _vote.ID, err)
-					return err
-				}
-				// 流局要创建新的任务，并且后续任务的 Leader 都往前挪一位
-				// 先把后面的 Mission 找出来
-				postMissions, err := tx.Mission.Query().Where(mission.SequenceGT(_mission.Sequence), mission.DeletedAt(tools.ZeroTime)).All(ctx)
+				// 由于流局五次时，游戏结果直接变为红方获胜，所以当已经存在 9 个 missions 还要流局时，就是第五次流局
+				missionCount, err := tx.Mission.Query().Where(mission.GameID(_mission.GameID), mission.DeletedAt(tools.ZeroTime)).Count(ctx)
 				if err != nil {
-					logrus.Errorf("query postMissions when current mission %d delayed: %v", _mission.ID, err)
+					logrus.Errorf("query mission count of game %d when mission %d is about to delay: %v", _mission.ID, _mission.GameID, err)
 					return err
 				}
-				// 再把 GameUser 中的 userID 按 number 倒序找出来
-				var inGameUserIDs []struct {
-					UserID int64 `json:"user_id"`
-					Number uint8 `json:"number"`
-				}
-				err = tx.GameUser.Query().
-					Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
-					Order(ent.Desc(gameuser.FieldNumber)).
-					Select(gameuser.FieldUserID, gameuser.FieldNumber).
-					Scan(ctx, &inGameUserIDs)
-				if err != nil {
-					logrus.Errorf("query userIDs when mission %d delayed: %v", _mission.ID, err)
-					return err
-				}
-				// 准备更新 Leader 的对应映射表，由于不知道是随机模式还是顺序 Leader 模式
-				// 第一个 leader 给到因流局而新建的局，
-				// 中间的 leader 则往前挪，
-				// 最后的新 leader 是号码最大的 leader 的下一位
-				var maxLeaderNumber uint8
-				delayLeaderIDMap := make(map[int64]int64, 0)
-				for i, postMission := range postMissions {
-					// 最后一个特殊处理
-					if i+1 != len(postMissions) {
-						// 其它前挪一位
-						delayLeaderIDMap[postMission.LeaderID] = postMissions[i+1].LeaderID
-					}
-					// 找出这些 leader 中在 gameUser 号码最大的
-					for _, inGameUserID := range inGameUserIDs {
-						if inGameUserID.Number > maxLeaderNumber && inGameUserID.UserID == postMission.LeaderID {
-							maxLeaderNumber = inGameUserID.Number
-						}
-					}
-				}
-				// 最大号码的下一位 gameUser 的 User 就是最后一个任务的新 Leader
-				if maxLeaderNumber == inGameUserIDs[0].Number {
-					// 最大号码是最后一位的时候，下一位就是 1 号了
-					delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserIDs[len(inGameUserIDs)-1].UserID
-				} else {
-					// 不是时，那就是大 1 位的号码对应的 userID
-					for _, inGameUserID := range inGameUserIDs {
-						if inGameUserID.Number-1 == maxLeaderNumber {
-							delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserID.UserID
-							break
-						}
-					}
-				}
-				// 之后的任务的 leader 更新，第一个 leader 作为流局重开局的 leader
-				newMissionLeaderID := postMissions[0].LeaderID
-				for _, postMission := range postMissions {
-					if err = tx.Mission.UpdateOne(postMission).SetLeaderID(delayLeaderIDMap[postMission.LeaderID]).Exec(ctx); err != nil {
-						logrus.Errorf("update leaderID of postMission when current mission %d delayed: %v", _mission.ID, err)
+				if missionCount == 9 {
+					// 游戏变为红方获胜
+					if err = tx.Game.UpdateOneID(_mission.GameID).SetResult(game.ResultRed).Exec(ctx); err != nil {
+						logrus.Errorf("update game %d when mission %d delay the final time: %v", _mission.GameID, _mission.ID, err)
 						return err
 					}
-				}
-				// 创建新任务
-				err = tx.Mission.Create().
-					SetGameID(_mission.GameID).
-					SetSequence(_mission.Sequence).
-					SetLeaderID(newMissionLeaderID).
-					SetCapacity(_mission.Capacity).
-					Exec(ctx)
-				if err != nil {
-					logrus.Errorf("create new mission when current mission %d delayed: %v", _mission.ID, err)
-					return err
+				} else {
+					// 流局的话，当前任务状态改变，新增一个任务
+					if err = tx.Mission.UpdateOne(_mission).SetStatus(mission.StatusDelayed).Exec(ctx); err != nil {
+						logrus.Errorf("update mission %d to status delayed when voting %d: %v", _mission.ID, _vote.ID, err)
+						return err
+					}
+					// 流局要创建新的任务，并且后续任务的 Leader 都往前挪一位
+					// 先把后面的 Mission 找出来
+					postMissions, err := tx.Mission.Query().Where(mission.SequenceGT(_mission.Sequence), mission.DeletedAt(tools.ZeroTime)).All(ctx)
+					if err != nil {
+						logrus.Errorf("query postMissions when current mission %d delayed: %v", _mission.ID, err)
+						return err
+					}
+					// 再把 GameUser 中的 userID 按 number 倒序找出来
+					var inGameUserIDs []struct {
+						UserID int64 `json:"user_id"`
+						Number uint8 `json:"number"`
+					}
+					err = tx.GameUser.Query().
+						Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
+						Order(ent.Desc(gameuser.FieldNumber)).
+						Select(gameuser.FieldUserID, gameuser.FieldNumber).
+						Scan(ctx, &inGameUserIDs)
+					if err != nil {
+						logrus.Errorf("query userIDs when mission %d delayed: %v", _mission.ID, err)
+						return err
+					}
+					// 准备更新 Leader 的对应映射表，由于不知道是随机模式还是顺序 Leader 模式
+					// 第一个 leader 给到因流局而新建的局，
+					// 中间的 leader 则往前挪，
+					// 最后的新 leader 是号码最大的 leader 的下一位
+					var maxLeaderNumber uint8
+					delayLeaderIDMap := make(map[int64]int64, 0)
+					for i, postMission := range postMissions {
+						// 最后一个特殊处理
+						if i+1 != len(postMissions) {
+							// 其它前挪一位
+							delayLeaderIDMap[postMission.LeaderID] = postMissions[i+1].LeaderID
+						}
+						// 找出这些 leader 中在 gameUser 号码最大的
+						for _, inGameUserID := range inGameUserIDs {
+							if inGameUserID.Number > maxLeaderNumber && inGameUserID.UserID == postMission.LeaderID {
+								maxLeaderNumber = inGameUserID.Number
+							}
+						}
+					}
+					// 最大号码的下一位 gameUser 的 User 就是最后一个任务的新 Leader
+					if maxLeaderNumber == inGameUserIDs[0].Number {
+						// 最大号码是最后一位的时候，下一位就是 1 号了
+						delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserIDs[len(inGameUserIDs)-1].UserID
+					} else {
+						// 不是时，那就是大 1 位的号码对应的 userID
+						for _, inGameUserID := range inGameUserIDs {
+							if inGameUserID.Number-1 == maxLeaderNumber {
+								delayLeaderIDMap[postMissions[len(postMissions)-1].LeaderID] = inGameUserID.UserID
+								break
+							}
+						}
+					}
+					// 之后的任务的 leader 更新，第一个 leader 作为流局重开局的 leader
+					newMissionLeaderID := postMissions[0].LeaderID
+					for _, postMission := range postMissions {
+						if err = tx.Mission.UpdateOne(postMission).SetLeaderID(delayLeaderIDMap[postMission.LeaderID]).Exec(ctx); err != nil {
+							logrus.Errorf("update leaderID of postMission when current mission %d delayed: %v", _mission.ID, err)
+							return err
+						}
+					}
+					// 创建新任务
+					err = tx.Mission.Create().
+						SetGameID(_mission.GameID).
+						SetSequence(_mission.Sequence).
+						SetLeaderID(newMissionLeaderID).
+						SetCapacity(_mission.Capacity).
+						Exec(ctx)
+					if err != nil {
+						logrus.Errorf("create new mission when current mission %d delayed: %v", _mission.ID, err)
+						return err
+					}
 				}
 			} else {
 				// 没有流局，进入任务执行阶段
