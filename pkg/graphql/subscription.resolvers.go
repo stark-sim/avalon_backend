@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	redis "github.com/go-redis/redis/v9"
+	"github.com/go-redis/redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/stark-sim/avalon_backend/internal/db"
 	"github.com/stark-sim/avalon_backend/internal/logic"
@@ -460,7 +460,7 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 					logrus.Errorf("update mission %d to status delayed when voting %d: %v", _mission.ID, _vote.ID, err)
 					return err
 				}
-				// 流局要创建新的任务，并且后续任务的 Leader 都往后延一人
+				// 流局要创建新的任务，并且后续任务的 Leader 都往前挪一位
 				// 先把后面的 Mission 找出来
 				postMissions, err := tx.Mission.Query().Where(mission.SequenceGT(_mission.Sequence), mission.DeletedAt(tools.ZeroTime)).All(ctx)
 				if err != nil {
@@ -473,20 +473,24 @@ func (r *mutationResolver) Vote(ctx context.Context, req model.VoteRequest) (*en
 				}
 				err = tx.GameUser.Query().
 					Where(gameuser.GameID(_mission.GameID), gameuser.DeletedAt(tools.ZeroTime)).
-					Order(ent.Asc(gameuser.FieldNumber)).
+					Order(ent.Desc(gameuser.FieldNumber)).
 					Select(gameuser.FieldUserID).
 					Scan(ctx, &inGameUserIDs)
 				if err != nil {
 					logrus.Errorf("query userIDs when mission %d delayed: %v", _mission.ID, err)
 					return err
 				}
-				// 准备更新 Leader 的对应映射表，因为有顺延 leader 模式和 TODO 随机模式
+				// 准备更新 Leader 的对应映射表，由于不知道是随机模式还是顺序 Leader 模式
+				// 第一个 leader 给到因流局而新建的局，
+				// 中间的 leader 则往前挪，
+				// 最后的新 leader 是号码最大的 leader 的下一位
+				//var maxLeaderNumber uint8
 				delayLeaderIDMap := make(map[int64]int64, 0)
-				for i, inGameUserID := range inGameUserIDs {
-					if i+1 == len(inGameUserIDs) {
-						delayLeaderIDMap[inGameUserID.UserID] = inGameUserIDs[0].UserID
-					} else {
-						delayLeaderIDMap[inGameUserID.UserID] = inGameUserIDs[i+1].UserID
+				for i, postMission := range postMissions {
+					// 最后一个特殊处理
+					if i+1 != len(postMissions) {
+						// 其它前挪一位
+						delayLeaderIDMap[postMission.LeaderID] = postMissions[i+1].LeaderID
 					}
 				}
 				// 之后的任务的 leader 更新，第一个 leader 作为流局重开局的 leader
