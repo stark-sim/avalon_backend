@@ -1,0 +1,2 @@
+# 更新了 graphql 之后，把定义更新到 apollo federation
+rover subgraph publish My-Graph-5a5p5u@current --schema ./pkg/graphql/avalon_backend.graphql --name avalon_backend --routing-url "http://159.75.243.79:8082/graphql"
