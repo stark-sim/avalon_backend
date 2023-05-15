@@ -2,9 +2,9 @@ version: "3.8"
 
 services:
   app:
-    image: starksim/avalon_backend
+    image: harbor.rosabi.cn/library/avalon_backend
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
     volumes:
       - ./config.yaml:/app/github.com/stark-sim/avalon_backend/config.yaml
     container_name: "avalon_backend"
