@@ -33,6 +33,4 @@ WORKDIR /app
 COPY --from=builder /src/http_server /app/
 COPY --from=builder /src/internal/db/migrations /app/internal/db/migrations/
 
-EXPOSE 8080
-
 ENTRYPOINT ["./http_server"]

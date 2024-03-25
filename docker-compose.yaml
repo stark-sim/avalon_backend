@@ -4,7 +4,7 @@ services:
   app:
     image: starksim/avalon_backend
     ports:
-      - "127.0.0.1:8082:8080"
+      - "127.0.0.1:8082:8082"
     volumes:
       - ./config.yaml:/app/github.com/stark-sim/avalon_backend/config.yaml
     container_name: "avalon_backend"
