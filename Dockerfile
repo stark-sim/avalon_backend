@@ -5,7 +5,7 @@ LABEL maintainer="StarkSim<gooda159753@163.com>"
 # 在容器根目录创建 src 目录
 WORKDIR /src
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+#RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache g++
 
 COPY ./go.mod .
